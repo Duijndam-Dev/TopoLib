@@ -10,7 +10,7 @@ The code is made available under the [ZLib license](License.md).   The  main ope
 
 | Library                                                      | Version   | License type |
 | ------------------------------------------------------------ | --------- | :----------: |
-| [ExcelDna](https://github.com/Excel-DNA/ExcelDna).AddIn      | 1.5.0     |     ZLIB     |
+| [ExcelDna](https://github.com/Excel-DNA/ExcelDna).Add-In     | 1.5.0     |     ZLIB     |
 | [ExcelDna](https://github.com/Excel-DNA/ExcelDna).Integration | 1.5.0     |     ZLIB     |
 | [ExcelDna](https://github.com/Excel-DNA/ExcelDna).IntelliSense | 1.5.0     |     ZLIB     |
 | [ExcelDnaDoc](https://github.com/Excel-DNA/ExcelDnaDoc)      | 1.5.0     |     ZLIB     |
@@ -18,7 +18,7 @@ The code is made available under the [ZLib license](License.md).   The  main ope
 | [SharpProj](https://github.com/AmpScm/SharpProj).Core        | 8.1001.60 |  Apache 2.0  |
 | [XlDialogBox](https://github.com/Duijndam-Dev/XlDialogBox)   | 1.0.0     |     MIT      |
 
-The SharpProj assembly is core to TopoLib, as it makes the C/C++ [proj library](https://proj.org/index.html) accessible from C#
+These packages need to be installed from NuGet.  Note that ExcelDnaDoc requires a version not higher than 1.5.0 at present. SharpProj is the core to package to TopoLib, as it makes the C/C++ [proj library](https://proj.org/index.html) accessible from C#
 
 #### 2	PROJ - Coordinate Conversion and Transformation 
 
@@ -34,19 +34,19 @@ This is the second approach of creating the TopoLib library. The original versio
 
 #### 4	SharpProj
 
-The the [DotSpatial](https://github.com/DotSpatial/DotSpatial) library is not very actively maintained. The PROJ library has made major changes to its API and functionality and improved its accuracy over the past few years. So it would be great to link against that library (somehow). 
+The the [DotSpatial](https://github.com/DotSpatial/DotSpatial) library is not very actively maintained. The PROJ library in contrary has made major changes to its functionality and API and an improved accuracy over the past few years. So it would be great to link against that library (somehow). 
 
-Interfacing managed C# code with native C++ is however very tricky, and various methods are possible (*P/Invoke, COM Interop or C++/CLI*), each with their pros and cons. See for instance this [MSDN article](https://social.msdn.microsoft.com/Forums/vstudio/en-US/299da822-5539-4e5b-9ba7-b614e564c9f4/presenting-a-c-library-lib-for-use-in-c-project?forum=vcgeneral), or this [blog article](https://mark-borg.github.io/blog/2017/interop/).  
+Interfacing managed C# code with native C++ is however very tricky, and various methods are possible (*P/Invoke, COM Interop or C++/CLI*), each with their own pros and cons. See for instance this [MSDN article](https://social.msdn.microsoft.com/Forums/vstudio/en-US/299da822-5539-4e5b-9ba7-b614e564c9f4/presenting-a-c-library-lib-for-use-in-c-project?forum=vcgeneral), or this [blog article](https://mark-borg.github.io/blog/2017/interop/).  
 
-The advantage of using C++/CLI is that the resulting 'mixed language' DLL can be linked against a static C++ library library, thereby reducing the number of DLL's being required in your project, and when used as a (thin) wrapper around PROJ additional type checking and functionality can be implemented.
+The advantage of using C++/CLI is that the resulting 'mixed language' DLL can **absorb the static PROJ library**, thereby reducing the number of DLL's required in your project by one. When used as a (thin) C## wrapper around PROJ, additional type checking and functionality can be also implemented.
 
-This is where SharpProj comes in the picture. It exposes the PROJ library through managed C++/CLI classes, which in turn can be consumed by Excel.DNA to create UDF's in Excel. Almost each basic PROJ C-routine finds its counterpart in SharpProj.
+This is where [SharpProj](https://github.com/AmpScm/SharpProj) comes into the picture. It exposes the PROJ library through managed C++/CLI classes, which in turn can be consumed by Excel.DNA to create UDF's in Excel. Almost each basic PROJ C-routine finds its counterpart in SharpProj.
 
 #### 5	Current status
 
-At present, TopoLib is Work-in-Progress. Not all classes/functions from SharpProj have yet been implemented, and the Ribbon Interface to set persistent library variables) has not been completed
+At present, TopoLib is still Work-in-Progress. Not all classes/functions from SharpProj have yet been implemented, and the Ribbon Interface to set persistent library variables has not been completed.
 
-But overall, the AddIn is already very functional; after all, as an end-user you want to convert coordinates from `(lat, long)` to `(x, y)` and the like. For this to happen, you need effectively only one call: 
+But overall, the Add-In is already very functional; after all, as an end-user you want to convert coordinates from `(lat, long)` to `(x, y)` and the like. For this to happen, you need effectively **just one call**: 
 
 `=TL.cct.TransformForward($F$89,$F$90,$B112:$C112)` 
 
@@ -75,5 +75,6 @@ You should then see a dialog like the following
 
 There is an explanation of the purpose of each variable, in this case **SourceCrs** is highlighted. Clicking `Help on this function` will bring up the precompiled help file with extra information on how to use this function.
 
-Please have fun using the tool and make improvement suggestions if you'd have these...
+When all required packages have been installed from GitHub, it is time to build the project. As part of the Post-build events, the batch file `build.bat` is called that creates a `publish` folder at the root of the project. Step into this folder and step down to select the proper version of Excel you are using (x64 or x86). Then double-click the *.xll file, to load the Add-In. Once the Add-In is loaded, the UDF's are recognized by Excel and you can run the example spreadsheet(s). 
 
+An installation script will be created to store the *.xll and associated files in the right folder on your PC. Right now, please double click the *.xll file to get it loaded.  Have fun using the tool and make improvement suggestions if you'd have these...

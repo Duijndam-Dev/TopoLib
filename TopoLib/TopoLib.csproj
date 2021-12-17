@@ -12,7 +12,7 @@
     <AssemblyName>TopoLib</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
+    <Deterministic>false</Deterministic>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
   </PropertyGroup>
@@ -123,17 +123,19 @@
   <PropertyGroup>
     <PostBuildEvent>"D:\Source\VS19\TopoLib\packages\ExcelDnaDoc.1.5.0-rc\tools\ExcelDnaDoc.exe" "$(TargetDir)TopoLib-AddIn.dna" /X
 
+"$(SolutionDir)batch\publish.bat" $(SolutionDir)  $(ConfigurationName)
+
 REM copy XLL
-if $(ConfigurationName) == Release COPY "$(TargetDir)$(TargetName)-AddIn-packed.xll"      "$(SolutionDir)publish\x86\TopoLib-AddIn.xll"
-if $(ConfigurationName) == Release COPY "$(TargetDir)$(TargetName)-AddIn64-packed.xll"  "$(SolutionDir)publish\x64\TopoLib-AddIn64.xll"
+REM if $(ConfigurationName) == Release COPY "$(TargetDir)$(TargetName)-AddIn-packed.xll"      "$(SolutionDir)publish\x86\TopoLib-AddIn.xll"
+REM if $(ConfigurationName) == Release COPY "$(TargetDir)$(TargetName)-AddIn64-packed.xll"  "$(SolutionDir)publish\x64\TopoLib-AddIn64.xll"
 
 REM copy CHM
-if $(ConfigurationName) == Release COPY "$(TargetDir)$(TargetName)-AddIn.chm"                "$(SolutionDir)publish\x86\TopoLib-AddIn.chm"
-if $(ConfigurationName) == Release COPY "$(TargetDir)$(TargetName)-AddIn.chm"                "$(SolutionDir)publish\x64\TopoLib-AddIn.chm"
+REM if $(ConfigurationName) == Release COPY "$(TargetDir)$(TargetName)-AddIn.chm"                "$(SolutionDir)publish\x86\TopoLib-AddIn.chm"
+REM if $(ConfigurationName) == Release COPY "$(TargetDir)$(TargetName)-AddIn.chm"                "$(SolutionDir)publish\x64\TopoLib-AddIn.chm"
 
 REM copy all to GOOGLE drive
-if $(ConfigurationName) == Release COPY "$(SolutionDir)publish\x86\*" "D:\Users\Bart\Google Drive\Geophysics\TopoLib\publish\x86\"
-if $(ConfigurationName) == Release COPY "$(SolutionDir)publish\x64\*" "D:\Users\Bart\Google Drive\Geophysics\TopoLib\publish\x64\"
+REM if $(ConfigurationName) == Release COPY "$(SolutionDir)publish\x86\*" "D:\Users\Bart\Google Drive\Geophysics\TopoLib\publish\x86\"
+REM if $(ConfigurationName) == Release COPY "$(SolutionDir)publish\x64\*" "D:\Users\Bart\Google Drive\Geophysics\TopoLib\publish\x64\"
 
 
 </PostBuildEvent>
