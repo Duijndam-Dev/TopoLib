@@ -27,7 +27,7 @@ if not exist "%1publish\x86" (
 )
 	
 IF "%~2" == "Release" GOTO Release
-@echo Not in 'release' mode: no xxl/chm to be published
+@echo Not in 'release' mode: no xxl/chm files to be published
 exit
 
 :Release

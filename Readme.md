@@ -18,7 +18,7 @@ The code is made available under the [ZLib license](License.md).   The  main ope
 | [SharpProj](https://github.com/AmpScm/SharpProj).Core        | 8.1001.60 |  Apache 2.0  |
 | [XlDialogBox](https://github.com/Duijndam-Dev/XlDialogBox)   | 1.0.0     |     MIT      |
 
-These packages need to be installed from NuGet.  Note that ExcelDnaDoc requires a version not higher than 1.5.0 at present. SharpProj is the core to package to TopoLib, as it makes the C/C++ [proj library](https://proj.org/index.html) accessible from C#
+These packages need to be installed from NuGet.  Note that ExcelDnaDoc requires a version not higher than 1.5.0 at present. SharpProj is the core package in TopoLib, as it makes the [proj library](https://proj.org/index.html) writtten in C/C++ accessible from C#.
 
 #### 2	PROJ - Coordinate Conversion and Transformation 
 
@@ -32,6 +32,8 @@ PROJ is widely used in the industry, for instance [QGIS](https://www.qgis.org/en
 
 This is the second approach of creating the TopoLib library. The original version was built using C++ in conjunction with the [XLW-library](https://github.com/xlw/xlw) to create Excel extensions. The XLW-library is no longer actively maintained, and therefore the transition to 64-bit Excel became troublesome. This is where `Excel-DNA`  came to the rescue (*note: 'DNA' stands for DotNet for Applications, similar to VBA - Visual Basic for Applications*). This made a transition to C# mandatory.  Therefore, PROJ (*written in C++*) either needed to be replaced by a similar library written in C# (like the [DotSpatial](https://github.com/DotSpatial/DotSpatial) library),  or alternatively C#  bindings to PROJ needed to be used. 
 
+Though the latest version of ExcelDna.Addin,  ExcelDna.Integration and ExcelDna.Intellisense is currently 1.5.1-rc3, the ExcelDnaDoc package is restricted to version 1.5.0-rc. This limits the versions of the other packages to 1.5.0.
+
 #### 4	SharpProj
 
 The the [DotSpatial](https://github.com/DotSpatial/DotSpatial) library is not very actively maintained. The PROJ library in contrary has made major changes to its functionality and API and an improved accuracy over the past few years. So it would be great to link against that library (somehow). 
@@ -42,7 +44,19 @@ The advantage of using C++/CLI is that the resulting 'mixed language' DLL can **
 
 This is where [SharpProj](https://github.com/AmpScm/SharpProj) comes into the picture. It exposes the PROJ library through managed C++/CLI classes, which in turn can be consumed by Excel.DNA to create UDF's in Excel. Almost each basic PROJ C-routine finds its counterpart in SharpProj.
 
-#### 5	Current status
+After some unit testing of the SharpProj.dll (that includes the PROJ static library) it became apparent that memory leaks occur, when doing coordinate transforms using a deprecated CRS from the `Proj.db` database. Ultimately, this results in Excel crashing, and your work being lost... For that reason deprecated CRS-es are disabled by default, unless enabled explicitly. 
+
+The PROJ library uses an environment variable `PROJ_LIB` to locate its database and the (GeoTiff) grid-files. To help the end user, two routines have been added to add and read environment variables under `=TL.env` in TopoLib. 
+
+Parameters that need to be maintained outside of a particular spreadsheet can be save in a `TopoLib.config` file that resides in the folder`LocalApplicationData\TopoLib\`. See routines under  `=TL.cfg`in TopoLib for more information.
+
+#### 5	Building the TopoLib library
+
+**After** installing the required packages from GitHub, it is time to build the project. This is as simple as hitting `F7`. As part of the Post-build events, a batch file `build.bat` is called that creates a `publish` folder at the root of the project. Step into this folder and step down to select the proper version of Excel you are using (x64 or x86). Then double-click the *.xll file, to load the Add-In. Once the Add-In is loaded, the UDF's are recognized by Excel and you can run the example spreadsheets. Separate spreadsheets have been included that demonstrate the use of **static arrays**, using so-called Control-Shift-Enter (CSE) functions used in Excel 2019 and earlier. Later versions of Excel (Office 365) use so-called **dynamic arrays**, where the results 'spill over' (to the bottom-right ) from the active cell. No more worries on having to pre-select the (anticipated) output area beforehand. 
+
+An installation script will be developed to store the *.xll and associated files in the right folder on your PC. Right now, please double click the *.xll file to get it loaded.  Have fun using the tool and make improvement suggestions if you'd have these...
+
+#### 6	Current status
 
 At present, TopoLib is still Work-in-Progress. Not all classes/functions from SharpProj have yet been implemented, and the Ribbon Interface to set persistent library variables has not been completed.
 
@@ -51,8 +65,6 @@ But overall, the Add-In is already very functional; after all, as an end-user yo
 `=TL.cct.TransformForward($F$89,$F$90,$B112:$C112)` 
 
 This will transform the coordinates you provided in `$B112:$C112`to new coordinates using the source Coordinate Reference System (CRS) defined in `$F$89` and the target CRS defined in `$F$90`. That is all there is to it !
-
-#### 6	Future work
 
 The following is planned:
 
@@ -63,7 +75,7 @@ The following is planned:
 
 #### 7	Finally
 
-The project comes with an example spreadsheet to show how you can use the code. If you get 'lost' please us `fx` on the formula editor.
+The project comes with some example spreadsheets to show how you can use the code. If you get 'lost' please us `fx` on the formula editor.
 
 ![image-20211217110658409](Typora/image-20211217110658409.png) 
 
@@ -71,10 +83,5 @@ You should then see a dialog like the following
 
 ![image-20211217111622793](Typora/image-20211217111622793.png) 
 
-
-
 There is an explanation of the purpose of each variable, in this case **SourceCrs** is highlighted. Clicking `Help on this function` will bring up the precompiled help file with extra information on how to use this function.
 
-When all required packages have been installed from GitHub, it is time to build the project. As part of the Post-build events, the batch file `build.bat` is called that creates a `publish` folder at the root of the project. Step into this folder and step down to select the proper version of Excel you are using (x64 or x86). Then double-click the *.xll file, to load the Add-In. Once the Add-In is loaded, the UDF's are recognized by Excel and you can run the example spreadsheet(s). 
-
-An installation script will be created to store the *.xll and associated files in the right folder on your PC. Right now, please double click the *.xll file to get it loaded.  Have fun using the tool and make improvement suggestions if you'd have these...

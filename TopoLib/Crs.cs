@@ -141,8 +141,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (CoordinateReferenceSystem crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null & crs.CoordinateSystem != null)
@@ -183,8 +181,6 @@ namespace TopoLib
             {
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -228,8 +224,6 @@ namespace TopoLib
             {
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -273,8 +267,6 @@ namespace TopoLib
             {
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -318,8 +310,6 @@ namespace TopoLib
             {
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -363,8 +353,6 @@ namespace TopoLib
             {
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -406,8 +394,6 @@ namespace TopoLib
             {
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -451,8 +437,6 @@ namespace TopoLib
             {
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -492,8 +476,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -533,8 +515,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -574,8 +554,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -615,8 +593,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -656,8 +632,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -697,8 +671,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -738,8 +710,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -779,8 +749,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -817,8 +785,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -855,8 +821,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -891,8 +855,6 @@ namespace TopoLib
             {
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -931,8 +893,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -977,8 +937,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -1021,8 +979,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -1057,12 +1013,10 @@ namespace TopoLib
             {
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
-                            return crs.Ellipsoid.IsSemiMinorComputed;
+                            return crs.IsDeprecated;
 
                         return ExcelError.ExcelErrorValue; 
                     }
@@ -1096,8 +1050,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -1137,8 +1089,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -1178,8 +1128,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -1219,8 +1167,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -1260,8 +1206,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -1298,8 +1242,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -1336,8 +1278,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -1377,8 +1317,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -1418,8 +1356,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         CrsString = crs.AsProjJson();
@@ -1458,8 +1394,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         CrsString = crs.AsWellKnownText();
@@ -1498,8 +1432,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using ( var crs = GetCrs(oCrs, pc))
                     {
                         CrsString = crs.AsProjString();
@@ -1538,8 +1470,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -1579,8 +1509,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -1618,8 +1546,6 @@ namespace TopoLib
             {
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null && crs.UsageArea != null && crs.UsageArea.Center !=null)
@@ -1654,8 +1580,6 @@ namespace TopoLib
             {
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null && crs.UsageArea != null)
@@ -1690,8 +1614,6 @@ namespace TopoLib
             {
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null && crs.UsageArea != null)
@@ -1728,8 +1650,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -1769,8 +1689,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -1807,8 +1725,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -1845,8 +1761,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)
@@ -1883,8 +1797,6 @@ namespace TopoLib
 
                 using (var pc = new ProjContext())
                 {
-                    // GC.KeepAlive(pc.Clone());
-
                     using (var crs = GetCrs(oCrs, pc))
                     {
                         if (crs != null)

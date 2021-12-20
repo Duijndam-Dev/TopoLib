@@ -21,7 +21,7 @@ namespace TopoLib
     {
         // see for an example: https://docs.microsoft.com/en-us/dotnet/api/system.configuration.configurationmanager.openexeconfiguration?view=dotnet-plat-ext-6.0
 
-        private static string getConfigFilePath()
+        private static string GetConfigFilePath()
         {
             string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             appData = Path.Combine(appData , "TopoLib", "TopoLib") + ".config";
@@ -59,7 +59,7 @@ namespace TopoLib
 */
                 // Map the roaming configuration file. This enables the application to access
                 ExeConfigurationFileMap configFileMap = new ExeConfigurationFileMap();
-                configFileMap.ExeConfigFilename = getConfigFilePath();
+                configFileMap.ExeConfigFilename = GetConfigFilePath();
 
                 // Get the mapped configuration file.
                 Configuration configFile = ConfigurationManager.OpenMappedExeConfiguration(configFileMap, ConfigurationUserLevel.None);
@@ -99,7 +99,7 @@ namespace TopoLib
             {
                 // Map the roaming configuration file. This enables the application to access
                 ExeConfigurationFileMap configFileMap = new ExeConfigurationFileMap();
-                configFileMap.ExeConfigFilename = getConfigFilePath();
+                configFileMap.ExeConfigFilename = GetConfigFilePath();
 
                 // Get the mapped configuration file.
                 Configuration configFile = ConfigurationManager.OpenMappedExeConfiguration(configFileMap, ConfigurationUserLevel.None);
@@ -137,7 +137,7 @@ namespace TopoLib
             {
                 // Map the roaming configuration file. This enables the application to access
                 ExeConfigurationFileMap configFileMap = new ExeConfigurationFileMap();
-                configFileMap.ExeConfigFilename = getConfigFilePath();
+                configFileMap.ExeConfigFilename = GetConfigFilePath();
 
                 // Get the mapped configuration file.
                 Configuration configFile = ConfigurationManager.OpenMappedExeConfiguration(configFileMap, ConfigurationUserLevel.None);
@@ -179,7 +179,7 @@ namespace TopoLib
             {
                 // Map the roaming configuration file. This enables the application to access
                 ExeConfigurationFileMap configFileMap = new ExeConfigurationFileMap();
-                configFileMap.ExeConfigFilename = getConfigFilePath();
+                configFileMap.ExeConfigFilename = GetConfigFilePath();
 
                 // Get the mapped configuration file.
                 Configuration configFile = ConfigurationManager.OpenMappedExeConfiguration(configFileMap, ConfigurationUserLevel.None);
@@ -257,7 +257,7 @@ namespace TopoLib
             {
                 // Map the roaming configuration file. This enables the application to access
                 ExeConfigurationFileMap configFileMap = new ExeConfigurationFileMap();
-                configFileMap.ExeConfigFilename = getConfigFilePath();
+                configFileMap.ExeConfigFilename = GetConfigFilePath();
 
                 // Get the mapped configuration file.
                 Configuration configFile = ConfigurationManager.OpenMappedExeConfiguration(configFileMap, ConfigurationUserLevel.None);
@@ -301,7 +301,7 @@ namespace TopoLib
             {
                 // Map the roaming configuration file. This enables the application to access
                 ExeConfigurationFileMap configFileMap = new ExeConfigurationFileMap();
-                configFileMap.ExeConfigFilename = getConfigFilePath();
+                configFileMap.ExeConfigFilename = GetConfigFilePath();
 
                 // Get the mapped configuration file.
                 Configuration configFile = ConfigurationManager.OpenMappedExeConfiguration(configFileMap, ConfigurationUserLevel.None);

@@ -13,11 +13,19 @@ using SharpProj.Proj;
 // The idea is that the default parameters can also be set from the (yet to be developed) Ribbon Interface.
 namespace TopoLib
 {
-	// modeled after C++/CLI Coordinate_transformOptions
-    class CctOptions
+	// built on top of SharpProj Coordinate_transformOptions
+    static class CctOptions
     {
+		static CctOptions()  
+		{
+			_transformOptions = new CoordinateTransformOptions();
+			_useNetworkConnection = false;
+			_allowDeprecatedCRS = false;
+		}  
+
 		private static CoordinateTransformOptions _transformOptions;
-		private static bool _useNetworkConnection = false;	
+		private static bool _useNetworkConnection;
+		private static bool _allowDeprecatedCRS;
 		
 		public static CoordinateTransformOptions TransformOptions   // property
 		{
@@ -25,47 +33,16 @@ namespace TopoLib
 			set { _transformOptions =  value; }  // set method
 		}
 
-		// individual members
-		public static bool AllowBallparkConversions   // property
-		{
-			get { return ! _transformOptions.NoBallparkConversions; }   // get method
-			set { _transformOptions.NoBallparkConversions = ! value; }  // set method
-		}
-
-		public static bool DiscardIfGridMissing   // property
-		{
-			get { return ! _transformOptions.NoDiscardIfMissing; }   // get method
-			set { _transformOptions.NoDiscardIfMissing = ! value; }  // set method
-		}
-
-		public static bool UsePrimaryGridNames   // property
-		{
-			get { return _transformOptions.UsePrimaryGridNames; }   // get method
-			set { _transformOptions.UsePrimaryGridNames = value; }  // set method
-		}
-
-		public static bool UseSuperseded   // property
-		{
-			get { return _transformOptions.UseSuperseded; }   // get method
-			set { _transformOptions.UseSuperseded = value; }  // set method
-		}
-
-		public static bool StrictlyContains   // property
-		{
-			get { return _transformOptions.UseSuperseded; }   // get method
-			set { _transformOptions.UseSuperseded = value; }  // set method
-		}
-
-		public static IntermediateCrsUsage AllowintermediateCrs   // property
-		{
-			get { return _transformOptions.IntermediateCrsUsage; }   // get method
-			set { _transformOptions.IntermediateCrsUsage = value; }  // set method
-		}
-
 		public static bool UseNetworkConnection   // property
 		{
 			get { return _useNetworkConnection; }   // get method
 			set { _useNetworkConnection = value; }  // set method
+		}
+
+		public static bool AllowDeprecatedCRS   // property
+		{
+			get { return _allowDeprecatedCRS; }   // get method
+			set { _allowDeprecatedCRS = value; }  // set method
 		}
     }
 }

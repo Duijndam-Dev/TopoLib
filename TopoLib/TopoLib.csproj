@@ -70,6 +70,7 @@
     <Compile Include="CctOptions.cs" />
     <Compile Include="Cfg.cs" />
     <Compile Include="Crs.cs" />
+    <Compile Include="Env.cs" />
     <Compile Include="Lib.cs" />
     <Compile Include="Optional.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
