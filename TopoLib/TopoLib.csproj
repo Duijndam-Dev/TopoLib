@@ -122,7 +122,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>"D:\Source\VS19\TopoLib\packages\ExcelDnaDoc.1.5.0-rc\tools\ExcelDnaDoc.exe" "$(TargetDir)TopoLib-AddIn.dna" /X
+    <PostBuildEvent>"$(SolutionDir)\packages\ExcelDnaDoc.1.5.0-rc\tools\ExcelDnaDoc.exe" "$(TargetDir)TopoLib-AddIn.dna" /X
 
 "$(SolutionDir)batch\publish.bat" $(SolutionDir)  $(ConfigurationName)
 
