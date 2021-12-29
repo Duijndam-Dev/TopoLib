@@ -78,7 +78,9 @@ pre
 
 code 
 {
-	background-color: lightgrey;
+	background-color: lightyellow;
+	font-size: 125%;
+	font-weight: bold;
 }
 
 pre.code

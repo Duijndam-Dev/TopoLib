@@ -77,7 +77,7 @@ namespace TopoLib
             if (nMode > 7)
             {
                 // get stuff from nMode parameter, and set values for bAllowDeprecatedCRS & bUseNetwork.
-                // nMode = 2048 will arrive here but won't set any flags; for debugging only
+                // nMode = 4096 will arrive here but won't set any flags; for debugging only
                 options.Accuracy              = Accuracy;
                 options.Area                  = westLongitude > -1000 ? new CoordinateArea(westLongitude, southLatitude, eastLongitude, northLatitude) : null;
                 options.NoBallparkConversions = (nMode &    8) != 0 ? true : false;
