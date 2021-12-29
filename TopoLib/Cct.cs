@@ -1387,7 +1387,7 @@ namespace TopoLib
         public static object Transforms_ListAll(
             [ExcelArgument("sourceCrs using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrs")] object[,] SourceCrs,
             [ExcelArgument("targetCrs using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrs")] object[,] TargetCrs,
-            [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
+            [ExcelArgument("Output mode: < 4 and flag: > 7. (0); 0 returns definition, 1 = PROJ string, 2 = WKT string, 3 = JSON string. Check flag values 2^n in the help file", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
             [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
@@ -1398,6 +1398,7 @@ namespace TopoLib
                 return ExcelError.ExcelErrorRef;
 
             // Check input data
+            
             int nMode            = (int)Optional.Check(oMode, 0.0);
             double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
             double westLongitude = Optional.Check(oWestLongitude, -1000.0);
@@ -1407,6 +1408,8 @@ namespace TopoLib
 
             if (nMode < 0 || nMode > 4096)
                 return ExcelError.ExcelErrorValue;
+
+            int nOutput = nMode & 3;
 
             // do the work
             try
@@ -1433,61 +1436,137 @@ namespace TopoLib
                         else
                             count = 1;
 
-                        object[,] res = new object[count + 1, 13];
+                        object[,] res = new object[count + 1, 12];
 
-                        res[0,  0] = "Authority";
-                        res[0,  1] = "Code";
-                        res[0,  2] = "Transformation Name";
-                        res[0,  3] = "Accuracy[m]";
-                        res[0,  4] = "Area of Use";
+                        res[0,  0] = "Transform Identifiers";
+                        res[0,  1] = "Transform Name";
+                        res[0,  2] = "Accuracy [m]";
+                        res[0,  3] = "Area of Use";
+                        res[0,  4] = "Scope";
                         res[0,  5] = "Lat-min";
                         res[0,  6] = "Lon-min";
                         res[0,  7] = "Lat-max";
                         res[0,  8] = "Lon-max";
                         res[0,  9] = "Nr grids";
                         res[0, 10] = "1st grid";
-                        res[0, 11] = "Scope";
-                        res[0, 12] = "Transformation definition";
 
-                        string definition;
+                        switch(nOutput)
+                        {
+                            default:
+                            case 0:
+                                res[0, 11] = "Transform Definition";
+                                break;
+                            case 1:
+                                res[0, 11] = "Transform PROJ string";
+                                break;
+                            case 2:
+                                res[0, 11] = "Transform WKT string";
+                                break;
+                            case 3:
+                                res[0, 11] = "Transform JSON string";
+                                break;
+                        }
+
+                        object accuracy; 
+
                         if (count == 1)
                         {
-                            res[1,  0] = transform.Identifiers is null ? "Unknown" : transform.Identifier.Authority;
-                            res[1,  1] = transform.Identifiers is null ? "Unknown" : transform.Identifier.Code;
-                            res[1,  2] = transform.Name;
-                            res[1,  3] = transform.Accuraracy;
-                            res[1,  4] = transform.UsageArea.Name;
+                            string ids = transform.Identifier?.ToString();
+                            string scopes = transform.Scope;
+                            if (ids == null && transform is CoordinateTransformList ctl)
+                            {
+                                ids = string.Join(", ", ctl.Where(x => x.Identifiers != null).SelectMany(x => x.Identifiers));
+                                scopes = string.Join(", ", ctl.Select(x => x.Scope).Where(x => x != null).Distinct());
+                            }
+
+                            if (transform.Accuraracy is null || transform.Accuraracy <= 0.0) 
+                            { 
+                                accuracy = "Unknown"; 
+                            } 
+                            else
+                            {
+                                accuracy = transform.Accuraracy;
+                            }
+
+                            res[1,  0] = transform.Identifiers is null ? ids : transform.Identifier.Authority;;
+                            res[1,  1] = transform.Name;
+                            res[1,  2] = accuracy;
+                            res[1,  3] = transform.UsageArea.Name;
+                            res[1,  4] = transform.Scope is null ? scopes  : transform.Scope;
                             res[1,  5] = transform.UsageArea.SouthLatitude;
                             res[1,  6] = transform.UsageArea.WestLongitude;
                             res[1,  7] = transform.UsageArea.NorthLatitude;
                             res[1,  8] = transform.UsageArea.EastLongitude;
                             res[1,  9] = transform.GridUsages.Count;
                             res[1, 10] = transform.GridUsages.Count > 0 ? transform.GridUsages[0].FullName : "N.A.";
-                            res[1, 11] = transform.Scope       is null ? "Unknown" : transform.Scope;
-                            definition = transform.Definition.Trim();
-                            definition = "+" + definition.Replace(" ", " +");
-                            res[1, 12] = definition;
+
+                            switch(nOutput)
+                            {
+                                default:
+                                case 0:
+                                    res[1, 11] = transform.Definition;
+                                    break;
+                                case 1:
+                                    res[1, 11] = transform.AsProjString();
+                                    break;
+                                case 2:
+                                    res[1, 11] = transform.AsWellKnownText();
+                                    break;
+                                case 3:
+                                    res[1, 11] = transform.AsProjJson();
+                                    break;
+                            }
                         }
                         else
                         {
                             bestTransform = cl[0];
+
                             for (int i = 0; i < count; i++)
                             {
-                                res[i + 1,  0] = cl[i].Identifiers is null ? "Unknown" : cl[i].Identifier.Authority;
-                                res[i + 1,  1] = cl[i].Identifiers is null ? "Unknown" : cl[i].Identifier.Code;
-                                res[i + 1,  2] = cl[i].Name;
-                                res[i + 1,  3] = cl[i].Accuraracy;
-                                res[i + 1,  4] = cl[i].UsageArea.Name;
+                                string ids = cl[i].Identifier?.ToString();
+                                string scopes = cl[i].Scope;
+                                if (ids == null && cl[i] is CoordinateTransformList ctl)
+                                {
+                                    ids = string.Join(", ", ctl.Where(x => x.Identifiers != null).SelectMany(x => x.Identifiers));
+                                    scopes = string.Join(", ", ctl.Select(x => x.Scope).Where(x => x != null).Distinct());
+                                }
+                                if (cl[i].Accuraracy is null || cl[i].Accuraracy <= 0.0)
+                                { 
+                                    accuracy = "Unknown"; 
+                                } 
+                                else 
+                                { 
+                                    accuracy = cl[i].Accuraracy;
+                                }
+
+                                res[i + 1,  0] = cl[i].Identifiers is null ? ids : cl[i].Identifier.Authority;
+                                res[i + 1,  1] = cl[i].Name;
+                                res[i + 1,  2] = accuracy;
+                                res[i + 1,  3] = cl[i].UsageArea.Name;
+                                res[i + 1,  4] = cl[i].Scope is null ? scopes : cl[i].Scope;
                                 res[i + 1,  5] = cl[i].UsageArea.SouthLatitude;
                                 res[i + 1,  6] = cl[i].UsageArea.WestLongitude;
                                 res[i + 1,  7] = cl[i].UsageArea.NorthLatitude;
                                 res[i + 1,  8] = cl[i].UsageArea.EastLongitude;
                                 res[i + 1,  9] = cl[i].GridUsages.Count;
                                 res[i + 1, 10] = cl[i].GridUsages.Count > 0 ? cl[i].GridUsages[0].FullName : "N.A.";
-                                res[i + 1, 11] = cl[i].Scope       is null ? "Unknown" : cl[i].Scope;
-                                definition = cl[i].Definition.Trim();
-                                definition = "+" + definition.Replace(" ", " +");
-                                res[i + 1, 12] = definition;
+
+                                switch(nOutput)
+                                {
+                                    default:
+                                    case 0:
+                                        res[i + 1, 11] = cl[i].Definition;
+                                        break;
+                                    case 1:
+                                        res[i + 1, 11] = cl[i].AsProjString();
+                                        break;
+                                    case 2:
+                                        res[i + 1, 11] = cl[i].AsWellKnownText();
+                                        break;
+                                    case 3:
+                                        res[i + 1, 11] = cl[i].AsProjJson();
+                                        break;
+                                }
                             }
                         }
                         return res;
