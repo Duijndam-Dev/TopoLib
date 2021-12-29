@@ -44,7 +44,7 @@ The the [DotSpatial](https://github.com/DotSpatial/DotSpatial) library isn't ver
 
 Interfacing managed C# code with native C++ is however very tricky, and various methods are possible (*P/Invoke, COM Interop or C++/CLI*), each with their own pros and cons. See for instance this [MSDN article](https://social.msdn.microsoft.com/Forums/vstudio/en-US/299da822-5539-4e5b-9ba7-b614e564c9f4/presenting-a-c-library-lib-for-use-in-c-project?forum=vcgeneral), or this [blog article](https://mark-borg.github.io/blog/2017/interop/).  
 
-The advantage of using C++/CLI is that the resulting 'mixed language' DLL can **incorporate PROJ as a static library**, as well as all required third party libraries. For PROJ these are: `jpeg62.lib, lzmad.lib, sqlite3.lib, tiffd.liband zlibd1.lib`. This substantially reduces the number of required DLL's in your project. When used as a (thin) C# wrapper around PROJ, additional type checking and functionality can be also implemented.
+The advantage of using C++/CLI is that the resulting 'mixed language' DLL can **incorporate PROJ as a static library**, as well as all required third party libraries. For PROJ these are: `jpeg62.lib, lzmad.lib, sqlite3.lib, tiffd.lib and zlibd1.lib`. This substantially reduces the number of required DLL's in your project. When used as a (thin) C# wrapper around PROJ, additional type checking and functionality can be also implemented.
 
 This is where [SharpProj](https://github.com/AmpScm/SharpProj) comes into the picture. It exposes the PROJ library through managed C++/CLI classes, which in turn can be consumed by Excel-DNA to create UDF's in Excel. Almost every  PROJ C++-routine finds its counterpart in SharpProj.
 

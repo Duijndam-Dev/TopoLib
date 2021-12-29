@@ -138,8 +138,7 @@
     <Error Condition="!Exists('..\packages\SharpProj.8.1001.76\build\SharpProj.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SharpProj.8.1001.76\build\SharpProj.targets'))" />
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>"D:\Source\VS19\TopoLib\packages\ExcelDnaDoc.1.1.0-beta2\tools\ExcelDnaDoc.exe" "$(TargetDir)TopoLib-AddIn.dna" /X
-
+    <PostBuildEvent>"$(SolutionDir)\packages\ExcelDnaDoc.1.1.0-beta2\tools\ExcelDnaDoc.exe" "$(TargetDir)TopoLib-AddIn.dna" /X
 "$(SolutionDir)batch\publish.bat" $(SolutionDir)  $(ConfigurationName)
 
 REM copy XLL
