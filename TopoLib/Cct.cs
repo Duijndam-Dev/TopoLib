@@ -1437,7 +1437,6 @@ namespace TopoLib
                         CoordinateTransform transform = CreateCoordinateTransform(crsSource, crsTarget, options, pc, bAllowDeprecatedCRS, bUseNetwork);
                         ChooseCoordinateTransform transforms = transform as ChooseCoordinateTransform;
 
-
                         int count = 0;
                         if (transforms != null)
                             count = transforms.Count;
