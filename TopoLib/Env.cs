@@ -31,11 +31,11 @@ namespace TopoLib
             (
             [ExcelArgument("First string of the [key, value] pair to be added/updated", Name = "key")] string key,
             [ExcelArgument("Second string of the [key, value] pair to be added/updated", Name = "value")] string value,
-            [ExcelArgument("Option (0) ; 0 = current process, 1 = current user, 2 = current machine", Name = "mode")] object oMode)
+            [ExcelArgument("Option (1) ; 0 = current process, 1 = current user, 2 = current machine", Name = "mode")] object oMode)
         {
             try
             {
-                int nMode   = (int)Optional.Check(oMode, 0.0);
+                int nMode   = (int)Optional.Check(oMode, 1.0);
                 bool bReset = String.IsNullOrWhiteSpace(value);
 
                 EnvironmentVariableTarget E = (EnvironmentVariableTarget) nMode;
@@ -43,12 +43,12 @@ namespace TopoLib
 
                 switch (nMode)
                 {
-                    default:
                     case 0:
                         // The current process.
                         Environment.SetEnvironmentVariable(key, bReset ? null : value, EnvironmentVariableTarget.Process);
                         value = Environment.GetEnvironmentVariable(key, EnvironmentVariableTarget.Process) ?? "(none)";
                         break;
+                    default:
                     case 1:
                         // The current user.
                         Environment.SetEnvironmentVariable(key, bReset ? null : value, EnvironmentVariableTarget.User);
@@ -76,18 +76,18 @@ namespace TopoLib
             Name = "TL.env.GetEnvironmentVariable",
             Description = "reads a [key, value] pair in the environment settings",
             Category = "ENV - Environment",
-            HelpTopic = "TopoLib-AddIn.chm!1401",
+            HelpTopic = "TopoLib-AddIn.chm!1402",
 
             Returns = "[env:<{key}>, value:<{value}>, mode<{mode}>] string in case of succes, #VALUE in case of failure.",
             Remarks = "In case of a #VALUE error, please ensure the {key} string is in between \"double quotes\".")]
         public static object GetEnvironmentVariable
             (
             [ExcelArgument("{Key} of the [key, value] pair to be read", Name = "key")] string key,
-            [ExcelArgument("Option (0) ; 0 = current process, 1 = current user, 2 = current machine", Name = "mode")] object oMode)
+            [ExcelArgument("Option (1) ; 0 = current process, 1 = current user, 2 = current machine", Name = "mode")] object oMode)
         {
             try
             {
-                int nMode  = (int)Optional.Check(oMode, 0.0);
+                int nMode  = (int)Optional.Check(oMode, 1.0);
                 string value = "";
 
                 EnvironmentVariableTarget E = (EnvironmentVariableTarget) nMode;
@@ -95,11 +95,11 @@ namespace TopoLib
 
                 switch (nMode)
                 {
-                    default:
                     case 0:
                         // The current process.
                         value = Environment.GetEnvironmentVariable(key, EnvironmentVariableTarget.Process) ?? "(none)";
                         break;
+                    default:
                     case 1:
                         // The current user.
                         value = Environment.GetEnvironmentVariable(key, EnvironmentVariableTarget.User) ?? "(none)";
@@ -109,6 +109,7 @@ namespace TopoLib
                         value = Environment.GetEnvironmentVariable(key, EnvironmentVariableTarget.Machine) ?? "(none)";
                         break;
                 }
+
                 string kv =  $"[env:<{key}>, value:<{value}>, mode:<{mode}>]";
 
                 return kv;
@@ -118,6 +119,54 @@ namespace TopoLib
                 return Lib.ExceptionHandler(ex);
             }
         } // GetEnvironmentVariable
+
+        [ExcelFunctionDoc(
+            IsVolatile = true,
+            Name = "TL.env.GetEnvironmentVariableValue",
+            Description = "reads a [key, value] pair in the environment settings",
+            Category = "ENV - Environment",
+            HelpTopic = "TopoLib-AddIn.chm!1403",
+
+            Returns = "Value of environment variable in case of succes, #VALUE in case of failure.",
+            Remarks = "In case of a #VALUE error, please ensure the {key} string is in between \"double quotes\".")]
+        public static object GetEnvironmentVariableValue
+            (
+            [ExcelArgument("{Key} of the [key, value] pair to be read", Name = "key")] string key,
+            [ExcelArgument("Option (1) ; 0 = current process, 1 = current user, 2 = current machine", Name = "mode")] object oMode)
+        {
+            try
+            {
+                int nMode  = (int)Optional.Check(oMode, 1.0);
+                string value = "";
+
+                EnvironmentVariableTarget E = (EnvironmentVariableTarget) nMode;
+                string mode = E.ToString();
+
+                switch (nMode)
+                {
+                    case 0:
+                        // The current process.
+                        value = Environment.GetEnvironmentVariable(key, EnvironmentVariableTarget.Process) ?? "(none)";
+                        break;
+                    default:
+                    case 1:
+                        // The current user.
+                        value = Environment.GetEnvironmentVariable(key, EnvironmentVariableTarget.User) ?? "(none)";
+                        break;
+                    case 2:
+                        // The local machine.
+                        value = Environment.GetEnvironmentVariable(key, EnvironmentVariableTarget.Machine) ?? "(none)";
+                        break;
+                }
+
+                return value;
+            }
+            catch (Exception ex)
+            {
+                return Lib.ExceptionHandler(ex);
+            }
+        } // GetEnvironmentVariableValue
+
     }
 }
 

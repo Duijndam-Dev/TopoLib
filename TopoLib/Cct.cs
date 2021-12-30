@@ -17,6 +17,16 @@ using SharpProj.Proj;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 
+// I made a backup of my project by renaming it to TopoLibOld 
+// Then I rebuilt TopoLib from scratch starting from ExcelDna v1.1.0 in view of Virusscanner false positives with v1.5.0
+// Next I added all source files, etc.
+// But then Git was stuffed, because my project history under TopoLib did not jive with the master branch on the server.
+// After some googling, I used the following command from the command line: 
+//
+// git push --set-upstream origin master -f
+//
+// This solved the problem, and my latest changes are uploaded to GitHub....
+
 // The reference to SharpProj is effectively a reference to:
 // D:\Source\VS19\TopoLib\packages\SharpProj.Core.8.1001.60\lib\net45\SharpProj.dll
 // 
@@ -1359,10 +1369,10 @@ namespace TopoLib
                         // Setup the transform
                         var transform = CreateCoordinateTransform(crsSource, crsTarget, options, pc, bAllowDeprecatedCRS, bUseNetwork);
                         
-                        ChooseCoordinateTransform cl = transform as ChooseCoordinateTransform;
+                        ChooseCoordinateTransform transforms = transform as ChooseCoordinateTransform;
 
-                        if (cl != null)
-                            return cl.Count;
+                        if (transforms != null)
+                            return transforms.Count;
                         else
                             return 1;
                     }
@@ -1387,7 +1397,7 @@ namespace TopoLib
         public static object Transforms_ListAll(
             [ExcelArgument("sourceCrs using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrs")] object[,] SourceCrs,
             [ExcelArgument("targetCrs using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrs")] object[,] TargetCrs,
-            [ExcelArgument("Output mode: < 4 and flag: > 7. (0); 0 returns definition, 1 = PROJ string, 2 = WKT string, 3 = JSON string. Check flag values 2^n in the help file", Name = "mode")] object oMode,
+            [ExcelArgument("Output mode: (0); 0 = definition, 1 = PROJ string, 2 = WKT string, 3 = JSON string. Is combined with 2^n flag: 8, 16, ..., 2048. See help file for more information", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
             [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
@@ -1425,14 +1435,12 @@ namespace TopoLib
 
                         // Setup the transform
                         CoordinateTransform transform = CreateCoordinateTransform(crsSource, crsTarget, options, pc, bAllowDeprecatedCRS, bUseNetwork);
-                        
-                        CoordinateTransform bestTransform;
-                        ChooseCoordinateTransform cl = transform as ChooseCoordinateTransform;
-                        CoordinateTransformList steps = transform as CoordinateTransformList;
+                        ChooseCoordinateTransform transforms = transform as ChooseCoordinateTransform;
+
 
                         int count = 0;
-                        if (cl != null)
-                            count = cl.Count;
+                        if (transforms != null)
+                            count = transforms.Count;
                         else
                             count = 1;
 
@@ -1519,52 +1527,50 @@ namespace TopoLib
                         }
                         else
                         {
-                            bestTransform = cl[0];
-
                             for (int i = 0; i < count; i++)
                             {
-                                string ids = cl[i].Identifier?.ToString();
-                                string scopes = cl[i].Scope;
-                                if (ids == null && cl[i] is CoordinateTransformList ctl)
+                                string ids = transforms[i].Identifier?.ToString();
+                                string scopes = transforms[i].Scope;
+                                if (ids == null && transforms[i] is CoordinateTransformList ctl)
                                 {
                                     ids = string.Join(", ", ctl.Where(x => x.Identifiers != null).SelectMany(x => x.Identifiers));
                                     scopes = string.Join(", ", ctl.Select(x => x.Scope).Where(x => x != null).Distinct());
                                 }
-                                if (cl[i].Accuraracy is null || cl[i].Accuraracy <= 0.0)
+                                if (transforms[i].Accuraracy is null || transforms[i].Accuraracy <= 0.0)
                                 { 
                                     accuracy = "Unknown"; 
                                 } 
                                 else 
                                 { 
-                                    accuracy = cl[i].Accuraracy;
+                                    accuracy = transforms[i].Accuraracy;
                                 }
 
-                                res[i + 1,  0] = cl[i].Identifiers is null ? ids : cl[i].Identifier.Authority;
-                                res[i + 1,  1] = cl[i].Name;
+                                res[i + 1,  0] = transforms[i].Identifiers is null ? ids : transforms[i].Identifier.Authority;
+                                res[i + 1,  1] = transforms[i].Name;
                                 res[i + 1,  2] = accuracy;
-                                res[i + 1,  3] = cl[i].UsageArea.Name;
-                                res[i + 1,  4] = cl[i].Scope is null ? scopes : cl[i].Scope;
-                                res[i + 1,  5] = cl[i].UsageArea.SouthLatitude;
-                                res[i + 1,  6] = cl[i].UsageArea.WestLongitude;
-                                res[i + 1,  7] = cl[i].UsageArea.NorthLatitude;
-                                res[i + 1,  8] = cl[i].UsageArea.EastLongitude;
-                                res[i + 1,  9] = cl[i].GridUsages.Count;
-                                res[i + 1, 10] = cl[i].GridUsages.Count > 0 ? cl[i].GridUsages[0].FullName : "N.A.";
+                                res[i + 1,  3] = transforms[i].UsageArea.Name;
+                                res[i + 1,  4] = transforms[i].Scope is null ? scopes : transforms[i].Scope;
+                                res[i + 1,  5] = transforms[i].UsageArea.SouthLatitude;
+                                res[i + 1,  6] = transforms[i].UsageArea.WestLongitude;
+                                res[i + 1,  7] = transforms[i].UsageArea.NorthLatitude;
+                                res[i + 1,  8] = transforms[i].UsageArea.EastLongitude;
+                                res[i + 1,  9] = transforms[i].GridUsages.Count;
+                                res[i + 1, 10] = transforms[i].GridUsages.Count > 0 ? transforms[i].GridUsages[0].FullName : "N.A.";
 
                                 switch(nOutput)
                                 {
                                     default:
                                     case 0:
-                                        res[i + 1, 11] = cl[i].Definition;
+                                        res[i + 1, 11] = transforms[i].Definition;
                                         break;
                                     case 1:
-                                        res[i + 1, 11] = cl[i].AsProjString();
+                                        res[i + 1, 11] = transforms[i].AsProjString();
                                         break;
                                     case 2:
-                                        res[i + 1, 11] = cl[i].AsWellKnownText();
+                                        res[i + 1, 11] = transforms[i].AsWellKnownText();
                                         break;
                                     case 3:
-                                        res[i + 1, 11] = cl[i].AsProjJson();
+                                        res[i + 1, 11] = transforms[i].AsProjJson();
                                         break;
                                 }
                             }
