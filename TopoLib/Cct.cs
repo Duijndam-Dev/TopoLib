@@ -1296,7 +1296,6 @@ namespace TopoLib
                                     transform.ApplyReversed(x, y, z, t);
                                     break;
                             }
-
                         }
 
                         // determine what to do with output
@@ -1519,15 +1518,12 @@ namespace TopoLib
                         {
                             default:
                             case 0:
-                                res[0, 11] = "Transform Definition";
-                                break;
-                            case 1:
                                 res[0, 11] = "Transform PROJ string";
                                 break;
-                            case 2:
+                            case 1:
                                 res[0, 11] = "Transform WKT string";
                                 break;
-                            case 3:
+                            case 2:
                                 res[0, 11] = "Transform JSON string";
                                 break;
                         }
@@ -1569,15 +1565,12 @@ namespace TopoLib
                             {
                                 default:
                                 case 0:
-                                    res[1, 11] = transform.Definition;
-                                    break;
-                                case 1:
                                     res[1, 11] = transform.AsProjString();
                                     break;
-                                case 2:
+                                case 1:
                                     res[1, 11] = transform.AsWellKnownText();
                                     break;
-                                case 3:
+                                case 2:
                                     res[1, 11] = transform.AsProjJson();
                                     break;
                             }
