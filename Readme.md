@@ -1,4 +1,4 @@
-# ftwoTopoLib V1.0
+# TopoLib V1.0
 
 ### Excel extension library (*.xll) for Coordinate Conversion and Transformation functions
 
