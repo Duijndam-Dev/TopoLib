@@ -183,7 +183,7 @@ namespace TopoLib
                         // Setup the transform
                         var transform = CreateCoordinateTransform(crsSource, crsTarget, options, pc, bAllowDeprecatedCRS, bUseNetwork);
 
-                        double? accuracy = transform.Accuraracy;
+                        double? accuracy = transform.Accuracy;
 
                         if (accuracy.HasValue) 
                             return accuracy;
@@ -926,77 +926,106 @@ namespace TopoLib
                         object[,] res = new object[nCoordRows, nOut];
 
                         // work with nr of input columns
-                        switch (nCoordCols)
+
+//                      if ((nMode & 4096) > 0)
+                        if (false)
                         {
-                            default:
-                            case 2:
+                            // debug code
+                            switch (nCoordCols)
+                            {
+                                default:
+                                case 2:
 
-                                for (int i = 0; i < nCoordRows; i++)
-                                {
-                                    x[i] = Coords[i, 0];
-                                    y[i] = Coords[i, 1];
+                                    for (int i = 0; i < nCoordRows; i++)
+                                    {
+                                        x[i] = Coords[i, 0];
+                                        y[i] = Coords[i, 1];
 
-                                    PPoint pt = transform.Apply(new PPoint(x[i], y[i]));
-                                    x[i] = pt.X;
-                                    y[i] = pt.Y;
-                                    if (Double.IsInfinity(x[i] ) || Double.IsInfinity(y[i]))
-                                        throw new System.InvalidOperationException ("No transformation available");
-                                }
+                                        PPoint pt = transform.Apply(new PPoint(x[i], y[i]));
+                                        x[i] = pt.X;
+                                        y[i] = pt.Y;
+                                        if (Double.IsInfinity(x[i] ) || Double.IsInfinity(y[i]))
+                                            throw new System.InvalidOperationException ("No transformation available");
+                                    }
+                                    break;
 
+                                case 3:
+                                    for (int i = 0; i < nCoordRows; i++)
+                                    {
+                                        x[i] = Coords[i, 0];
+                                        y[i] = Coords[i, 1];
+                                        z[i] = Coords[i, 2];
 
-/*                              transform.Apply(Coords[0, 0],   2, nCoordRows,
-                                            Coords[0, 1],   2, nCoordRows,
-                                            0,              2, 0,
-                                            0,              2, 0);
+                                        PPoint pt = transform.Apply(new PPoint(x[i], y[i], z[i]));
+                                        x[i] = pt.X;
+                                        y[i] = pt.Y;
+                                        z[i] = pt.Z;
+                                        if (Double.IsInfinity(x[i] ) || Double.IsInfinity(y[i]) || Double.IsInfinity(z[i]))
+                                            throw new System.InvalidOperationException ("No transformation available");
+                                    }
+                                    break;
 
-*/
-                                break;
+                                case 4:
+                                    for (int i = 0; i < nCoordRows; i++)
+                                    {
+                                        x[i] = Coords[i, 0];
+                                        y[i] = Coords[i, 1];
+                                        z[i] = Coords[i, 2];
+                                        t[i] = Coords[i, 3];
 
-                            case 3:
-                                for (int i = 0; i < nCoordRows; i++)
-                                {
-                                    x[i] = Coords[i, 0];
-                                    y[i] = Coords[i, 1];
-                                    z[i] = Coords[i, 2];
+                                        PPoint pt = transform.Apply(new PPoint(x[i], y[i], z[i], t[i]));
+                                        x[i] = pt.X;
+                                        y[i] = pt.Y;
+                                        z[i] = pt.Z;
+                                        t[i] = pt.T;
+                                        if (Double.IsInfinity(x[i] ) || Double.IsInfinity(y[i]) || Double.IsInfinity(z[i]) || Double.IsInfinity(t[i]))
+                                            throw new System.InvalidOperationException ("No transformation available");
+                                    }
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            // production code
+                            switch (nCoordCols)
+                            {
+                                default:
+                                case 2:
+                                    // we have two columns (x, y) in the input data
+                                    for (int i = 0; i < nCoordRows; i++)
+                                    {
+                                        x[i] = Coords[i, 0];
+                                        y[i] = Coords[i, 1];
+                                    }
 
-                                    PPoint pt = transform.Apply(new PPoint(x[i], y[i], z[i]));
-                                    x[i] = pt.X;
-                                    y[i] = pt.Y;
-                                    z[i] = pt.Z;
-                                    if (Double.IsInfinity(x[i] ) || Double.IsInfinity(y[i]) || Double.IsInfinity(z[i]))
-                                        throw new System.InvalidOperationException ("No transformation available");
-                                }
-/*
-                                    transform.Apply(x[0], 1, nCoordRows,
-                                                    y[0], 1, nCoordRows,
-                                                    z[0], 1, nCoordRows,
-                                                    0, 0, 0);
-*/                              
-                                break;
+                                    transform.Apply(x, y);
+                                    break;
 
-                            case 4:
-                                for (int i = 0; i < nCoordRows; i++)
-                                {
-                                    x[i] = Coords[i, 0];
-                                    y[i] = Coords[i, 1];
-                                    z[i] = Coords[i, 2];
-                                    t[i] = Coords[i, 3];
+                                case 3:
+                                    // we have three columns (x, y, z) in the input data
+                                    for (int i = 0; i < nCoordRows; i++)
+                                    {
+                                        x[i] = Coords[i, 0];
+                                        y[i] = Coords[i, 1];
+                                        z[i] = Coords[i, 2];
+                                    }
 
-                                    PPoint pt = transform.Apply(new PPoint(x[i], y[i], z[i], t[i]));
-                                    x[i] = pt.X;
-                                    y[i] = pt.Y;
-                                    z[i] = pt.Z;
-                                    t[i] = pt.T;
-                                    if (Double.IsInfinity(x[i] ) || Double.IsInfinity(y[i]) || Double.IsInfinity(z[i]) || Double.IsInfinity(t[i]))
-                                        throw new System.InvalidOperationException ("No transformation available");
-                                }
-/*
-                                    transform.Apply(x[0], 1, nCoordRows,
-                                                    y[0], 1, nCoordRows,
-                                                    z[0], 1, nCoordRows,
-                                                    t[0], 1, nCoordRows);    
-*/
-                                break;
+                                    transform.Apply(x, y, z);
+                                    break;
+
+                                case 4:
+                                    // we have four columns (x, y, z, t) in the input data
+                                    for (int i = 0; i < nCoordRows; i++)
+                                    {
+                                        x[i] = Coords[i, 0];
+                                        y[i] = Coords[i, 1];
+                                        z[i] = Coords[i, 2];
+                                        t[i] = Coords[i, 3];
+                                    }
+
+                                    transform.Apply(x, y, z, t);
+                                    break;
+                            }
                         }
 
                         // determine what to do with output
@@ -1006,9 +1035,9 @@ namespace TopoLib
                             case 1:
                             case 2:
                             case 3:
+
                                 // all values to be returned
                                 // check how many columns we need
-
                                 if (nOut == 2)
                                 {
                                     for( int i = 0; i < nCoordRows; i++)
@@ -1168,77 +1197,106 @@ namespace TopoLib
                         object[,] res = new object[nCoordRows, nOut];
 
                         // work with nr of input columns
-                        switch (nCoordCols)
+//                      if ((nMode & 4096) > 0)
+                        if (true)
                         {
-                            default:
-                            case 2:
+                            // debug code
+                            switch (nCoordCols)
+                            {
+                                default:
+                                case 2:
 
-                                for (int i = 0; i < nCoordRows; i++)
-                                {
-                                    x[i] = Coords[i, 0];
-                                    y[i] = Coords[i, 1];
+                                    for (int i = 0; i < nCoordRows; i++)
+                                    {
+                                        x[i] = Coords[i, 0];
+                                        y[i] = Coords[i, 1];
 
-                                    PPoint pt = transform.ApplyReversed(new PPoint(x[i], y[i]));
-                                    x[i] = pt.X;
-                                    y[i] = pt.Y;
-                                    if (Double.IsInfinity(x[i] ) || Double.IsInfinity(y[i]))
-                                        throw new System.InvalidOperationException ("No transformation available");
-                                }
+                                        PPoint pt = transform.ApplyReversed(new PPoint(x[i], y[i]));
+                                        x[i] = pt.X;
+                                        y[i] = pt.Y;
+                                        if (Double.IsInfinity(x[i] ) || Double.IsInfinity(y[i]))
+                                            throw new System.InvalidOperationException ("No transformation available");
+                                    }
+                                    break;
 
+                                case 3:
+                                    for (int i = 0; i < nCoordRows; i++)
+                                    {
+                                        x[i] = Coords[i, 0];
+                                        y[i] = Coords[i, 1];
+                                        z[i] = Coords[i, 2];
 
-/*                              transform.ApplyReversed(Coords[0, 0],   2, nCoordRows,
-                                            Coords[0, 1],   2, nCoordRows,
-                                            0,              2, 0,
-                                            0,              2, 0);
+                                        PPoint pt = transform.ApplyReversed(new PPoint(x[i], y[i], z[i]));
+                                        x[i] = pt.X;
+                                        y[i] = pt.Y;
+                                        z[i] = pt.Z;
+                                        if (Double.IsInfinity(x[i] ) || Double.IsInfinity(y[i]) || Double.IsInfinity(z[i]))
+                                            throw new System.InvalidOperationException ("No transformation available");
+                                    }
+                                    break;
 
-*/
-                                break;
+                                case 4:
+                                    for (int i = 0; i < nCoordRows; i++)
+                                    {
+                                        x[i] = Coords[i, 0];
+                                        y[i] = Coords[i, 1];
+                                        z[i] = Coords[i, 2];
+                                        t[i] = Coords[i, 3];
 
-                            case 3:
-                                for (int i = 0; i < nCoordRows; i++)
-                                {
-                                    x[i] = Coords[i, 0];
-                                    y[i] = Coords[i, 1];
-                                    z[i] = Coords[i, 2];
+                                        PPoint pt = transform.ApplyReversed(new PPoint(x[i], y[i], z[i], t[i]));
+                                        x[i] = pt.X;
+                                        y[i] = pt.Y;
+                                        z[i] = pt.Z;
+                                        t[i] = pt.T;
+                                        if (Double.IsInfinity(x[i] ) || Double.IsInfinity(y[i]) || Double.IsInfinity(z[i]) || Double.IsInfinity(t[i]))
+                                            throw new System.InvalidOperationException ("No transformation available");
+                                    }
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            // production code; not working for inverse transform !
+                            switch (nCoordCols)
+                            {
+                                default:
+                                case 2:
+                                    // we have two columns (x, y) in the input data
+                                    for (int i = 0; i < nCoordRows; i++)
+                                    {
+                                        x[i] = Coords[i, 0];
+                                        y[i] = Coords[i, 1];
+                                    }
 
-                                    PPoint pt = transform.ApplyReversed(new PPoint(x[i], y[i], z[i]));
-                                    x[i] = pt.X;
-                                    y[i] = pt.Y;
-                                    z[i] = pt.Z;
-                                    if (Double.IsInfinity(x[i] ) || Double.IsInfinity(y[i]) || Double.IsInfinity(z[i]))
-                                        throw new System.InvalidOperationException ("No transformation available");
-                                }
-/*
-                                    transform.ApplyReversed(x[0], 1, nCoordRows,
-                                                    y[0], 1, nCoordRows,
-                                                    z[0], 1, nCoordRows,
-                                                    0, 0, 0);
-*/                              
-                                break;
+                                    transform.ApplyReversed(x, y);
+                                    break;
 
-                            case 4:
-                                for (int i = 0; i < nCoordRows; i++)
-                                {
-                                    x[i] = Coords[i, 0];
-                                    y[i] = Coords[i, 1];
-                                    z[i] = Coords[i, 2];
-                                    t[i] = Coords[i, 3];
+                                case 3:
+                                    // we have three columns (x, y, z) in the input data
+                                    for (int i = 0; i < nCoordRows; i++)
+                                    {
+                                        x[i] = Coords[i, 0];
+                                        y[i] = Coords[i, 1];
+                                        z[i] = Coords[i, 2];
+                                    }
 
-                                    PPoint pt = transform.ApplyReversed(new PPoint(x[i], y[i], z[i], t[i]));
-                                    x[i] = pt.X;
-                                    y[i] = pt.Y;
-                                    z[i] = pt.Z;
-                                    t[i] = pt.T;
-                                    if (Double.IsInfinity(x[i] ) || Double.IsInfinity(y[i]) || Double.IsInfinity(z[i]) || Double.IsInfinity(t[i]))
-                                        throw new System.InvalidOperationException ("No transformation available");
-                                }
-/*
-                                    transform.ApplyReversed(x[0], 1, nCoordRows,
-                                                    y[0], 1, nCoordRows,
-                                                    z[0], 1, nCoordRows,
-                                                    t[0], 1, nCoordRows);    
-*/
-                                break;
+                                    transform.ApplyReversed(x, y, z);
+                                    break;
+
+                                case 4:
+                                    // we have four columns (x, y, z, t) in the input data
+                                    for (int i = 0; i < nCoordRows; i++)
+                                    {
+                                        x[i] = Coords[i, 0];
+                                        y[i] = Coords[i, 1];
+                                        z[i] = Coords[i, 2];
+                                        t[i] = Coords[i, 3];
+                                    }
+
+                                    transform.ApplyReversed(x, y, z, t);
+                                    break;
+                            }
+
                         }
 
                         // determine what to do with output
@@ -1397,7 +1455,7 @@ namespace TopoLib
         public static object Transforms_ListAll(
             [ExcelArgument("sourceCrs using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrs")] object[,] SourceCrs,
             [ExcelArgument("targetCrs using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrs")] object[,] TargetCrs,
-            [ExcelArgument("Output mode: (0); 0 = definition, 1 = PROJ string, 2 = WKT string, 3 = JSON string. Is combined with 2^n flag: 8, 16, ..., 2048. See help file for more information", Name = "mode")] object oMode,
+            [ExcelArgument("Output mode: (0); 0 = PROJ string, 1 = WKT string, 2 = JSON string. Mode is combined with 2^n flag: 8, 16, ..., 2048. See help file for more information", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
             [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
@@ -1486,13 +1544,13 @@ namespace TopoLib
                                 scopes = string.Join(", ", ctl.Select(x => x.Scope).Where(x => x != null).Distinct());
                             }
 
-                            if (transform.Accuraracy is null || transform.Accuraracy <= 0.0) 
+                            if (transform.Accuracy is null || transform.Accuracy <= 0.0) 
                             { 
                                 accuracy = "Unknown"; 
                             } 
                             else
                             {
-                                accuracy = transform.Accuraracy;
+                                accuracy = transform.Accuracy;
                             }
 
                             res[1,  0] = transform.Identifiers is null ? ids : transform.Identifier.Authority;;
@@ -1535,13 +1593,13 @@ namespace TopoLib
                                     ids = string.Join(", ", ctl.Where(x => x.Identifiers != null).SelectMany(x => x.Identifiers));
                                     scopes = string.Join(", ", ctl.Select(x => x.Scope).Where(x => x != null).Distinct());
                                 }
-                                if (transforms[i].Accuraracy is null || transforms[i].Accuraracy <= 0.0)
+                                if (transforms[i].Accuracy is null || transforms[i].Accuracy <= 0.0)
                                 { 
                                     accuracy = "Unknown"; 
                                 } 
                                 else 
                                 { 
-                                    accuracy = transforms[i].Accuraracy;
+                                    accuracy = transforms[i].Accuracy;
                                 }
 
                                 res[i + 1,  0] = transforms[i].Identifiers is null ? ids : transforms[i].Identifier.Authority;
@@ -1560,15 +1618,12 @@ namespace TopoLib
                                 {
                                     default:
                                     case 0:
-                                        res[i + 1, 11] = transforms[i].Definition;
-                                        break;
-                                    case 1:
                                         res[i + 1, 11] = transforms[i].AsProjString();
                                         break;
-                                    case 2:
+                                    case 1:
                                         res[i + 1, 11] = transforms[i].AsWellKnownText();
                                         break;
-                                    case 3:
+                                    case 2:
                                         res[i + 1, 11] = transforms[i].AsProjJson();
                                         break;
                                 }

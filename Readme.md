@@ -1,4 +1,4 @@
-# TopoLib V1.0
+# ftwoTopoLib V1.0
 
 ### Excel extension library (*.xll) for Coordinate Conversion and Transformation functions
 
@@ -15,9 +15,10 @@ The code is made available under the [ZLib license](License.md).   The  main ope
 | [ExcelDna](https://github.com/Excel-DNA/ExcelDna).IntelliSense | 1.5.0     |     ZLIB     |
 | [ExcelDnaDoc](https://github.com/Excel-DNA/ExcelDnaDoc)      | 1.5.0     |     ZLIB     |
 | [MSTest](https://github.com/microsoft/testfx).TestFramework  | 2.2.8     |     MIT      |
-| [SharpProj](https://github.com/AmpScm/SharpProj)             | 8.1001.60 |  Apache 2.0  |
-| [SharpProj](https://github.com/AmpScm/SharpProj).Core        | 8.1001.60 |  Apache 2.0  |
+| [SharpProj](https://github.com/AmpScm/SharpProj)             | 8.1001.76 |  Apache 2.0  |
+| [SharpProj](https://github.com/AmpScm/SharpProj).Core        | 8.1001.76 |  Apache 2.0  |
 | [SharpProj](https://github.com/AmpScm/SharpProj).Database    | 8.1.1     |  Apache 2.0  |
+| [SharpProj](https://github.com/AmpScm/SharpProj).NettopologySuite | 8.100.76  |  Apache 2.0  |
 | [XlDialogBox](https://github.com/Duijndam-Dev/XlDialogBox)   | 1.0.0     |     MIT      |
 
 These packages need to be installed from [NuGet](https://www.nuget.org/).  Note that higher versions of Excel.Dna do exist, but at present (29/12/2021) they may create issues with virus scanners, and therefore 1.1.1 is still your safest bet. Furthermore you'll need to add a reference to `Microsoft.Office.Interop.Excel` and `System.Configuration` in your project.
@@ -50,9 +51,9 @@ This is where [SharpProj](https://github.com/AmpScm/SharpProj) comes into the pi
 
 After some unit testing of the SharpProj.dll (that includes the PROJ static library) it became apparent that memory leaks occur, when doing coordinate transforms using a deprecated CRS from the `Proj.db` database. Ultimately, this results in Excel crashing, and your work being lost... For that reason deprecated CRS-es are disabled by default, unless enabled explicitly. 
 
-The PROJ library uses an environment variable `PROJ_LIB` to locate its database and the (GeoTiff) grid-files. To help the end user, two routines have been added to set and read environment variables under `=TL.env` in TopoLib. 
+The PROJ library uses an environment variable `PROJ_LIB` to locate its database and the (GeoTiff) grid-files. To help the end user, three routines have been added for you to set and read environment variables under `=TL.env` in TopoLib. 
 
-Parameters that need to be persistent outside of a particular spreadsheet can be save in a `TopoLib.config` file that resides in the folder`LocalApplicationData\TopoLib\`. See routines under  `=TL.cfg`in TopoLib for more information.
+Parameters that need to be persistent outside of a particular spreadsheet can be saved in a `TopoLib.config` file that resides in the folder`LocalApplicationData\TopoLib\`. See routines under  `=TL.cfg`in TopoLib for more information.
 
 #### 5	Building the TopoLib library
 
