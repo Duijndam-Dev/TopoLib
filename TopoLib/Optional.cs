@@ -22,7 +22,7 @@ namespace TopoLib
     // In the Post-build event command line put: "D:\Source\VS19\TopoLib\packages\ExcelDnaDoc.1.1.0-beta2\tools\ExcelDnaDoc.exe" "$(TargetDir)TopoLib-AddIn.dna" /X
     // The /X flag excludes hidden functions (if provided) from being documented 
 
-    #pragma warning disable IDE0038 // Use pattern matching
+#pragma warning disable IDE0038 // Use pattern matching
 
     static class Optional
     {
@@ -92,8 +92,41 @@ namespace TopoLib
             else
                 throw new ArgumentException();  // Or defaultValue or whatever
         }
-    }
 
+        internal static bool IsNul(object[,] arg)
+        {
+            Type valueType = arg.GetType();
+            if (valueType.IsArray)
+            {
+                if (arg[0, 0] is null || arg[0, 0] is ExcelMissing || arg[0, 0] is ExcelEmpty || arg[0, 0] is ExcelError)
+                    return true;
+                else if ((arg[0, 0] is double) && ((double)arg[0, 0] == 0.0))
+                    return true;
+                else
+                    return false;
+            }
+            else
+            {
+                throw new ArgumentException();  // Or defaultValue or whatever
+            }
+        } // IsNull
+
+        internal static object CheckNan(double value)
+        {
+            object result;
+            if (Double.IsNaN(value) || Double.IsInfinity(value))
+            {
+                result = ExcelError.ExcelErrorNA;
+            }
+            else
+            {
+                result = value;
+            }
+            return result;
+        }
+
+    } // class Optional
 #pragma warning restore IDE0038 // Use pattern matching
 
-}
+} // namespace TopoLib
+

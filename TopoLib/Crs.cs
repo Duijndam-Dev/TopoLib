@@ -10,7 +10,7 @@ using ExcelDna.Documentation;
 // Added Bart
 using SharpProj;
 using SharpProj.Proj;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+// using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 #pragma warning disable IDE0020 // Use pattern matching
 #pragma warning disable IDE0038 // Use pattern matching
@@ -34,7 +34,7 @@ namespace TopoLib
             int nCrs;
             string sCrs;
 
-            // Check the first CRS object; it can be an Authority string, a Wkt string, a JSON string, a proj string or an  Authority definition
+            // We have only one cell; it can be aa Wkt string, a JSON string, a PROJ string or a textual description
             if (nCrsCols == 1)
             {
                 // we have one cell describing the crs.
@@ -90,7 +90,7 @@ namespace TopoLib
 
                 sCrs = (string)oCrs[0,0];   // the authority string
 
-                // try to get the crs number; if not succesful feed CreateFromDatabase with nCrs = -1, so it will throw an exception
+                // try to get the crs number; if not succesful throw an exception
 
                 if (oCrs[0, 1] is double)
                 {
@@ -104,7 +104,8 @@ namespace TopoLib
                     string sTmp = (string)oCrs[0, 1];
 
                     bool success = int.TryParse(sTmp, out nCrs);
-                    if (!success) nCrs = -1;
+                    if (!success) 
+                        throw new ArgumentNullException("CRS");
                 }
                 else
                     throw new ArgumentNullException("CRS");
@@ -128,7 +129,7 @@ namespace TopoLib
              HelpTopic = "TopoLib-AddIn.chm!1100",
 
              Returns = "Coordinate name of coordinate system",
-             Summary = "Function that returns name of Coordinate System or &ltNotFound&gt if not found",
+             Summary = "Function that returns nr of axes in of Coordinate System or -1 if not found",
              Example = "xxx"
          )]
         public static object CoordinateSystemAxisCount(
@@ -878,7 +879,7 @@ namespace TopoLib
              HelpTopic = "TopoLib-AddIn.chm!1119",
 
              Returns = "Code of Nth Identifiers",
-             Summary = "Function that returns the Code of the <Nth> identifier or <out of range> when not found",
+             Summary = "Function that returns the Code of the <Nth> identifier or <index out of range> when not found",
              Example = "xxx"
          )]
         public static object Identifiers_Code(
@@ -889,22 +890,22 @@ namespace TopoLib
             {
                 int nIndex  = (int)Optional.Check(index , 0.0);
 
-                int Count = -1;
-
                 using (var pc = new ProjContext())
                 {
                     using (var crs = GetCrs(oCrs, pc))
                     {
-                        if (crs != null)
+                        if (crs != null && crs.Identifiers != null)
                         {
-                            Count = crs.Identifiers.Count;
+                            int Count = crs.Identifiers.Count;
 
                             if (nIndex > Count - 1 || nIndex < 0)
-                                return "<out of range>";
+                                return "<index out of range>";
 
+                            return crs.Identifiers[nIndex].Code;
                         }
+                        else
+                            return "Unknown";
 
-                        return crs.Identifiers[nIndex].Code;
                     }
                 }        
             }
@@ -922,7 +923,7 @@ namespace TopoLib
              HelpTopic = "TopoLib-AddIn.chm!1120",
 
              Returns = "Authority of Nth Identifiers",
-             Summary = "Function that returns Authority of <Nth> identifiers or <out of range> when not found",
+             Summary = "Function that returns Authority of <Nth> identifiers or <index out of range> when not found",
              Example = "xxx"
          )]
         public static object Identifiers_Authority(
@@ -939,16 +940,17 @@ namespace TopoLib
                 {
                     using (var crs = GetCrs(oCrs, pc))
                     {
-                        if (crs != null)
+                        if (crs != null && crs.Identifiers != null)
                         {
                             Count = crs.Identifiers.Count;
 
                             if (nIndex > Count - 1 || nIndex < 0)
-                                return "<out of range>";
+                                return "<index out of range>";
 
+                            return crs.Identifiers[nIndex].Authority;
                         }
-
-                        return crs.Identifiers[nIndex].Authority;
+                        else
+                            return "Unknown";
                     }
                 }        
             }
@@ -966,7 +968,7 @@ namespace TopoLib
              HelpTopic = "TopoLib-AddIn.chm!1121",
 
              Returns = "Number of CRS Identifiers",
-             Summary = "Function that returns nr of CRS identifiers or -1 if not found",
+             Summary = "Function that returns nr of CRS identifiers or 0 if none found",
              Example = "xxx"
          )]
         public static object Identifiers_Count(
@@ -975,13 +977,13 @@ namespace TopoLib
         {
             try
             {
-                int Count = -1;
+                int Count = -0;
 
                 using (var pc = new ProjContext())
                 {
                     using (var crs = GetCrs(oCrs, pc))
                     {
-                        if (crs != null)
+                        if (crs != null && crs.Identifiers != null)
                             Count = crs.Identifiers.Count;
 
                         return Count;
@@ -1229,7 +1231,7 @@ namespace TopoLib
              HelpTopic = "TopoLib-AddIn.chm!1128",
 
              Returns = "Unit conversion factor of prime meridian ",
-             Summary = "Function that returns unit conversion factor of prime meridianor -1 if not found",
+             Summary = "Function that returns unit conversion factor of prime meridian or -1 if not found",
              Example = "xxx"
          )]
         public static object PrimeMeridian_UnitConversionFactor(
@@ -1343,7 +1345,7 @@ namespace TopoLib
             HelpTopic = "TopoLib-AddIn.chm!1131",
 
             Returns = "A JSON string",
-            Summary = "Function that demonstrates the use of ExcelDNA",
+            Summary = "Function that converts input Coordinate Reference System to a JSON string",
             Example = "xxx"
         )]
         public static object ToJsonString(
@@ -1381,7 +1383,7 @@ namespace TopoLib
             HelpTopic = "TopoLib-AddIn.chm!1132",
 
             Returns = "A WKT string",
-            Summary = "Function that demonstrates the use of ExcelDNA",
+            Summary = "Function that converts input Coordinate Reference System to a WKT string",
             Example = "xxx"
         )]
         public static object ToWktString(
@@ -1419,7 +1421,7 @@ namespace TopoLib
             HelpTopic = "TopoLib-AddIn.chm!1133",
 
             Returns = "A Proj string",
-            Summary = "Function that demonstrates the use of ExcelDNA",
+            Summary = "Function that converts input Coordinate Reference System to a PROJ string",
             Example = "xxx"
         )]
         public static object ToProjString(

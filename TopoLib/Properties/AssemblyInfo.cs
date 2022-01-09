@@ -32,5 +32,12 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.0.0")]
+//
+// BUT for this to work, you FIRST need to edit the .CSPROJ file and set:
+// <Deterministic>false</Deterministic>
+//
+// Otherwise you'll receive an error message:
+// error CS8357: The specified version string contains wildcards, which are not compatible with determinism.
+// Either remove wildcards from the version string, or disable determinism for this compilation
+[assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyFileVersion("1.0.0.0")]

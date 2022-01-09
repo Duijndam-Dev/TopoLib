@@ -15,6 +15,8 @@ using ExcelDna.Documentation;
 // This information can then be read from AutoOpen() to populate static variables for use with coordinate transforms
 // The idea is that the default parameters can also be set from the (yet to be developed) Ribbon Interface.
 
+#pragma warning disable IDE0017 // Simplify object initialization
+
 namespace TopoLib
 {
     public static class Cfg
@@ -124,14 +126,14 @@ namespace TopoLib
         }
 
         [ExcelFunctionDoc(
-            Name = "TL.cfg.GetValue",
+            Name = "TL.cfg.GetKeyValue",
             Description = "Gets the 'value' from a [key, value] pair from the TopoLib configuration file",
             Category = "CFG - Configuration",
             HelpTopic = "TopoLib-AddIn.chm!1303",
 
             Returns = "the 'value' of a [key, value] pair or [key:<{key}>, not found], #VALUE in case of failure.",
             Remarks = "In case of a #VALUE error, please ensure the {key}-string is in between \"double quotes\".")]
-        public static object GetValue(
+        public static object GetKeyValue(
             [ExcelArgument("{key} string of the requested [key, value] pair", Name = "key")] string key )
         {
             try

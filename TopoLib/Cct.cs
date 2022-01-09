@@ -11,10 +11,12 @@ using ExcelDna.Documentation;
 using SharpProj;
 using SharpProj.Proj;
 
+#pragma warning disable IDE0075 // Conditional expression can be simplified
+
 // On solving a missing reference to the next package:
 // For me adding the PackageReference for MSTest.TestFramework did the trick. I didn't need to reference the TestAdapter.
 // see https://stackoverflow.com/questions/13602508/where-to-find-microsoft-visualstudio-testtools-unittesting-missing-dll
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+// using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 
 // I made a backup of my project by renaming it to TopoLibOld 
@@ -114,6 +116,108 @@ namespace TopoLib
 
         } // GetCoordinateTransformOptions
 
+        internal static CoordinateTransform CreateCoordinateTransform(in object[,] oTransform, ProjContext pc)
+        {
+            int nTransformRows = oTransform.GetLength(0);
+            int nTransformCols = oTransform.GetLength(1);
+
+            // max two adjacent CRS cells on the same row
+            if (nTransformRows != 1 || nTransformCols > 2 ) 
+                throw new ArgumentException("Incorrrect dimensions in Excel for coordinate transformation");
+
+            int nTransform;
+            string sTransform;
+
+            // We have only one cell; it can be a WKT string, a JSON string, a PROJ string or a textual description
+            if (nTransformCols == 1)
+            {
+                // we have one cell describing the crs.
+                if (oTransform[0, 0] is double)
+                {
+                    // First cast to double, then to int, to deal with Excel datatypes
+                    nTransform = (int)(double)oTransform[0, 0];
+
+                    // we have an EPSG number from a single input parameter:
+                    return CoordinateTransform.CreateFromEpsg(nTransform, pc);
+                }
+                else if (oTransform[0, 0] is string)
+                {
+                    // cast to string, to deal with Excel datatypes
+                    sTransform = (string)oTransform[0, 0];
+
+                    bool success = int.TryParse(sTransform, out nTransform);
+                    if (success)
+                    {
+                        // we have an EPSG number from a single input parameter:
+                        return CoordinateTransform.CreateFromEpsg(nTransform, pc);
+                    }
+                    else
+                    {
+                        // we have a string of some sorts and a single input parameter:
+                        if ((sTransform.IndexOf("PROJCRS") > -1) || (sTransform.IndexOf("GEOGCRS") > -1) || (sTransform.IndexOf("SPHEROID") > -1))
+                        {
+                            // it must be WKT (well, we hope)
+
+                            // Note the cast used below is not required for CoordinateReferenceSystem where this function has been implemented as part of the inherited class
+                            return (CoordinateTransform)CoordinateTransform.CreateFromWellKnownText(sTransform, pc);
+
+                            // CreateFromWellKnownText() is translated into CreateFromWellKnownText(from, wars, ctx); where array<String^>^ wars = nullptr;
+                            // It may throw an ArgumentNullException
+                            // It may throw a ProjException
+                        }
+                        else
+                        {
+                            // it might be anything
+                            return CoordinateTransform.Create(sTransform, pc);
+
+                            // Create() is translated into proj_create(ctx, fromStr); 
+                            // It may throw an ArgumentNullException("from");
+                            // It may throw a ctx->ConstructException();
+                            // It may throw a ProjException
+                        }
+                    }
+                }
+                else
+                    throw new ArgumentNullException("Incorrect coordinate trasnform format");
+            }
+            else
+            {
+                // we have two adjacent CRS cells; first an Authortity string of some sorts and a second input parameter (number):
+
+                sTransform= (string)oTransform[0,0];   // the authority string
+
+                // try to get the transform number; if not succesful throw an exception
+
+                if (oTransform[0, 1] is double)
+                {
+                    // First cast to double, then to int, to deal with Excel datatypes
+                    nTransform = (int)(double)oTransform[0, 1];
+
+                }
+                else if (oTransform[0, 1] is string)
+                {
+                    // cast to string, to deal with Excel datatypes
+                    string sTmp = (string)oTransform[0, 1];
+
+                    bool success = int.TryParse(sTmp, out nTransform);
+                    if (!success) 
+                        throw new ArgumentNullException("Incorrect coordinate transform format");
+                }
+                else
+                    throw new ArgumentNullException("Incorrect coordinate transform format");
+
+                return CoordinateTransform.CreateFromDatabase(sTransform, nTransform, pc);
+
+                // CreateFromDatabase() is translated into proj_create_from_database 
+                // It may throw a ArgumentNullException
+                // It may throw a pc->ConstructException
+            }
+
+            // Oops, something went wrong if we get here...
+            throw new ArgumentNullException("Incorrect coordinate trasnform format");
+
+        }
+
         internal static CoordinateTransform CreateCoordinateTransform(CoordinateReferenceSystem crsSource, CoordinateReferenceSystem crsTarget, CoordinateTransformOptions options, ProjContext pc, bool bAllowDeprecatedCRS, bool bUseNetwork)
         {
             bool bHasDeprecatedCRS = crsSource.IsDeprecated || crsTarget.IsDeprecated; 
@@ -157,8 +261,9 @@ namespace TopoLib
             if (ExcelDnaUtil.IsInFunctionWizard())
                 return ExcelError.ExcelErrorRef;
 
-            // Check input data
+            // Check general input data
             int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
             double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
             double westLongitude = Optional.Check(oWestLongitude, -1000.0);
             double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
@@ -168,35 +273,55 @@ namespace TopoLib
             if (nMode < 0 || nMode > 4096)
                 return ExcelError.ExcelErrorValue;
 
-            // do the work
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform transform = null;
+
+            // do the work; exceptions may occur...
             try
             {
-                using (var pc = new ProjContext())
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
                 {
-                    using (CoordinateReferenceSystem crsSource = Crs.GetCrs(SourceCrs, pc), crsTarget = Crs.GetCrs(TargetCrs, pc))
-                    {
-                        // Deal with optional parameters
-                        bool bUseNetwork = false;
-                        bool bAllowDeprecatedCRS = false;
-                        var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
 
-                        // Setup the transform
-                        var transform = CreateCoordinateTransform(crsSource, crsTarget, options, pc, bAllowDeprecatedCRS, bUseNetwork);
+                // start core of function
+                double? accuracy = transform.Accuracy;
 
-                        double? accuracy = transform.Accuracy;
+                if (accuracy.HasValue)
+                    return accuracy;
+                else
+                    return "Unknown";
+                // end core of function
 
-                        if (accuracy.HasValue) 
-                            return accuracy;
-                        else
-                            throw new System.InvalidOperationException ("Transform accuracy not available");
-                    }
-                }        
             }
             catch (Exception ex)
             {
                 return Lib.ExceptionHandler(ex);
             }
-
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
         } // Accuracy
 
         [ExcelFunctionDoc(
@@ -222,8 +347,9 @@ namespace TopoLib
             if (ExcelDnaUtil.IsInFunctionWizard())
                 return ExcelError.ExcelErrorRef;
 
-            // Check input data
+            // Check general input data
             int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
             double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
             double westLongitude = Optional.Check(oWestLongitude, -1000.0);
             double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
@@ -233,30 +359,50 @@ namespace TopoLib
             if (nMode < 0 || nMode > 4096)
                 return ExcelError.ExcelErrorValue;
 
-            // do the work
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform transform = null;
+
+            // do the work; exceptions may occur...
             try
             {
-                using (var pc = new ProjContext())
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
                 {
-                    using (CoordinateReferenceSystem crsSource = Crs.GetCrs(SourceCrs, pc), crsTarget = Crs.GetCrs(TargetCrs, pc))
-                    {
-                        // Deal with optional parameters
-                        bool bUseNetwork = false;
-                        bool bAllowDeprecatedCRS = false;
-                        var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
 
-                        // Setup the transform
-                        var transform = CreateCoordinateTransform(crsSource, crsTarget, options, pc, bAllowDeprecatedCRS, bUseNetwork);
+                // start core of function
+                return (double) transform.GridUsages.Count;
+                // end core of function
 
-                        return (double) transform.GridUsages.Count;
-                    }
-                }        
             }
             catch (Exception ex)
             {
                 return Lib.ExceptionHandler(ex);
             }
-
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
         } // GridUsages_Count
 
         [ExcelFunctionDoc(
@@ -280,8 +426,12 @@ namespace TopoLib
             [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
             [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
         {
-            // Check input data
+            if (ExcelDnaUtil.IsInFunctionWizard())
+                return ExcelError.ExcelErrorRef;
+
+            // Check general input data
             int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
             double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
             double westLongitude = Optional.Check(oWestLongitude, -1000.0);
             double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
@@ -291,30 +441,50 @@ namespace TopoLib
             if (nMode < 0 || nMode > 4096)
                 return ExcelError.ExcelErrorValue;
 
-            // do the work
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform transform = null;
+
+            // do the work; exceptions may occur...
             try
             {
-                using (var pc = new ProjContext())
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
                 {
-                    using (CoordinateReferenceSystem crsSource = Crs.GetCrs(SourceCrs, pc), crsTarget = Crs.GetCrs(TargetCrs, pc))
-                    {
-                        // Deal with optional parameters
-                        bool bUseNetwork = false;
-                        bool bAllowDeprecatedCRS = false;
-                        var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
 
-                        // Setup the transform
-                        var transform = CreateCoordinateTransform(crsSource, crsTarget, options, pc, bAllowDeprecatedCRS, bUseNetwork);
+                // start core of function
+                return transform.HasBallParkTransformation;
+                // end core of function
 
-                        return transform.HasBallParkTransformation;
-                    }
-                }        
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex, false);
+                return Lib.ExceptionHandler(ex);
             }
-
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
         } // HasBallParkTransformation
 
 
@@ -339,8 +509,12 @@ namespace TopoLib
             [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
             [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
         {
-            // Check input data
+            if (ExcelDnaUtil.IsInFunctionWizard())
+                return ExcelError.ExcelErrorRef;
+
+            // Check general input data
             int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
             double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
             double westLongitude = Optional.Check(oWestLongitude, -1000.0);
             double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
@@ -350,30 +524,50 @@ namespace TopoLib
             if (nMode < 0 || nMode > 4096)
                 return ExcelError.ExcelErrorValue;
 
-            // do the work
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform transform = null;
+
+            // do the work; exceptions may occur...
             try
             {
-                using (var pc = new ProjContext())
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
                 {
-                    using (CoordinateReferenceSystem crsSource = Crs.GetCrs(SourceCrs, pc), crsTarget = Crs.GetCrs(TargetCrs, pc))
-                    {
-                        // Deal with optional parameters
-                        bool bUseNetwork = false;
-                        bool bAllowDeprecatedCRS = false;
-                        var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
 
-                        // Setup the transform
-                        var transform = CreateCoordinateTransform(crsSource, crsTarget, options, pc, bAllowDeprecatedCRS, bUseNetwork);
+                // start core of function
+                return transform.HasInverse;
+                // end core of function
 
-                        return transform.HasInverse;
-                    }
-                }        
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex, false);
+                return Lib.ExceptionHandler(ex);
             }
-
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
         } // HasInverse
 
         [ExcelFunctionDoc(
@@ -397,8 +591,12 @@ namespace TopoLib
             [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
             [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
         {
-            // Check input data
+            if (ExcelDnaUtil.IsInFunctionWizard())
+                return ExcelError.ExcelErrorRef;
+
+            // Check general input data
             int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
             double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
             double westLongitude = Optional.Check(oWestLongitude, -1000.0);
             double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
@@ -408,30 +606,50 @@ namespace TopoLib
             if (nMode < 0 || nMode > 4096)
                 return ExcelError.ExcelErrorValue;
 
-            // do the work
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform transform = null;
+
+            // do the work; exceptions may occur...
             try
             {
-                using (var pc = new ProjContext())
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
                 {
-                    using (CoordinateReferenceSystem crsSource = Crs.GetCrs(SourceCrs, pc), crsTarget = Crs.GetCrs(TargetCrs, pc))
-                    {
-                        // Deal with optional parameters
-                        bool bUseNetwork = false;
-                        bool bAllowDeprecatedCRS = false;
-                        var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
 
-                        // Setup the transform
-                        var transform = CreateCoordinateTransform(crsSource, crsTarget, options, pc, bAllowDeprecatedCRS, bUseNetwork);
+                // start core of function
+                return transform.IsAvailable;
+                // end core of function
 
-                        return transform.IsAvailable;
-                    }
-                }        
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex, false);
+                return Lib.ExceptionHandler(ex);
             }
-
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
         } // IsAvailable
 
         [ExcelFunctionDoc(
@@ -457,8 +675,9 @@ namespace TopoLib
             if (ExcelDnaUtil.IsInFunctionWizard())
                 return ExcelError.ExcelErrorRef;
 
-            // Check input data
+            // Check general input data
             int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
             double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
             double westLongitude = Optional.Check(oWestLongitude, -1000.0);
             double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
@@ -468,30 +687,50 @@ namespace TopoLib
             if (nMode < 0 || nMode > 4096)
                 return ExcelError.ExcelErrorValue;
 
-            // do the work
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform transform = null;
+
+            // do the work; exceptions may occur...
             try
             {
-                using (var pc = new ProjContext())
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
                 {
-                    using (CoordinateReferenceSystem crsSource = Crs.GetCrs(SourceCrs, pc), crsTarget = Crs.GetCrs(TargetCrs, pc))
-                    {
-                        // Deal with optional parameters
-                        bool bUseNetwork = false;
-                        bool bAllowDeprecatedCRS = false;
-                        var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
 
-                        // Setup the transform
-                        var transform = CreateCoordinateTransform(crsSource, crsTarget, options, pc, bAllowDeprecatedCRS, bUseNetwork);
+                // start core of function
+                return (transform.MethodName == null) ? "Unknown" : transform.MethodName;
+                // end core of function
 
-                        return transform.Name;
-                    }
-                }        
             }
             catch (Exception ex)
             {
                 return Lib.ExceptionHandler(ex);
             }
-
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
         } // MethodName
 
 
@@ -519,8 +758,9 @@ namespace TopoLib
             if (ExcelDnaUtil.IsInFunctionWizard())
                 return ExcelError.ExcelErrorRef;
 
-            // Check input data
+            // Check general input data
             int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
             double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
             double westLongitude = Optional.Check(oWestLongitude, -1000.0);
             double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
@@ -530,30 +770,50 @@ namespace TopoLib
             if (nMode < 0 || nMode > 4096)
                 return ExcelError.ExcelErrorValue;
 
-            // do the work
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform transform = null;
+
+            // do the work; exceptions may occur...
             try
             {
-                using (var pc = new ProjContext())
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
                 {
-                    using (CoordinateReferenceSystem crsSource = Crs.GetCrs(SourceCrs, pc), crsTarget = Crs.GetCrs(TargetCrs, pc))
-                    {
-                        // Deal with optional parameters
-                        bool bUseNetwork = false;
-                        bool bAllowDeprecatedCRS = false;
-                        var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
 
-                        // Setup the transform
-                        var transform = CreateCoordinateTransform(crsSource, crsTarget, options, pc, bAllowDeprecatedCRS, bUseNetwork);
+                // start core of function
+                return transform.Name;
+                // end core of function
 
-                        return transform.Name;
-                    }
-                }        
             }
             catch (Exception ex)
             {
                 return Lib.ExceptionHandler(ex);
             }
-
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
         } // Name
 
         [ExcelFunctionDoc(
@@ -566,6 +826,8 @@ namespace TopoLib
             Returns = "error incurred in the roundtrip(s)",
             Summary =
             "Returns error incurred in N forward roundtrip(s) in a coordinate transform",
+            Remarks = "For the test point, it is recommended to select the centerpoint of the usage area of the Source CRS." +
+            "<p>If no test point is given (0, 0, 0) will be used instead</p>",
             Example = "xxx")]
         public static object RoundTrip(
             [ExcelArgument("sourceCrs using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrs")] object[,] SourceCrs,
@@ -582,14 +844,9 @@ namespace TopoLib
             if (ExcelDnaUtil.IsInFunctionWizard())
                 return ExcelError.ExcelErrorRef;
 
-            // Check input data
-            int nTrips = (int)Optional.Check(oRoundTrips, 1.0);
-
-            // max three adjacent [x, y, z] cells on the same row
-            if (TestCoord.GetLength(0) != 1 || TestCoord.GetLength(1) > 3 ) return ExcelError.ExcelErrorValue;
-
-            // Check input data
+            // Check general input data
             int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
             double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
             double westLongitude = Optional.Check(oWestLongitude, -1000.0);
             double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
@@ -599,41 +856,65 @@ namespace TopoLib
             if (nMode < 0 || nMode > 4096)
                 return ExcelError.ExcelErrorValue;
 
-            // do the work
+            // Check specific input data
+            int nTrips = (int)Optional.Check(oRoundTrips, 1.0);
+            // max three adjacent [x, y, z] cells on the same row
+            if (TestCoord.GetLength(0) > 1 || TestCoord.GetLength(1) > 3 ) return ExcelError.ExcelErrorValue;
+
+            double x = TestCoord.GetLength(1) > 0 ? (double)TestCoord[0, 0] : 0;
+            double y = TestCoord.GetLength(1) > 1 ? (double)TestCoord[0, 1] : 0;
+            double z = TestCoord.GetLength(1) > 2 ? (double)TestCoord[0, 2] : 0;
+            PPoint pt = new PPoint(x, y, z);
+
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform transform = null;
+
+            // do the work; exceptions may occur...
             try
             {
-                using (var pc = new ProjContext())
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
                 {
-                    using (CoordinateReferenceSystem crsSource = Crs.GetCrs(SourceCrs, pc), crsTarget = Crs.GetCrs(TargetCrs, pc))
-                    {
-                        // Deal with optional parameters
-                        bool bUseNetwork = false;
-                        bool bAllowDeprecatedCRS = false;
-                        var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
 
-                        // Setup the transform
-                        var transform = CreateCoordinateTransform(crsSource, crsTarget, options, pc, bAllowDeprecatedCRS, bUseNetwork);
+                // start core of function
+                double error = transform.RoundTrip(true, nTrips, pt);
 
-                        double x = (double)TestCoord[0, 0];
-                        double y = (double)TestCoord[0, 1];
-                        double z = TestCoord.GetLength(1) == 3 ? (double)TestCoord[0, 2] : 0;
-                        PPoint pt = new PPoint(x, y, z);
+                if (Double.IsInfinity(error))
+                    throw new System.InvalidOperationException("Infinite roundtrip error");
 
-                        double error = transform.RoundTrip(true, nTrips, pt);
+                return error;
+                // end core of function
 
-                        if (Double.IsInfinity(error))
-                            // throw new System.ArithmeticException("Infinite roundtrip error");
-                            throw new System.InvalidOperationException("Infinite roundtrip error");
-
-                        return error;
-                    }
-                }        
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex, -1.0);
+                return Lib.ExceptionHandler(ex);
             }
-
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
         } // RoundTrip
 
         [ExcelFunctionDoc(
@@ -660,8 +941,9 @@ namespace TopoLib
             if (ExcelDnaUtil.IsInFunctionWizard())
                 return ExcelError.ExcelErrorRef;
 
-            // Check input data
+            // Check general input data
             int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
             double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
             double westLongitude = Optional.Check(oWestLongitude, -1000.0);
             double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
@@ -671,34 +953,51 @@ namespace TopoLib
             if (nMode < 0 || nMode > 4096)
                 return ExcelError.ExcelErrorValue;
 
-            // do the work
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform transform = null;
+
+            // do the work; exceptions may occur...
             try
             {
-                using (var pc = new ProjContext())
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
                 {
-                    using (CoordinateReferenceSystem crsSource = Crs.GetCrs(SourceCrs, pc), crsTarget = Crs.GetCrs(TargetCrs, pc))
-                    {
-                        // Deal with optional parameters
-                        bool bUseNetwork = false;
-                        bool bAllowDeprecatedCRS = false;
-                        var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
 
-                        // Setup the transform
-                        var transform = CreateCoordinateTransform(crsSource, crsTarget, options, pc, bAllowDeprecatedCRS, bUseNetwork);
+                // start core of function
+                CoordinateTransformList steps = transform as CoordinateTransformList;
+                return (steps is null) ? 0 : steps.Count;
+                // end core of function
 
-                        CoordinateTransformList steps = transform as CoordinateTransformList;
-                        if (steps is null)
-                            return ExcelError.ExcelErrorValue;
-
-                        return steps.Count;
-                    }
-                }        
             }
             catch (Exception ex)
             {
                 return Lib.ExceptionHandler(ex);
             }
-
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
         } // Steps_Count
 
         [ExcelFunctionDoc(
@@ -726,10 +1025,9 @@ namespace TopoLib
             if (ExcelDnaUtil.IsInFunctionWizard())
                 return ExcelError.ExcelErrorRef;
 
-            int nIndex  = (int)Optional.Check(index , 0.0);
-
-            // Check input data
+            // Check general input data
             int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
             double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
             double westLongitude = Optional.Check(oWestLongitude, -1000.0);
             double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
@@ -738,34 +1036,55 @@ namespace TopoLib
 
             if (nMode < 0 || nMode > 4096)
                 return ExcelError.ExcelErrorValue;
-            // do the work
+
+            // Check specific input data
+            int nIndex  = (int)Optional.Check(index , 0.0);
+
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform transform = null;
+
+            // do the work; exceptions may occur...
             try
             {
-                using (var pc = new ProjContext())
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
                 {
-                    using (CoordinateReferenceSystem crsSource = Crs.GetCrs(SourceCrs, pc), crsTarget = Crs.GetCrs(TargetCrs, pc))
-                    {
-                        // Deal with optional parameters
-                        bool bUseNetwork = false;
-                        bool bAllowDeprecatedCRS = false;
-                        var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
 
-                        // Setup the transform
-                        var transform = CreateCoordinateTransform(crsSource, crsTarget, options, pc, bAllowDeprecatedCRS, bUseNetwork);
+                // start core of function
+                CoordinateTransformList steps = transform as CoordinateTransformList;
+                return (steps is null) ? "Unknown" : steps[nIndex].MethodName;
+                // end core of function
 
-                        CoordinateTransformList steps = transform as CoordinateTransformList;
-                        if (steps is null)
-                            return ExcelError.ExcelErrorValue;
-
-                        return steps[nIndex].MethodName;
-                    }
-                }        
             }
             catch (Exception ex)
             {
                 return Lib.ExceptionHandler(ex);
             }
-
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
         } // Steps_MethodName
 
         [ExcelFunctionDoc(
@@ -793,10 +1112,9 @@ namespace TopoLib
             if (ExcelDnaUtil.IsInFunctionWizard())
                 return ExcelError.ExcelErrorRef;
 
-            int nIndex  = (int)Optional.Check(index , 0.0);
-
-            // Check input data
+            // Check general input data
             int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
             double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
             double westLongitude = Optional.Check(oWestLongitude, -1000.0);
             double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
@@ -806,36 +1124,55 @@ namespace TopoLib
             if (nMode < 0 || nMode > 4096)
                 return ExcelError.ExcelErrorValue;
 
-            // do the work
+            // Check specific input data
+            int nIndex  = (int)Optional.Check(index , 0.0);
+
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform transform = null;
+
+            // do the work; exceptions may occur...
             try
             {
-                using (var pc = new ProjContext())
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
                 {
-                    using (CoordinateReferenceSystem crsSource = Crs.GetCrs(SourceCrs, pc), crsTarget = Crs.GetCrs(TargetCrs, pc))
-                    {
-                        // Deal with optional parameters
-                        bool bUseNetwork = false;
-                        bool bAllowDeprecatedCRS = false;
-                        var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
 
-                        // Setup the transform
-                        var transform = CreateCoordinateTransform(crsSource, crsTarget, options, pc, bAllowDeprecatedCRS, bUseNetwork);
+                // start core of function
+                CoordinateTransformList steps = transform as CoordinateTransformList;
+                return (steps is null) ? "Unknown" : steps[nIndex].Name;
+                // end core of function
 
-                        CoordinateTransformList steps = transform as CoordinateTransformList;
-                        if (steps is null)
-                            return ExcelError.ExcelErrorValue;
-
-                        return steps[nIndex].Name;
-                    }
-                }        
             }
             catch (Exception ex)
             {
                 return Lib.ExceptionHandler(ex);
             }
-
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
         } // Steps_Name
-
 
         [ExcelFunctionDoc(
             IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
@@ -869,8 +1206,8 @@ namespace TopoLib
             "<p>When using a geographic CRS, coordinates should be presented in degrees (not radians).</p>",
             Example = "xxx")]
         public static object TransformForward(
-            [ExcelArgument("sourceCrs using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrs")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrs")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("input points", Name = "Coordinate(s)")] double[,] Coords,
             [ExcelArgument("Output mode: < 7 and flag: > 7. (0); 0 returns nr of input columns, 1 = (x, y, z, t), 2 = (x, y, z), 3 = (x, y), 4 = (x), 5 = (y), 6 = (z), 7 = (t). Check flag values 2^n in the help file", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
@@ -882,8 +1219,9 @@ namespace TopoLib
             if (ExcelDnaUtil.IsInFunctionWizard())
                 return ExcelError.ExcelErrorRef;
 
-            // Check input data
+            // Check general input data
             int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
             double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
             double westLongitude = Optional.Check(oWestLongitude, -1000.0);
             double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
@@ -893,6 +1231,7 @@ namespace TopoLib
             if (nMode < 0 || nMode > 4096)
                 return ExcelError.ExcelErrorValue;
 
+            // Check specific input parameters
             int nCoordRows = Coords.GetLength(0);
             int nCoordCols = Coords.GetLength(1);
 
@@ -904,208 +1243,165 @@ namespace TopoLib
 
             int nOut = GetNrCoordinateColumns(nMode, nCoordCols);
 
-            // do the work
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform       transform = null;
+
+            // do the work; exceptions may occur...
             try
             {
-                using (var pc = new ProjContext())
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
                 {
-                    using (CoordinateReferenceSystem crsSource = Crs.GetCrs(SourceCrs, pc), crsTarget = Crs.GetCrs(TargetCrs, pc))
-                    {
-                        // Deal with optional parameters
-                        bool bUseNetwork = false;
-                        bool bAllowDeprecatedCRS = false;
-                        var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
 
-                        // Setup the transform
-                        var transform = CreateCoordinateTransform(crsSource, crsTarget, options, pc, bAllowDeprecatedCRS, bUseNetwork);
+                // start core of function
+                double[] x = new double[nCoordRows];
+                double[] y = new double[nCoordRows];
+                double[] z = new double[nCoordRows];
+                double[] t = new double[nCoordRows];
+                object[,] res = new object[nCoordRows, nOut];
 
-                        double[] x = new double[nCoordRows];
-                        double[] y = new double[nCoordRows];
-                        double[] z = new double[nCoordRows];
-                        double[] t = new double[nCoordRows];
-                        object[,] res = new object[nCoordRows, nOut];
-
-                        // work with nr of input columns
-
-//                      if ((nMode & 4096) > 0)
-                        if (false)
+                // work with nr of input columns
+                switch (nCoordCols)
+                {
+                    default:
+                    case 2:
+                        // we have two columns (x, y) in the input data
+                        for (int i = 0; i < nCoordRows; i++)
                         {
-                            // debug code
-                            switch (nCoordCols)
+                            x[i] = Coords[i, 0];
+                            y[i] = Coords[i, 1];
+                        }
+
+                        transform.Apply(x, y);
+                        break;
+
+                    case 3:
+                        // we have three columns (x, y, z) in the input data
+                        for (int i = 0; i < nCoordRows; i++)
+                        {
+                            x[i] = Coords[i, 0];
+                            y[i] = Coords[i, 1];
+                            z[i] = Coords[i, 2];
+                        }
+
+                        transform.Apply(x, y, z);
+                        break;
+
+                    case 4:
+                        // we have four columns (x, y, z, t) in the input data
+                        for (int i = 0; i < nCoordRows; i++)
+                        {
+                            x[i] = Coords[i, 0];
+                            y[i] = Coords[i, 1];
+                            z[i] = Coords[i, 2];
+                            t[i] = Coords[i, 3];
+                        }
+
+                        transform.Apply(x, y, z, t);
+                        break;
+                }
+
+                // determine what to do with output
+                switch (nMode & 7) // use only the lowest three bits
+                {
+                    case 0:
+                    case 1:
+                    case 2:
+                    case 3:
+
+                        // all values to be returned
+                        // check how many columns we need
+                        if (nOut == 2)
+                        {
+                            for (int i = 0; i < nCoordRows; i++)
                             {
-                                default:
-                                case 2:
-
-                                    for (int i = 0; i < nCoordRows; i++)
-                                    {
-                                        x[i] = Coords[i, 0];
-                                        y[i] = Coords[i, 1];
-
-                                        PPoint pt = transform.Apply(new PPoint(x[i], y[i]));
-                                        x[i] = pt.X;
-                                        y[i] = pt.Y;
-                                        if (Double.IsInfinity(x[i] ) || Double.IsInfinity(y[i]))
-                                            throw new System.InvalidOperationException ("No transformation available");
-                                    }
-                                    break;
-
-                                case 3:
-                                    for (int i = 0; i < nCoordRows; i++)
-                                    {
-                                        x[i] = Coords[i, 0];
-                                        y[i] = Coords[i, 1];
-                                        z[i] = Coords[i, 2];
-
-                                        PPoint pt = transform.Apply(new PPoint(x[i], y[i], z[i]));
-                                        x[i] = pt.X;
-                                        y[i] = pt.Y;
-                                        z[i] = pt.Z;
-                                        if (Double.IsInfinity(x[i] ) || Double.IsInfinity(y[i]) || Double.IsInfinity(z[i]))
-                                            throw new System.InvalidOperationException ("No transformation available");
-                                    }
-                                    break;
-
-                                case 4:
-                                    for (int i = 0; i < nCoordRows; i++)
-                                    {
-                                        x[i] = Coords[i, 0];
-                                        y[i] = Coords[i, 1];
-                                        z[i] = Coords[i, 2];
-                                        t[i] = Coords[i, 3];
-
-                                        PPoint pt = transform.Apply(new PPoint(x[i], y[i], z[i], t[i]));
-                                        x[i] = pt.X;
-                                        y[i] = pt.Y;
-                                        z[i] = pt.Z;
-                                        t[i] = pt.T;
-                                        if (Double.IsInfinity(x[i] ) || Double.IsInfinity(y[i]) || Double.IsInfinity(z[i]) || Double.IsInfinity(t[i]))
-                                            throw new System.InvalidOperationException ("No transformation available");
-                                    }
-                                    break;
+                                res[i, 0] = Optional.CheckNan(x[i]);
+                                res[i, 1] = Optional.CheckNan(y[i]);
+                            }
+                        }
+                        else if (nOut == 3)
+                        {
+                            for (int i = 0; i < nCoordRows; i++)
+                            {
+                                res[i, 0] = Optional.CheckNan(x[i]);
+                                res[i, 1] = Optional.CheckNan(y[i]);
+                                res[i, 2] = Optional.CheckNan(z[i]);
+                            }
+                        }
+                        else if (nOut == 4)
+                        {
+                            for (int i = 0; i < nCoordRows; i++)
+                            {
+                                res[i, 0] = Optional.CheckNan(x[i]);
+                                res[i, 1] = Optional.CheckNan(y[i]);
+                                res[i, 2] = Optional.CheckNan(z[i]);
+                                res[i, 3] = Optional.CheckNan(t[i]);
                             }
                         }
                         else
+                            return ExcelError.ExcelErrorValue;
+                        break;
+                    case 4:
+                        // from here onwards, a single output value is required
+                        for (int i = 0; i < nCoordRows; i++)
                         {
-                            // production code
-                            switch (nCoordCols)
-                            {
-                                default:
-                                case 2:
-                                    // we have two columns (x, y) in the input data
-                                    for (int i = 0; i < nCoordRows; i++)
-                                    {
-                                        x[i] = Coords[i, 0];
-                                        y[i] = Coords[i, 1];
-                                    }
-
-                                    transform.Apply(x, y);
-                                    break;
-
-                                case 3:
-                                    // we have three columns (x, y, z) in the input data
-                                    for (int i = 0; i < nCoordRows; i++)
-                                    {
-                                        x[i] = Coords[i, 0];
-                                        y[i] = Coords[i, 1];
-                                        z[i] = Coords[i, 2];
-                                    }
-
-                                    transform.Apply(x, y, z);
-                                    break;
-
-                                case 4:
-                                    // we have four columns (x, y, z, t) in the input data
-                                    for (int i = 0; i < nCoordRows; i++)
-                                    {
-                                        x[i] = Coords[i, 0];
-                                        y[i] = Coords[i, 1];
-                                        z[i] = Coords[i, 2];
-                                        t[i] = Coords[i, 3];
-                                    }
-
-                                    transform.Apply(x, y, z, t);
-                                    break;
-                            }
+                            res[i, 0] = Optional.CheckNan(x[i]);
                         }
-
-                        // determine what to do with output
-                        switch (nMode & 7) // use only the lowest three bits
+                        break;
+                    case 5:
+                        for (int i = 0; i < nCoordRows; i++)
                         {
-                            case 0:
-                            case 1:
-                            case 2:
-                            case 3:
-
-                                // all values to be returned
-                                // check how many columns we need
-                                if (nOut == 2)
-                                {
-                                    for( int i = 0; i < nCoordRows; i++)
-                                    {
-                                        res[i, 0] = x[i];
-                                        res[i, 1] = y[i];
-                                    }
-                                }
-                                else if (nOut == 3)
-                                {
-                                    for( int i = 0; i < nCoordRows; i++)
-                                    {
-                                        res[i, 0] = x[i];
-                                        res[i, 1] = y[i];
-                                        res[i, 2] = z[i];
-                                    }
-                                }
-                                else if (nOut == 4)
-                                {
-                                    for( int i = 0; i < nCoordRows; i++)
-                                    {
-                                        res[i, 0] = x[i];
-                                        res[i, 1] = y[i];
-                                        res[i, 2] = z[i];
-                                        res[i, 3] = t[i];
-                                    }
-                                }
-                                else 
-                                    return ExcelError.ExcelErrorValue;
-                                break;
-                            case 4:
-                                // from here onwards, a single output value is required
-                                    for( int i = 0; i < nCoordRows; i++)
-                                    {
-                                        res[i, 0] = x[i];
-                                    }
-                                break;
-                            case 5:
-                                    for( int i = 0; i < nCoordRows; i++)
-                                    {
-                                        res[i, 0] = y[i];
-                                    }
-                                break;
-                            case 6:
-                                for( int i = 0; i < nCoordRows; i++)
-                                    {
-                                        res[i, 0] = z[i];
-                                    }
-                                break;
-                            case 7:
-                                for( int i = 0; i < nCoordRows; i++)
-                                    {
-                                        res[i, 0] = t[i];
-                                    }
-                                break;
-                            default:
-                                throw new System.InvalidOperationException ("error in switch statement");
+                            res[i, 0] = Optional.CheckNan(y[i]);
                         }
+                        break;
+                    case 6:
+                        for (int i = 0; i < nCoordRows; i++)
+                        {
+                            res[i, 0] = Optional.CheckNan(z[i]);
+                        }
+                        break;
+                    case 7:
+                        for (int i = 0; i < nCoordRows; i++)
+                        {
+                            res[i, 0] = Optional.CheckNan(t[i]);
+                        }
+                        break;
+                    default:
+                        throw new System.InvalidOperationException("error in switch statement");
+                }
+                return res;
+                // end core of function
 
-                        return res;
-                    }
-                }        
             }
             catch (Exception ex)
             {
                 return Lib.ExceptionHandler(ex);
             }
-
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
         } // TransformForward
 
         [ExcelFunctionDoc(
@@ -1153,8 +1449,9 @@ namespace TopoLib
             if (ExcelDnaUtil.IsInFunctionWizard())
                 return ExcelError.ExcelErrorRef;
 
-            // Check input data
+            // Check general input data
             int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
             double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
             double westLongitude = Optional.Check(oWestLongitude, -1000.0);
             double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
@@ -1164,6 +1461,7 @@ namespace TopoLib
             if (nMode < 0 || nMode > 4096)
                 return ExcelError.ExcelErrorValue;
 
+            // Check specific input parameters
             int nCoordRows = Coords.GetLength(0);
             int nCoordCols = Coords.GetLength(1);
 
@@ -1175,206 +1473,165 @@ namespace TopoLib
 
             int nOut = GetNrCoordinateColumns(nMode, nCoordCols);
 
-            // do the work
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform       transform = null;
+
+            // do the work; exceptions may occur...
             try
             {
-                using (var pc = new ProjContext())
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
                 {
-                    using (CoordinateReferenceSystem crsSource = Crs.GetCrs(SourceCrs, pc), crsTarget = Crs.GetCrs(TargetCrs, pc))
-                    {
-                        // Deal with optional parameters
-                        bool bUseNetwork = false;
-                        bool bAllowDeprecatedCRS = false;
-                        var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
 
-                        // Setup the transform
-                        var transform = CreateCoordinateTransform(crsSource, crsTarget, options, pc, bAllowDeprecatedCRS, bUseNetwork);
+                // start core of function
+                double[] x = new double[nCoordRows];
+                double[] y = new double[nCoordRows];
+                double[] z = new double[nCoordRows];
+                double[] t = new double[nCoordRows];
+                object[,] res = new object[nCoordRows, nOut];
 
-                        double[] x = new double[nCoordRows];
-                        double[] y = new double[nCoordRows];
-                        double[] z = new double[nCoordRows];
-                        double[] t = new double[nCoordRows];
-                        object[,] res = new object[nCoordRows, nOut];
-
-                        // work with nr of input columns
-//                      if ((nMode & 4096) > 0)
-                        if (true)
+                // work with nr of input columns
+                switch (nCoordCols)
+                {
+                    default:
+                    case 2:
+                        // we have two columns (x, y) in the input data
+                        for (int i = 0; i < nCoordRows; i++)
                         {
-                            // debug code
-                            switch (nCoordCols)
+                            x[i] = Coords[i, 0];
+                            y[i] = Coords[i, 1];
+                        }
+
+                        transform.ApplyReversed(x, y);
+                        break;
+
+                    case 3:
+                        // we have three columns (x, y, z) in the input data
+                        for (int i = 0; i < nCoordRows; i++)
+                        {
+                            x[i] = Coords[i, 0];
+                            y[i] = Coords[i, 1];
+                            z[i] = Coords[i, 2];
+                        }
+
+                        transform.ApplyReversed(x, y, z);
+                        break;
+
+                    case 4:
+                        // we have four columns (x, y, z, t) in the input data
+                        for (int i = 0; i < nCoordRows; i++)
+                        {
+                            x[i] = Coords[i, 0];
+                            y[i] = Coords[i, 1];
+                            z[i] = Coords[i, 2];
+                            t[i] = Coords[i, 3];
+                        }
+
+                        transform.ApplyReversed(x, y, z, t);
+                        break;
+                }
+
+                // determine what to do with output
+                switch (nMode & 7) // use only the lowest three bits
+                {
+                    case 0:
+                    case 1:
+                    case 2:
+                    case 3:
+
+                        // all values to be returned
+                        // check how many columns we need
+                        if (nOut == 2)
+                        {
+                            for (int i = 0; i < nCoordRows; i++)
                             {
-                                default:
-                                case 2:
-
-                                    for (int i = 0; i < nCoordRows; i++)
-                                    {
-                                        x[i] = Coords[i, 0];
-                                        y[i] = Coords[i, 1];
-
-                                        PPoint pt = transform.ApplyReversed(new PPoint(x[i], y[i]));
-                                        x[i] = pt.X;
-                                        y[i] = pt.Y;
-                                        if (Double.IsInfinity(x[i] ) || Double.IsInfinity(y[i]))
-                                            throw new System.InvalidOperationException ("No transformation available");
-                                    }
-                                    break;
-
-                                case 3:
-                                    for (int i = 0; i < nCoordRows; i++)
-                                    {
-                                        x[i] = Coords[i, 0];
-                                        y[i] = Coords[i, 1];
-                                        z[i] = Coords[i, 2];
-
-                                        PPoint pt = transform.ApplyReversed(new PPoint(x[i], y[i], z[i]));
-                                        x[i] = pt.X;
-                                        y[i] = pt.Y;
-                                        z[i] = pt.Z;
-                                        if (Double.IsInfinity(x[i] ) || Double.IsInfinity(y[i]) || Double.IsInfinity(z[i]))
-                                            throw new System.InvalidOperationException ("No transformation available");
-                                    }
-                                    break;
-
-                                case 4:
-                                    for (int i = 0; i < nCoordRows; i++)
-                                    {
-                                        x[i] = Coords[i, 0];
-                                        y[i] = Coords[i, 1];
-                                        z[i] = Coords[i, 2];
-                                        t[i] = Coords[i, 3];
-
-                                        PPoint pt = transform.ApplyReversed(new PPoint(x[i], y[i], z[i], t[i]));
-                                        x[i] = pt.X;
-                                        y[i] = pt.Y;
-                                        z[i] = pt.Z;
-                                        t[i] = pt.T;
-                                        if (Double.IsInfinity(x[i] ) || Double.IsInfinity(y[i]) || Double.IsInfinity(z[i]) || Double.IsInfinity(t[i]))
-                                            throw new System.InvalidOperationException ("No transformation available");
-                                    }
-                                    break;
+                                res[i, 0] = Optional.CheckNan(x[i]);
+                                res[i, 1] = Optional.CheckNan(y[i]);
+                            }
+                        }
+                        else if (nOut == 3)
+                        {
+                            for (int i = 0; i < nCoordRows; i++)
+                            {
+                                res[i, 0] = Optional.CheckNan(x[i]);
+                                res[i, 1] = Optional.CheckNan(y[i]);
+                                res[i, 2] = Optional.CheckNan(z[i]);
+                            }
+                        }
+                        else if (nOut == 4)
+                        {
+                            for (int i = 0; i < nCoordRows; i++)
+                            {
+                                res[i, 0] = Optional.CheckNan(x[i]);
+                                res[i, 1] = Optional.CheckNan(y[i]);
+                                res[i, 2] = Optional.CheckNan(z[i]);
+                                res[i, 3] = Optional.CheckNan(t[i]);
                             }
                         }
                         else
+                            return ExcelError.ExcelErrorValue;
+                        break;
+                    case 4:
+                        // from here onwards, a single output value is required
+                        for (int i = 0; i < nCoordRows; i++)
                         {
-                            // production code; not working for inverse transform !
-                            switch (nCoordCols)
-                            {
-                                default:
-                                case 2:
-                                    // we have two columns (x, y) in the input data
-                                    for (int i = 0; i < nCoordRows; i++)
-                                    {
-                                        x[i] = Coords[i, 0];
-                                        y[i] = Coords[i, 1];
-                                    }
-
-                                    transform.ApplyReversed(x, y);
-                                    break;
-
-                                case 3:
-                                    // we have three columns (x, y, z) in the input data
-                                    for (int i = 0; i < nCoordRows; i++)
-                                    {
-                                        x[i] = Coords[i, 0];
-                                        y[i] = Coords[i, 1];
-                                        z[i] = Coords[i, 2];
-                                    }
-
-                                    transform.ApplyReversed(x, y, z);
-                                    break;
-
-                                case 4:
-                                    // we have four columns (x, y, z, t) in the input data
-                                    for (int i = 0; i < nCoordRows; i++)
-                                    {
-                                        x[i] = Coords[i, 0];
-                                        y[i] = Coords[i, 1];
-                                        z[i] = Coords[i, 2];
-                                        t[i] = Coords[i, 3];
-                                    }
-
-                                    transform.ApplyReversed(x, y, z, t);
-                                    break;
-                            }
+                            res[i, 0] = Optional.CheckNan(x[i]);
                         }
-
-                        // determine what to do with output
-                        switch (nMode & 7) // use only the lowest three bits
+                        break;
+                    case 5:
+                        for (int i = 0; i < nCoordRows; i++)
                         {
-                            case 0:
-                            case 1:
-                            case 2:
-                            case 3:
-                                // all values to be returned
-                                // check how many columns we need
-
-                                if (nOut == 2)
-                                {
-                                    for( int i = 0; i < nCoordRows; i++)
-                                    {
-                                        res[i, 0] = x[i];
-                                        res[i, 1] = y[i];
-                                    }
-                                }
-                                else if (nOut == 3)
-                                {
-                                    for( int i = 0; i < nCoordRows; i++)
-                                    {
-                                        res[i, 0] = x[i];
-                                        res[i, 1] = y[i];
-                                        res[i, 2] = z[i];
-                                    }
-                                }
-                                else if (nOut == 4)
-                                {
-                                    for( int i = 0; i < nCoordRows; i++)
-                                    {
-                                        res[i, 0] = x[i];
-                                        res[i, 1] = y[i];
-                                        res[i, 2] = z[i];
-                                        res[i, 3] = t[i];
-                                    }
-                                }
-                                else 
-                                    return ExcelError.ExcelErrorValue;
-                                break;
-                            case 4:
-                                // from here onwards, a single output value is required
-                                    for( int i = 0; i < nCoordRows; i++)
-                                    {
-                                        res[i, 0] = x[i];
-                                    }
-                                break;
-                            case 5:
-                                    for( int i = 0; i < nCoordRows; i++)
-                                    {
-                                        res[i, 0] = y[i];
-                                    }
-                                break;
-                            case 6:
-                                for( int i = 0; i < nCoordRows; i++)
-                                    {
-                                        res[i, 0] = z[i];
-                                    }
-                                break;
-                            case 7:
-                                for( int i = 0; i < nCoordRows; i++)
-                                    {
-                                        res[i, 0] = t[i];
-                                    }
-                                break;
-                            default:
-                                throw new System.InvalidOperationException ("error in switch statement");
+                            res[i, 0] = Optional.CheckNan(y[i]);
                         }
-                        return res;
-                    }
-                }        
+                        break;
+                    case 6:
+                        for (int i = 0; i < nCoordRows; i++)
+                        {
+                            res[i, 0] = Optional.CheckNan(z[i]);
+                        }
+                        break;
+                    case 7:
+                        for (int i = 0; i < nCoordRows; i++)
+                        {
+                            res[i, 0] = Optional.CheckNan(t[i]);
+                        }
+                        break;
+                    default:
+                        throw new System.InvalidOperationException("error in switch statement");
+                }
+                return res;
+                // end core of function
+
             }
             catch (Exception ex)
             {
                 return Lib.ExceptionHandler(ex);
             }
-
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
         } // TransformInverse
 
         [ExcelFunctionDoc(
@@ -1400,8 +1657,9 @@ namespace TopoLib
             if (ExcelDnaUtil.IsInFunctionWizard())
                 return ExcelError.ExcelErrorRef;
 
-            // Check input data
+            // Check general input data
             int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
             double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
             double westLongitude = Optional.Check(oWestLongitude, -1000.0);
             double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
@@ -1411,33 +1669,50 @@ namespace TopoLib
             if (nMode < 0 || nMode > 4096)
                 return ExcelError.ExcelErrorValue;
 
-            // do the work
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform transform = null;
+
+            // do the work; exceptions may occur...
             try
             {
-                using (var pc = new ProjContext())
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
                 {
-                    using (CoordinateReferenceSystem crsSource = Crs.GetCrs(SourceCrs, pc), crsTarget = Crs.GetCrs(TargetCrs, pc))
-                    {
-                        // Deal with optional parameters
-                        bool bUseNetwork = false;
-                        bool bAllowDeprecatedCRS = false;
-                        var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
-
-                        // Setup the transform
-                        var transform = CreateCoordinateTransform(crsSource, crsTarget, options, pc, bAllowDeprecatedCRS, bUseNetwork);
-                        
-                        ChooseCoordinateTransform transforms = transform as ChooseCoordinateTransform;
-
-                        if (transforms != null)
-                            return transforms.Count;
-                        else
-                            return 1;
-                    }
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
                 }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
+
+                // start core of function
+                ChooseCoordinateTransform transforms = transform as ChooseCoordinateTransform;
+                return (transforms != null) ? transforms.Count : 1;
+                // end core of function
+
             }
             catch (Exception ex)
             {
                 return Lib.ExceptionHandler(ex);
+            }
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
             }
         } // Transforms_Count
 
@@ -1464,9 +1739,9 @@ namespace TopoLib
             if (ExcelDnaUtil.IsInFunctionWizard())
                 return ExcelError.ExcelErrorRef;
 
-            // Check input data
-            
-            int nMode            = (int)Optional.Check(oMode, 0.0);
+            // Check general input data
+            int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
             double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
             double westLongitude = Optional.Check(oWestLongitude, -1000.0);
             double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
@@ -1476,159 +1751,177 @@ namespace TopoLib
             if (nMode < 0 || nMode > 4096)
                 return ExcelError.ExcelErrorValue;
 
+            // Check specific input data
             int nOutput = nMode & 3;
 
-            // do the work
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform transform = null;
+
+            // do the work; exceptions may occur...
             try
             {
-                using (var pc = new ProjContext())
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
                 {
-                    using (CoordinateReferenceSystem crsSource = Crs.GetCrs(SourceCrs, pc), crsTarget = Crs.GetCrs(TargetCrs, pc))
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
+
+                // start core of function
+                ChooseCoordinateTransform transforms = transform as ChooseCoordinateTransform;
+                int count = (transforms != null) ? transforms.Count : 1;
+
+                object[,] res = new object[count + 1, 12];
+
+                res[0,  0] = "Transform Identifiers";
+                res[0,  1] = "Transform Name";
+                res[0,  2] = "Accuracy [m]";
+                res[0,  3] = "Area of Use";
+                res[0,  4] = "Scope";
+                res[0,  5] = "Lat-min";
+                res[0,  6] = "Lon-min";
+                res[0,  7] = "Lat-max";
+                res[0,  8] = "Lon-max";
+                res[0,  9] = "Nr grids";
+                res[0, 10] = "1st grid";
+
+                switch(nOutput)
+                {
+                    default:
+                    case 0:
+                        res[0, 11] = "Transform PROJ string";
+                        break;
+                    case 1:
+                        res[0, 11] = "Transform WKT string";
+                        break;
+                    case 2:
+                        res[0, 11] = "Transform JSON string";
+                        break;
+                }
+
+                object accuracy; 
+
+                if (count == 1)
+                {
+                    string ids = transform.Identifier?.ToString();
+                    string scopes = transform.Scope;
+                    if (ids == null && transform is CoordinateTransformList ctl)
                     {
-                        // Deal with optional parameters
-                        bool bUseNetwork = false;
-                        bool bAllowDeprecatedCRS = false;
-                        var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+                        ids = string.Join(", ", ctl.Where(x => x.Identifiers != null).SelectMany(x => x.Identifiers));
+                        scopes = string.Join(", ", ctl.Select(x => x.Scope).Where(x => x != null).Distinct());
+                    }
 
-                        // Setup the transform
-                        CoordinateTransform transform = CreateCoordinateTransform(crsSource, crsTarget, options, pc, bAllowDeprecatedCRS, bUseNetwork);
-                        ChooseCoordinateTransform transforms = transform as ChooseCoordinateTransform;
+                    if (transform.Accuracy is null || transform.Accuracy <= 0.0) 
+                    { 
+                        accuracy = "Unknown"; 
+                    } 
+                    else
+                    {
+                        accuracy = transform.Accuracy;
+                    }
 
-                        int count = 0;
-                        if (transforms != null)
-                            count = transforms.Count;
-                        else
-                            count = 1;
+                    res[1,  0] = transform.Identifiers is null ? ids : transform.Identifier.Authority;;
+                    res[1,  1] = transform.Name;
+                    res[1,  2] = accuracy;
+                    res[1,  3] = transform.UsageArea.Name;
+                    res[1,  4] = transform.Scope is null ? scopes  : transform.Scope;
+                    res[1,  5] = transform.UsageArea.SouthLatitude;
+                    res[1,  6] = transform.UsageArea.WestLongitude;
+                    res[1,  7] = transform.UsageArea.NorthLatitude;
+                    res[1,  8] = transform.UsageArea.EastLongitude;
+                    res[1,  9] = transform.GridUsages.Count;
+                    res[1, 10] = transform.GridUsages.Count > 0 ? transform.GridUsages[0].FullName : "N.A.";
 
-                        object[,] res = new object[count + 1, 12];
+                    switch(nOutput)
+                    {
+                        default:
+                        case 0:
+                            res[1, 11] = transform.AsProjString();
+                            break;
+                        case 1:
+                            res[1, 11] = transform.AsWellKnownText();
+                            break;
+                        case 2:
+                            res[1, 11] = transform.AsProjJson();
+                            break;
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < count; i++)
+                    {
+                        string ids = transforms[i].Identifier?.ToString();
+                        string scopes = transforms[i].Scope;
+                        if (ids == null && transforms[i] is CoordinateTransformList ctl)
+                        {
+                            ids = string.Join(", ", ctl.Where(x => x.Identifiers != null).SelectMany(x => x.Identifiers));
+                            scopes = string.Join(", ", ctl.Select(x => x.Scope).Where(x => x != null).Distinct());
+                        }
+                        if (transforms[i].Accuracy is null || transforms[i].Accuracy <= 0.0)
+                        { 
+                            accuracy = "Unknown"; 
+                        } 
+                        else 
+                        { 
+                            accuracy = transforms[i].Accuracy;
+                        }
 
-                        res[0,  0] = "Transform Identifiers";
-                        res[0,  1] = "Transform Name";
-                        res[0,  2] = "Accuracy [m]";
-                        res[0,  3] = "Area of Use";
-                        res[0,  4] = "Scope";
-                        res[0,  5] = "Lat-min";
-                        res[0,  6] = "Lon-min";
-                        res[0,  7] = "Lat-max";
-                        res[0,  8] = "Lon-max";
-                        res[0,  9] = "Nr grids";
-                        res[0, 10] = "1st grid";
+                        res[i + 1,  0] = transforms[i].Identifiers is null ? ids : transforms[i].Identifier.Authority;
+                        res[i + 1,  1] = transforms[i].Name;
+                        res[i + 1,  2] = accuracy;
+                        res[i + 1,  3] = transforms[i].UsageArea.Name;
+                        res[i + 1,  4] = transforms[i].Scope is null ? scopes : transforms[i].Scope;
+                        res[i + 1,  5] = transforms[i].UsageArea.SouthLatitude;
+                        res[i + 1,  6] = transforms[i].UsageArea.WestLongitude;
+                        res[i + 1,  7] = transforms[i].UsageArea.NorthLatitude;
+                        res[i + 1,  8] = transforms[i].UsageArea.EastLongitude;
+                        res[i + 1,  9] = transforms[i].GridUsages.Count;
+                        res[i + 1, 10] = transforms[i].GridUsages.Count > 0 ? transforms[i].GridUsages[0].FullName : "N.A.";
 
                         switch(nOutput)
                         {
                             default:
                             case 0:
-                                res[0, 11] = "Transform PROJ string";
+                                res[i + 1, 11] = transforms[i].AsProjString();
                                 break;
                             case 1:
-                                res[0, 11] = "Transform WKT string";
+                                res[i + 1, 11] = transforms[i].AsWellKnownText();
                                 break;
                             case 2:
-                                res[0, 11] = "Transform JSON string";
+                                res[i + 1, 11] = transforms[i].AsProjJson();
                                 break;
                         }
-
-                        object accuracy; 
-
-                        if (count == 1)
-                        {
-                            string ids = transform.Identifier?.ToString();
-                            string scopes = transform.Scope;
-                            if (ids == null && transform is CoordinateTransformList ctl)
-                            {
-                                ids = string.Join(", ", ctl.Where(x => x.Identifiers != null).SelectMany(x => x.Identifiers));
-                                scopes = string.Join(", ", ctl.Select(x => x.Scope).Where(x => x != null).Distinct());
-                            }
-
-                            if (transform.Accuracy is null || transform.Accuracy <= 0.0) 
-                            { 
-                                accuracy = "Unknown"; 
-                            } 
-                            else
-                            {
-                                accuracy = transform.Accuracy;
-                            }
-
-                            res[1,  0] = transform.Identifiers is null ? ids : transform.Identifier.Authority;;
-                            res[1,  1] = transform.Name;
-                            res[1,  2] = accuracy;
-                            res[1,  3] = transform.UsageArea.Name;
-                            res[1,  4] = transform.Scope is null ? scopes  : transform.Scope;
-                            res[1,  5] = transform.UsageArea.SouthLatitude;
-                            res[1,  6] = transform.UsageArea.WestLongitude;
-                            res[1,  7] = transform.UsageArea.NorthLatitude;
-                            res[1,  8] = transform.UsageArea.EastLongitude;
-                            res[1,  9] = transform.GridUsages.Count;
-                            res[1, 10] = transform.GridUsages.Count > 0 ? transform.GridUsages[0].FullName : "N.A.";
-
-                            switch(nOutput)
-                            {
-                                default:
-                                case 0:
-                                    res[1, 11] = transform.AsProjString();
-                                    break;
-                                case 1:
-                                    res[1, 11] = transform.AsWellKnownText();
-                                    break;
-                                case 2:
-                                    res[1, 11] = transform.AsProjJson();
-                                    break;
-                            }
-                        }
-                        else
-                        {
-                            for (int i = 0; i < count; i++)
-                            {
-                                string ids = transforms[i].Identifier?.ToString();
-                                string scopes = transforms[i].Scope;
-                                if (ids == null && transforms[i] is CoordinateTransformList ctl)
-                                {
-                                    ids = string.Join(", ", ctl.Where(x => x.Identifiers != null).SelectMany(x => x.Identifiers));
-                                    scopes = string.Join(", ", ctl.Select(x => x.Scope).Where(x => x != null).Distinct());
-                                }
-                                if (transforms[i].Accuracy is null || transforms[i].Accuracy <= 0.0)
-                                { 
-                                    accuracy = "Unknown"; 
-                                } 
-                                else 
-                                { 
-                                    accuracy = transforms[i].Accuracy;
-                                }
-
-                                res[i + 1,  0] = transforms[i].Identifiers is null ? ids : transforms[i].Identifier.Authority;
-                                res[i + 1,  1] = transforms[i].Name;
-                                res[i + 1,  2] = accuracy;
-                                res[i + 1,  3] = transforms[i].UsageArea.Name;
-                                res[i + 1,  4] = transforms[i].Scope is null ? scopes : transforms[i].Scope;
-                                res[i + 1,  5] = transforms[i].UsageArea.SouthLatitude;
-                                res[i + 1,  6] = transforms[i].UsageArea.WestLongitude;
-                                res[i + 1,  7] = transforms[i].UsageArea.NorthLatitude;
-                                res[i + 1,  8] = transforms[i].UsageArea.EastLongitude;
-                                res[i + 1,  9] = transforms[i].GridUsages.Count;
-                                res[i + 1, 10] = transforms[i].GridUsages.Count > 0 ? transforms[i].GridUsages[0].FullName : "N.A.";
-
-                                switch(nOutput)
-                                {
-                                    default:
-                                    case 0:
-                                        res[i + 1, 11] = transforms[i].AsProjString();
-                                        break;
-                                    case 1:
-                                        res[i + 1, 11] = transforms[i].AsWellKnownText();
-                                        break;
-                                    case 2:
-                                        res[i + 1, 11] = transforms[i].AsProjJson();
-                                        break;
-                                }
-                            }
-                        }
-                        return res;
                     }
                 }
+                return res;
+                // end core of function
+
             }
             catch (Exception ex)
             {
                 return Lib.ExceptionHandler(ex);
+            }
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
             }
         } // Transforms_ListAll
 

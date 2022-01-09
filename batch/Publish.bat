@@ -1,4 +1,3 @@
-
 @echo.
 @echo.
 @echo Solution folder:  %1
@@ -9,9 +8,9 @@ if not exist "%1publish\x64" (
     if not errorlevel 1 (
 
 		@echo Created: "%1publish\x64"
-        copy "%1packages\SharpProj.8.1001.94\contentFiles\any\any\proj.db" "%1publish\x64"
-        copy "%1packages\SharpProj.8.1001.94\contentFiles\any\any\proj.ini" "%1publish\x64"
-        copy "%1packages\SharpProj.Core.8.1001.94\runtimes\win-x64\lib\net45\SharpProj.dll" "%1publish\x64"
+        copy "%1packages\SharpProj.8.2001.106\contentFiles\any\any\proj.db" "%1publish\x64"
+        copy "%1packages\SharpProj.8.2001.106\contentFiles\any\any\proj.ini" "%1publish\x64"
+        copy "%1packages\SharpProj.Core.8.2001.106\runtimes\win-x64\lib\net45\SharpProj.dll" "%1publish\x64"
 		@echo Copied database and 64-bit dll
     )
 )
@@ -21,9 +20,9 @@ if not exist "%1publish\x86" (
     if not errorlevel 1 (
 
 		@echo Created: "%1publish\x86"
-        copy "%1packages\SharpProj.8.1001.94\contentFiles\any\any\proj.db" "%1publish\x86"
-        copy "%1packages\SharpProj.8.1001.94\contentFiles\any\any\proj.ini" "%1publish\x86"
-        copy "%1packages\SharpProj.Core.8.1001.94\runtimes\win-x86\lib\net45\SharpProj.dll" "%1publish\x86"
+        copy "%1packages\SharpProj.8.2001.106\contentFiles\any\any\proj.db" "%1publish\x86"
+        copy "%1packages\SharpProj.8.2001.106\contentFiles\any\any\proj.ini" "%1publish\x86"
+        copy "%1packages\SharpProj.Core.8.2001.106\runtimes\win-x86\lib\net45\SharpProj.dll" "%1publish\x86"
 		@echo Copied database and 32-bit dll
     )
 )

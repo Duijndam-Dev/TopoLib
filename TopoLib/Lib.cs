@@ -10,7 +10,7 @@ using ExcelDna.Documentation;
 // Added Bart
 using SharpProj;
 using SharpProj.Proj;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+// using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Excel = Microsoft.Office.Interop.Excel; // Bart, from https://stackoverflow.com/questions/7916711/get-the-current-workbook-object-in-c-sharp
 using System.IO;
 
