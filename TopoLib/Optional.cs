@@ -102,12 +102,22 @@ namespace TopoLib
                     return true;
                 else if ((arg[0, 0] is double) && ((double)arg[0, 0] == 0.0))
                     return true;
+                else if ((arg[0, 0] is string))
+                {
+                    string sArg = (string)arg[0, 0];
+                    sArg = sArg.TrimStart('\'');
+                    if (string.IsNullOrEmpty(sArg) || sArg == "0")
+                        return true;
+                    else
+                        return false;
+                }
                 else
                     return false;
             }
             else
             {
-                throw new ArgumentException();  // Or defaultValue or whatever
+                // deal with a single object instead of array; not yet implemented
+                throw new ArgumentException("Not yet implemented");
             }
         } // IsNull
 
