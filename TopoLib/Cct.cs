@@ -282,7 +282,7 @@ namespace TopoLib
             ProjContext               pjContext = null;
             CoordinateReferenceSystem crsSource = null;
             CoordinateReferenceSystem crsTarget = null;
-            CoordinateTransform transform = null;
+            CoordinateTransform       transform = null;
 
             // do the work; exceptions may occur...
             try
@@ -326,857 +326,7 @@ namespace TopoLib
 
         [ExcelFunctionDoc(
             IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
-            Name = "TL.cct.GridUsages.Count",
-            Description = "Nr of grids used in a transform", 
-            Category = "CCT - Coordinate Conversion and Transformation",
-            HelpTopic = "TopoLib-AddIn.chm!1002",
-
-            Returns = "Nr of grids used in a transform",
-            Summary = "Function returns nr of grids used in a transform",
-            Example = "xxx")]
-        public static object GridUsages_Count(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
-            [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
-            [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
-            [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
-            [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
-            [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
-            [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
-        {
-            if (ExcelDnaUtil.IsInFunctionWizard())
-                return ExcelError.ExcelErrorRef;
-
-            // Check general input data
-            int nMode       = (int)Optional.Check(oMode, 0.0);
-            bool bUsingTransform = Optional.IsNul(TargetCrs);
-            double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
-            double westLongitude = Optional.Check(oWestLongitude, -1000.0);
-            double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
-            double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
-            double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
-
-            if (nMode < 0 || nMode > 4096)
-                return ExcelError.ExcelErrorValue;
-
-            // Deal with optional parameters
-            bool bUseNetwork = false;
-            bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
-
-            // setup all disposable objects
-            ProjContext               pjContext = null;
-            CoordinateReferenceSystem crsSource = null;
-            CoordinateReferenceSystem crsTarget = null;
-            CoordinateTransform transform = null;
-
-            // do the work; exceptions may occur...
-            try
-            {
-                pjContext = new ProjContext();
-
-                if (bUsingTransform)
-                {
-                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
-                }
-                else
-                {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
-                }
-
-                // start core of function
-                return (double) transform.GridUsages.Count;
-                // end core of function
-
-            }
-            catch (Exception ex)
-            {
-                return Lib.ExceptionHandler(ex);
-            }
-            finally
-            {
-                // free up resources in reverse order of allocation
-                transform?.Dispose();
-                crsSource?.Dispose();
-                crsTarget?.Dispose();
-                pjContext?.Dispose();
-            }
-        } // GridUsages_Count
-
-        [ExcelFunctionDoc(
-            IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
-            Name = "TL.cct.HasBallParkTransformation",
-            Category = "CCT - Coordinate Conversion and Transformation",
-            Description = "Confirms whether the transform has a ballpark transformation",
-            HelpTopic = "TopoLib-AddIn.chm!1003",
-
-            Returns = "TRUE when the transform has a ballpark transformation; FALSE when not",
-            Summary = "Function that confirms that the transform has a ballpark transformation",
-            Example = "xxx"
-         )]
-        public static object HasBallParkTransformation(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
-            [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
-            [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
-            [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
-            [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
-            [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
-            [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
-        {
-            if (ExcelDnaUtil.IsInFunctionWizard())
-                return ExcelError.ExcelErrorRef;
-
-            // Check general input data
-            int nMode       = (int)Optional.Check(oMode, 0.0);
-            bool bUsingTransform = Optional.IsNul(TargetCrs);
-            double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
-            double westLongitude = Optional.Check(oWestLongitude, -1000.0);
-            double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
-            double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
-            double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
-
-            if (nMode < 0 || nMode > 4096)
-                return ExcelError.ExcelErrorValue;
-
-            // Deal with optional parameters
-            bool bUseNetwork = false;
-            bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
-
-            // setup all disposable objects
-            ProjContext               pjContext = null;
-            CoordinateReferenceSystem crsSource = null;
-            CoordinateReferenceSystem crsTarget = null;
-            CoordinateTransform transform = null;
-
-            // do the work; exceptions may occur...
-            try
-            {
-                pjContext = new ProjContext();
-
-                if (bUsingTransform)
-                {
-                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
-                }
-                else
-                {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
-                }
-
-                // start core of function
-                return transform.HasBallParkTransformation;
-                // end core of function
-
-            }
-            catch (Exception ex)
-            {
-                return Lib.ExceptionHandler(ex);
-            }
-            finally
-            {
-                // free up resources in reverse order of allocation
-                transform?.Dispose();
-                crsSource?.Dispose();
-                crsTarget?.Dispose();
-                pjContext?.Dispose();
-            }
-        } // HasBallParkTransformation
-
-
-        [ExcelFunctionDoc(
-            IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
-            Name = "TL.cct.HasInverse",
-            Category = "CCT - Coordinate Conversion and Transformation",
-            Description = "Confirms whether the transform can be done in the reversed direction",
-            HelpTopic = "TopoLib-AddIn.chm!1003",
-
-            Returns = "TRUE when the transform can be done in the reversed direction; FALSE when not",
-            Summary = "Function that confirms that the transform can be done in the reversed direction",
-            Example = "xxx"
-         )]
-        public static object HasInverse(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
-            [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
-            [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
-            [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
-            [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
-            [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
-            [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
-        {
-            if (ExcelDnaUtil.IsInFunctionWizard())
-                return ExcelError.ExcelErrorRef;
-
-            // Check general input data
-            int nMode       = (int)Optional.Check(oMode, 0.0);
-            bool bUsingTransform = Optional.IsNul(TargetCrs);
-            double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
-            double westLongitude = Optional.Check(oWestLongitude, -1000.0);
-            double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
-            double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
-            double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
-
-            if (nMode < 0 || nMode > 4096)
-                return ExcelError.ExcelErrorValue;
-
-            // Deal with optional parameters
-            bool bUseNetwork = false;
-            bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
-
-            // setup all disposable objects
-            ProjContext               pjContext = null;
-            CoordinateReferenceSystem crsSource = null;
-            CoordinateReferenceSystem crsTarget = null;
-            CoordinateTransform transform = null;
-
-            // do the work; exceptions may occur...
-            try
-            {
-                pjContext = new ProjContext();
-
-                if (bUsingTransform)
-                {
-                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
-                }
-                else
-                {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
-                }
-
-                // start core of function
-                return transform.HasInverse;
-                // end core of function
-
-            }
-            catch (Exception ex)
-            {
-                return Lib.ExceptionHandler(ex);
-            }
-            finally
-            {
-                // free up resources in reverse order of allocation
-                transform?.Dispose();
-                crsSource?.Dispose();
-                crsTarget?.Dispose();
-                pjContext?.Dispose();
-            }
-        } // HasInverse
-
-        [ExcelFunctionDoc(
-            IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
-            Name = "TL.cct.IsAvailable",
-            Category = "CCT - Coordinate Conversion and Transformation",
-            Description = "Confirms whether the transform is available",
-            HelpTopic = "TopoLib-AddIn.chm!1003",
-
-            Returns = "TRUE when the transform is available; FALSE when not",
-            Summary = "Function that confirms that the transform is available",
-            Example = "xxx"
-         )]
-        public static object IsAvailable(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
-            [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
-            [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
-            [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
-            [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
-            [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
-            [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
-        {
-            if (ExcelDnaUtil.IsInFunctionWizard())
-                return ExcelError.ExcelErrorRef;
-
-            // Check general input data
-            int nMode       = (int)Optional.Check(oMode, 0.0);
-            bool bUsingTransform = Optional.IsNul(TargetCrs);
-            double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
-            double westLongitude = Optional.Check(oWestLongitude, -1000.0);
-            double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
-            double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
-            double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
-
-            if (nMode < 0 || nMode > 4096)
-                return ExcelError.ExcelErrorValue;
-
-            // Deal with optional parameters
-            bool bUseNetwork = false;
-            bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
-
-            // setup all disposable objects
-            ProjContext               pjContext = null;
-            CoordinateReferenceSystem crsSource = null;
-            CoordinateReferenceSystem crsTarget = null;
-            CoordinateTransform transform = null;
-
-            // do the work; exceptions may occur...
-            try
-            {
-                pjContext = new ProjContext();
-
-                if (bUsingTransform)
-                {
-                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
-                }
-                else
-                {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
-                }
-
-                // start core of function
-                return transform.IsAvailable;
-                // end core of function
-
-            }
-            catch (Exception ex)
-            {
-                return Lib.ExceptionHandler(ex);
-            }
-            finally
-            {
-                // free up resources in reverse order of allocation
-                transform?.Dispose();
-                crsSource?.Dispose();
-                crsTarget?.Dispose();
-                pjContext?.Dispose();
-            }
-        } // IsAvailable
-
-        [ExcelFunctionDoc(
-            IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
-            Name = "TL.cct.MethodName",
-            Description = "Get the method name of the coordinate transform", 
-            Category = "CCT - Coordinate Conversion and Transformation",
-            HelpTopic = "TopoLib-AddIn.chm!1004",
-
-            Returns = "name of the coordinate transform",
-            Summary = "Returns the method name a coordinate transform",
-            Example = "xxx")]
-        public static object MethodName(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
-            [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
-            [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
-            [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
-            [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
-            [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
-            [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
-        {
-            if (ExcelDnaUtil.IsInFunctionWizard())
-                return ExcelError.ExcelErrorRef;
-
-            // Check general input data
-            int nMode       = (int)Optional.Check(oMode, 0.0);
-            bool bUsingTransform = Optional.IsNul(TargetCrs);
-            double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
-            double westLongitude = Optional.Check(oWestLongitude, -1000.0);
-            double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
-            double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
-            double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
-
-            if (nMode < 0 || nMode > 4096)
-                return ExcelError.ExcelErrorValue;
-
-            // Deal with optional parameters
-            bool bUseNetwork = false;
-            bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
-
-            // setup all disposable objects
-            ProjContext               pjContext = null;
-            CoordinateReferenceSystem crsSource = null;
-            CoordinateReferenceSystem crsTarget = null;
-            CoordinateTransform transform = null;
-
-            // do the work; exceptions may occur...
-            try
-            {
-                pjContext = new ProjContext();
-
-                if (bUsingTransform)
-                {
-                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
-                }
-                else
-                {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
-                }
-
-                // start core of function
-                return (transform.MethodName == null) ? "Unknown" : transform.MethodName;
-                // end core of function
-
-            }
-            catch (Exception ex)
-            {
-                return Lib.ExceptionHandler(ex);
-            }
-            finally
-            {
-                // free up resources in reverse order of allocation
-                transform?.Dispose();
-                crsSource?.Dispose();
-                crsTarget?.Dispose();
-                pjContext?.Dispose();
-            }
-        } // MethodName
-
-
-        [ExcelFunctionDoc(
-            IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
-            Name = "TL.cct.Name",
-            Description = "Get the name of the coordinate transform", 
-            Category = "CCT - Coordinate Conversion and Transformation",
-            HelpTopic = "TopoLib-AddIn.chm!1004",
-
-            Returns = "name of the coordinate transform",
-            Summary =
-            "Returns the name a coordinate transform",
-            Example = "xxx")]
-        public static object Name(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
-            [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
-            [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
-            [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
-            [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
-            [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
-            [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
-        {
-            if (ExcelDnaUtil.IsInFunctionWizard())
-                return ExcelError.ExcelErrorRef;
-
-            // Check general input data
-            int nMode       = (int)Optional.Check(oMode, 0.0);
-            bool bUsingTransform = Optional.IsNul(TargetCrs);
-            double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
-            double westLongitude = Optional.Check(oWestLongitude, -1000.0);
-            double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
-            double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
-            double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
-
-            if (nMode < 0 || nMode > 4096)
-                return ExcelError.ExcelErrorValue;
-
-            // Deal with optional parameters
-            bool bUseNetwork = false;
-            bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
-
-            // setup all disposable objects
-            ProjContext               pjContext = null;
-            CoordinateReferenceSystem crsSource = null;
-            CoordinateReferenceSystem crsTarget = null;
-            CoordinateTransform transform = null;
-
-            // do the work; exceptions may occur...
-            try
-            {
-                pjContext = new ProjContext();
-
-                if (bUsingTransform)
-                {
-                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
-                }
-                else
-                {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
-                }
-
-                // start core of function
-                return transform.Name;
-                // end core of function
-
-            }
-            catch (Exception ex)
-            {
-                return Lib.ExceptionHandler(ex);
-            }
-            finally
-            {
-                // free up resources in reverse order of allocation
-                transform?.Dispose();
-                crsSource?.Dispose();
-                crsTarget?.Dispose();
-                pjContext?.Dispose();
-            }
-        } // Name
-
-        [ExcelFunctionDoc(
-            IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
-            Name = "TL.cct.RoundTrip",
-            Description = "Get the error of a roundtrip of N forward/backward transforms", 
-            Category = "CCT - Coordinate Conversion and Transformation",
-            HelpTopic = "TopoLib-AddIn.chm!1005",
-
-            Returns = "error incurred in the roundtrip(s)",
-            Summary =
-            "Returns error incurred in N forward roundtrip(s) in a coordinate transform",
-            Remarks = "For the test point, it is recommended to select the centerpoint of the usage area of the Source CRS." +
-            "<p>If no test point is given (0, 0, 0) will be used instead</p>",
-            Example = "xxx")]
-        public static object RoundTrip(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
-            [ExcelArgument("test point with adjacent [x, y] coordinates", Name = "point(x, y)")] object[,] TestCoord,
-            [ExcelArgument("N - nr of roundtrips to make", Name = "nr roundtrips")] object oRoundTrips,
-            [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
-            [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
-            [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
-            [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
-            [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
-            [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
-        {
-            if (ExcelDnaUtil.IsInFunctionWizard())
-                return ExcelError.ExcelErrorRef;
-
-            // Check general input data
-            int nMode       = (int)Optional.Check(oMode, 0.0);
-            bool bUsingTransform = Optional.IsNul(TargetCrs);
-            double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
-            double westLongitude = Optional.Check(oWestLongitude, -1000.0);
-            double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
-            double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
-            double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
-
-            if (nMode < 0 || nMode > 4096)
-                return ExcelError.ExcelErrorValue;
-
-            // Check specific input data
-            int nTrips = (int)Optional.Check(oRoundTrips, 1.0);
-            // max three adjacent [x, y, z] cells on the same row
-            if (TestCoord.GetLength(0) > 1 || TestCoord.GetLength(1) > 3 ) return ExcelError.ExcelErrorValue;
-
-            double x = TestCoord.GetLength(1) > 0 ? (double)TestCoord[0, 0] : 0;
-            double y = TestCoord.GetLength(1) > 1 ? (double)TestCoord[0, 1] : 0;
-            double z = TestCoord.GetLength(1) > 2 ? (double)TestCoord[0, 2] : 0;
-            PPoint pt = new PPoint(x, y, z);
-
-            // Deal with optional parameters
-            bool bUseNetwork = false;
-            bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
-
-            // setup all disposable objects
-            ProjContext               pjContext = null;
-            CoordinateReferenceSystem crsSource = null;
-            CoordinateReferenceSystem crsTarget = null;
-            CoordinateTransform transform = null;
-
-            // do the work; exceptions may occur...
-            try
-            {
-                pjContext = new ProjContext();
-
-                if (bUsingTransform)
-                {
-                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
-                }
-                else
-                {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
-                }
-
-                // start core of function
-                double error = transform.RoundTrip(true, nTrips, pt);
-
-                if (Double.IsInfinity(error))
-                    throw new System.InvalidOperationException("Infinite roundtrip error");
-
-                return error;
-                // end core of function
-
-            }
-            catch (Exception ex)
-            {
-                return Lib.ExceptionHandler(ex);
-            }
-            finally
-            {
-                // free up resources in reverse order of allocation
-                transform?.Dispose();
-                crsSource?.Dispose();
-                crsTarget?.Dispose();
-                pjContext?.Dispose();
-            }
-        } // RoundTrip
-
-        [ExcelFunctionDoc(
-            IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
-            Name = "TL.cct.Steps.Count",
-            Description = "Get the number of steps incorporated in a coordinate transform", 
-            Category = "CCT - Coordinate Conversion and Transformation",
-            HelpTopic = "TopoLib-AddIn.chm!1006",
-
-            Returns = "number of steps incorporated in a coordinate transform",
-            Summary =
-            "Returns the number of steps incorporated in a coordinate transform",
-            Example = "xxx")]
-        public static object Steps_Count(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
-            [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
-            [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
-            [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
-            [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
-            [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
-            [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
-        {
-            if (ExcelDnaUtil.IsInFunctionWizard())
-                return ExcelError.ExcelErrorRef;
-
-            // Check general input data
-            int nMode       = (int)Optional.Check(oMode, 0.0);
-            bool bUsingTransform = Optional.IsNul(TargetCrs);
-            double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
-            double westLongitude = Optional.Check(oWestLongitude, -1000.0);
-            double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
-            double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
-            double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
-
-            if (nMode < 0 || nMode > 4096)
-                return ExcelError.ExcelErrorValue;
-
-            // Deal with optional parameters
-            bool bUseNetwork = false;
-            bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
-
-            // setup all disposable objects
-            ProjContext               pjContext = null;
-            CoordinateReferenceSystem crsSource = null;
-            CoordinateReferenceSystem crsTarget = null;
-            CoordinateTransform transform = null;
-
-            // do the work; exceptions may occur...
-            try
-            {
-                pjContext = new ProjContext();
-
-                if (bUsingTransform)
-                {
-                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
-                }
-                else
-                {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
-                }
-
-                // start core of function
-                CoordinateTransformList steps = transform as CoordinateTransformList;
-                return (steps is null) ? 0 : steps.Count;
-                // end core of function
-
-            }
-            catch (Exception ex)
-            {
-                return Lib.ExceptionHandler(ex);
-            }
-            finally
-            {
-                // free up resources in reverse order of allocation
-                transform?.Dispose();
-                crsSource?.Dispose();
-                crsTarget?.Dispose();
-                pjContext?.Dispose();
-            }
-        } // Steps_Count
-
-        [ExcelFunctionDoc(
-            IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
-            Name = "TL.cct.Steps.MethodName",
-            Description = "Get the method name of step N in a coordinate transform", 
-            Category = "CCT - Coordinate Conversion and Transformation",
-            HelpTopic = "TopoLib-AddIn.chm!1007",
-
-            Returns = "method name of step N in a coordinate transform",
-            Summary =
-            "Returns the method name of step N in a coordinate transform",
-            Example = "xxx")]
-        public static object Steps_MethodName(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
-            [ExcelArgument("Zero based index of Identifier list (0) ", Name = "Index")] object index,
-            [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
-            [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
-            [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
-            [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
-            [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
-            [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
-        {
-            if (ExcelDnaUtil.IsInFunctionWizard())
-                return ExcelError.ExcelErrorRef;
-
-            // Check general input data
-            int nMode       = (int)Optional.Check(oMode, 0.0);
-            bool bUsingTransform = Optional.IsNul(TargetCrs);
-            double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
-            double westLongitude = Optional.Check(oWestLongitude, -1000.0);
-            double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
-            double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
-            double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
-
-            if (nMode < 0 || nMode > 4096)
-                return ExcelError.ExcelErrorValue;
-
-            // Check specific input data
-            int nIndex  = (int)Optional.Check(index , 0.0);
-
-            // Deal with optional parameters
-            bool bUseNetwork = false;
-            bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
-
-            // setup all disposable objects
-            ProjContext               pjContext = null;
-            CoordinateReferenceSystem crsSource = null;
-            CoordinateReferenceSystem crsTarget = null;
-            CoordinateTransform transform = null;
-
-            // do the work; exceptions may occur...
-            try
-            {
-                pjContext = new ProjContext();
-
-                if (bUsingTransform)
-                {
-                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
-                }
-                else
-                {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
-                }
-
-                // start core of function
-                CoordinateTransformList steps = transform as CoordinateTransformList;
-                return (steps is null) ? "Unknown" : steps[nIndex].MethodName;
-                // end core of function
-
-            }
-            catch (Exception ex)
-            {
-                return Lib.ExceptionHandler(ex);
-            }
-            finally
-            {
-                // free up resources in reverse order of allocation
-                transform?.Dispose();
-                crsSource?.Dispose();
-                crsTarget?.Dispose();
-                pjContext?.Dispose();
-            }
-        } // Steps_MethodName
-
-        [ExcelFunctionDoc(
-            IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
-            Name = "TL.cct.Steps.Name",
-            Description = "Get the name of step N in a coordinate transform", 
-            Category = "CCT - Coordinate Conversion and Transformation",
-            HelpTopic = "TopoLib-AddIn.chm!1008",
-
-            Returns = "name of step N in a coordinate transform",
-            Summary =
-            "Returns the name of step N in a coordinate transform",
-            Example = "xxx")]
-        public static object Steps_Name(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
-            [ExcelArgument("Zero based index of Identifier list (0) ", Name = "Index")] object index,
-            [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
-            [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
-            [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
-            [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
-            [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
-            [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
-        {
-            if (ExcelDnaUtil.IsInFunctionWizard())
-                return ExcelError.ExcelErrorRef;
-
-            // Check general input data
-            int nMode       = (int)Optional.Check(oMode, 0.0);
-            bool bUsingTransform = Optional.IsNul(TargetCrs);
-            double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
-            double westLongitude = Optional.Check(oWestLongitude, -1000.0);
-            double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
-            double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
-            double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
-
-            if (nMode < 0 || nMode > 4096)
-                return ExcelError.ExcelErrorValue;
-
-            // Check specific input data
-            int nIndex  = (int)Optional.Check(index , 0.0);
-
-            // Deal with optional parameters
-            bool bUseNetwork = false;
-            bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
-
-            // setup all disposable objects
-            ProjContext               pjContext = null;
-            CoordinateReferenceSystem crsSource = null;
-            CoordinateReferenceSystem crsTarget = null;
-            CoordinateTransform transform = null;
-
-            // do the work; exceptions may occur...
-            try
-            {
-                pjContext = new ProjContext();
-
-                if (bUsingTransform)
-                {
-                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
-                }
-                else
-                {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
-                }
-
-                // start core of function
-                CoordinateTransformList steps = transform as CoordinateTransformList;
-                return (steps is null) ? "Unknown" : steps[nIndex].Name;
-                // end core of function
-
-            }
-            catch (Exception ex)
-            {
-                return Lib.ExceptionHandler(ex);
-            }
-            finally
-            {
-                // free up resources in reverse order of allocation
-                transform?.Dispose();
-                crsSource?.Dispose();
-                crsTarget?.Dispose();
-                pjContext?.Dispose();
-            }
-        } // Steps_Name
-
-        [ExcelFunctionDoc(
-            IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
-            Name = "TL.cct.TransformForward",
+            Name = "TL.cct.ApplyForward",
             Description = "Coordinate conversion of one or more input points", 
             Category = "CCT - Coordinate Conversion and Transformation",
             HelpTopic = "TopoLib-AddIn.chm!1009",
@@ -1205,7 +355,7 @@ namespace TopoLib
             "<p>The axis order of a geographic CRS shall therefore be longitude, latitude [,height], and that of a projected CRS shall be easting, northing [, height]</p>" +
             "<p>When using a geographic CRS, coordinates should be presented in degrees (not radians).</p>",
             Example = "xxx")]
-        public static object TransformForward(
+        public static object ApplyForward(
             [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
             [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("input points", Name = "Coordinate(s)")] double[,] Coords,
@@ -1402,11 +552,11 @@ namespace TopoLib
                 crsTarget?.Dispose();
                 pjContext?.Dispose();
             }
-        } // TransformForward
+        } // ApplyForward
 
         [ExcelFunctionDoc(
             IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
-            Name = "TL.cct.TransformInverse",
+            Name = "TL.cct.ApplyInverse",
             Description = "Inverse coordinate conversion of one or more input points", 
             Category = "CCT - Coordinate Conversion and Transformation",
             HelpTopic = "TopoLib-AddIn.chm!1011",
@@ -1435,7 +585,7 @@ namespace TopoLib
             "<p>The axis order of a geographic CRS shall therefore be longitude, latitude [,height], and that of a projected CRS shall be easting, northing [, height]</p>" +
             "<p>When using a geographic CRS, coordinates should be presented in degrees (not radians).</p>",
             Example = "xxx")]
-        public static object TransformInverse(
+        public static object ApplyInverse(
             [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
             [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("input points", Name = "Coordinate(s)")] double[,] Coords,
@@ -1632,7 +782,1507 @@ namespace TopoLib
                 crsTarget?.Dispose();
                 pjContext?.Dispose();
             }
-        } // TransformInverse
+        } // ApplyInverse
+
+        [ExcelFunctionDoc(
+            IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
+            Name = "TL.cct.Grids.Count",
+            Description = "Nr of grids used in a transform", 
+            Category = "CCT - Coordinate Conversion and Transformation",
+            HelpTopic = "TopoLib-AddIn.chm!1002",
+
+            Returns = "Nr of grids used in a transform",
+            Summary = "Function returns nr of grids used in a transform",
+            Example = "xxx")]
+        public static object Grids_Count(
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
+            [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
+            [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
+            [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
+            [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
+            [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
+        {
+            if (ExcelDnaUtil.IsInFunctionWizard())
+                return ExcelError.ExcelErrorRef;
+
+            // Check general input data
+            int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
+            double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
+            double westLongitude = Optional.Check(oWestLongitude, -1000.0);
+            double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
+            double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
+            double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
+
+            if (nMode < 0 || nMode > 4096)
+                return ExcelError.ExcelErrorValue;
+
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform       transform = null;
+
+            // do the work; exceptions may occur...
+            try
+            {
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
+                {
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
+
+                // start core of function
+                return (double) transform.GridUsages.Count;
+                // end core of function
+
+            }
+            catch (Exception ex)
+            {
+                return Lib.ExceptionHandler(ex);
+            }
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
+        } // Grids_Count
+
+
+        [ExcelFunctionDoc(
+            IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
+            Name = "TL.cct.Grids.FullName",
+            Description = "Get the full name (path) of grid nr N, used in a coordinate transform", 
+            Category = "CCT - Coordinate Conversion and Transformation",
+            HelpTopic = "TopoLib-AddIn.chm!1008",
+
+            Returns = "full name (path) of grid nr N, used in in a coordinate transform",
+            Summary =
+            "Returns the full name (path) of grid nr N, used  in a coordinate transform",
+            Example = "xxx")]
+        public static object Grids_FullName(
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("Zero based index of Grid list (0) ", Name = "Index")] object index,
+            [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
+            [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
+            [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
+            [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
+            [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
+            [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
+        {
+            if (ExcelDnaUtil.IsInFunctionWizard())
+                return ExcelError.ExcelErrorRef;
+
+            // Check general input data
+            int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
+            double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
+            double westLongitude = Optional.Check(oWestLongitude, -1000.0);
+            double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
+            double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
+            double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
+
+            if (nMode < 0 || nMode > 4096)
+                return ExcelError.ExcelErrorValue;
+
+            // Check specific input data
+            int nIndex  = (int)Optional.Check(index , 0.0);
+
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform       transform = null;
+
+            // do the work; exceptions may occur...
+            try
+            {
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
+                {
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
+
+                // start core of function
+                CoordinateTransformList steps = transform as CoordinateTransformList;
+                if (transform.GridUsages.Count == 0)
+                    return "N.A.";
+                else
+                    return transform.GridUsages[nIndex].Name;
+                // end core of function
+
+            }
+            catch (Exception ex)
+            {
+                return Lib.ExceptionHandler(ex);
+            }
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
+        } // Grids_FullName
+
+        [ExcelFunctionDoc(
+            IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
+            Name = "TL.cct.Grids.IsAvailable",
+            Description = "Checks whether grid nr N, used in a coordinate transform is available", 
+            Category = "CCT - Coordinate Conversion and Transformation",
+            HelpTopic = "TopoLib-AddIn.chm!1008",
+
+            Returns = "TRUE if grid nr N, used in a coordinate transform is available",
+            Summary =
+            "Function returns TRUE if grid nr N, used in a coordinate transform is available; FALSE otherwise",
+            Example = "xxx")]
+        public static object Grids_IsAvailable(
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("Zero based index of Grid list (0) ", Name = "Index")] object index,
+            [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
+            [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
+            [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
+            [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
+            [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
+            [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
+        {
+            if (ExcelDnaUtil.IsInFunctionWizard())
+                return ExcelError.ExcelErrorRef;
+
+            // Check general input data
+            int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
+            double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
+            double westLongitude = Optional.Check(oWestLongitude, -1000.0);
+            double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
+            double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
+            double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
+
+            if (nMode < 0 || nMode > 4096)
+                return ExcelError.ExcelErrorValue;
+
+            // Check specific input data
+            int nIndex  = (int)Optional.Check(index , 0.0);
+
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform       transform = null;
+
+            // do the work; exceptions may occur...
+            try
+            {
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
+                {
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
+
+                // start core of function
+                CoordinateTransformList steps = transform as CoordinateTransformList;
+                if (transform.GridUsages.Count == 0)
+                    return "N.A.";
+                else
+                    return transform.GridUsages[nIndex].IsAvailable;
+                // end core of function
+
+            }
+            catch (Exception ex)
+            {
+                return Lib.ExceptionHandler(ex);
+            }
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
+        } // Grids_IsAvailable
+
+        [ExcelFunctionDoc(
+            IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
+            Name = "TL.cct.Grids.Name",
+            Description = "Get the name of grid nr N, used in a coordinate transform", 
+            Category = "CCT - Coordinate Conversion and Transformation",
+            HelpTopic = "TopoLib-AddIn.chm!1008",
+
+            Returns = "name of grid nr N, used in in a coordinate transform",
+            Summary =
+            "Returns the name of grid nr N, used  in a coordinate transform",
+            Example = "xxx")]
+        public static object Grids_Name(
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("Zero based index of Grid list (0) ", Name = "Index")] object index,
+            [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
+            [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
+            [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
+            [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
+            [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
+            [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
+        {
+            if (ExcelDnaUtil.IsInFunctionWizard())
+                return ExcelError.ExcelErrorRef;
+
+            // Check general input data
+            int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
+            double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
+            double westLongitude = Optional.Check(oWestLongitude, -1000.0);
+            double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
+            double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
+            double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
+
+            if (nMode < 0 || nMode > 4096)
+                return ExcelError.ExcelErrorValue;
+
+            // Check specific input data
+            int nIndex  = (int)Optional.Check(index , 0.0);
+
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform       transform = null;
+
+            // do the work; exceptions may occur...
+            try
+            {
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
+                {
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
+
+                // start core of function
+                CoordinateTransformList steps = transform as CoordinateTransformList;
+                if (transform.GridUsages.Count == 0)
+                    return "N.A.";
+                else
+                    return transform.GridUsages[nIndex].Name;
+                // end core of function
+
+            }
+            catch (Exception ex)
+            {
+                return Lib.ExceptionHandler(ex);
+            }
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
+        } // Grids_Name
+
+        [ExcelFunctionDoc(
+            IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
+            Name = "TL.cct.HasBallParkTransformation",
+            Category = "CCT - Coordinate Conversion and Transformation",
+            Description = "Confirms whether the transform has a ballpark transformation",
+            HelpTopic = "TopoLib-AddIn.chm!1003",
+
+            Returns = "TRUE when the transform has a ballpark transformation; FALSE when not",
+            Summary = "Function that confirms that the transform has a ballpark transformation",
+            Example = "xxx"
+         )]
+        public static object HasBallParkTransformation(
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
+            [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
+            [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
+            [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
+            [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
+            [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
+        {
+            if (ExcelDnaUtil.IsInFunctionWizard())
+                return ExcelError.ExcelErrorRef;
+
+            // Check general input data
+            int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
+            double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
+            double westLongitude = Optional.Check(oWestLongitude, -1000.0);
+            double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
+            double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
+            double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
+
+            if (nMode < 0 || nMode > 4096)
+                return ExcelError.ExcelErrorValue;
+
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform       transform = null;
+
+            // do the work; exceptions may occur...
+            try
+            {
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
+                {
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
+
+                // start core of function
+                return transform.HasBallParkTransformation;
+                // end core of function
+
+            }
+            catch (Exception ex)
+            {
+                return Lib.ExceptionHandler(ex);
+            }
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
+        } // HasBallParkTransformation
+
+
+        [ExcelFunctionDoc(
+            IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
+            Name = "TL.cct.HasInverse",
+            Category = "CCT - Coordinate Conversion and Transformation",
+            Description = "Confirms whether the transform can be done in the reversed direction",
+            HelpTopic = "TopoLib-AddIn.chm!1003",
+
+            Returns = "TRUE when the transform can be done in the reversed direction; FALSE when not",
+            Summary = "Function that confirms that the transform can be done in the reversed direction",
+            Example = "xxx"
+         )]
+        public static object HasInverse(
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
+            [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
+            [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
+            [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
+            [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
+            [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
+        {
+            if (ExcelDnaUtil.IsInFunctionWizard())
+                return ExcelError.ExcelErrorRef;
+
+            // Check general input data
+            int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
+            double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
+            double westLongitude = Optional.Check(oWestLongitude, -1000.0);
+            double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
+            double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
+            double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
+
+            if (nMode < 0 || nMode > 4096)
+                return ExcelError.ExcelErrorValue;
+
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform       transform = null;
+
+            // do the work; exceptions may occur...
+            try
+            {
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
+                {
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
+
+                // start core of function
+                return transform.HasInverse;
+                // end core of function
+
+            }
+            catch (Exception ex)
+            {
+                return Lib.ExceptionHandler(ex);
+            }
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
+        } // HasInverse
+
+        [ExcelFunctionDoc(
+            IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
+            Name = "TL.cct.IsAvailable",
+            Category = "CCT - Coordinate Conversion and Transformation",
+            Description = "Confirms whether the transform is available",
+            HelpTopic = "TopoLib-AddIn.chm!1003",
+
+            Returns = "TRUE when the transform is available; FALSE when not",
+            Summary = "Function that confirms that the transform is available",
+            Example = "xxx"
+         )]
+        public static object IsAvailable(
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
+            [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
+            [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
+            [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
+            [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
+            [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
+        {
+            if (ExcelDnaUtil.IsInFunctionWizard())
+                return ExcelError.ExcelErrorRef;
+
+            // Check general input data
+            int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
+            double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
+            double westLongitude = Optional.Check(oWestLongitude, -1000.0);
+            double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
+            double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
+            double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
+
+            if (nMode < 0 || nMode > 4096)
+                return ExcelError.ExcelErrorValue;
+
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform       transform = null;
+
+            // do the work; exceptions may occur...
+            try
+            {
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
+                {
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
+
+                // start core of function
+                return transform.IsAvailable;
+                // end core of function
+
+            }
+            catch (Exception ex)
+            {
+                return Lib.ExceptionHandler(ex);
+            }
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
+        } // IsAvailable
+
+        [ExcelFunctionDoc(
+            IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
+            Name = "TL.cct.MethodName",
+            Description = "Get the method name of the coordinate transform", 
+            Category = "CCT - Coordinate Conversion and Transformation",
+            HelpTopic = "TopoLib-AddIn.chm!1004",
+
+            Returns = "name of the coordinate transform",
+            Summary = "Returns the method name a coordinate transform",
+            Example = "xxx")]
+        public static object MethodName(
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
+            [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
+            [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
+            [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
+            [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
+            [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
+        {
+            if (ExcelDnaUtil.IsInFunctionWizard())
+                return ExcelError.ExcelErrorRef;
+
+            // Check general input data
+            int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
+            double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
+            double westLongitude = Optional.Check(oWestLongitude, -1000.0);
+            double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
+            double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
+            double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
+
+            if (nMode < 0 || nMode > 4096)
+                return ExcelError.ExcelErrorValue;
+
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform       transform = null;
+
+            // do the work; exceptions may occur...
+            try
+            {
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
+                {
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
+
+                // start core of function
+                return (transform.MethodName == null) ? "Unknown" : transform.MethodName;
+                // end core of function
+
+            }
+            catch (Exception ex)
+            {
+                return Lib.ExceptionHandler(ex);
+            }
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
+        } // MethodName
+
+        [ExcelFunctionDoc(
+            IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
+            Name = "TL.cct.Name",
+            Description = "Get the name of the coordinate transform", 
+            Category = "CCT - Coordinate Conversion and Transformation",
+            HelpTopic = "TopoLib-AddIn.chm!1004",
+
+            Returns = "name of the coordinate transform",
+            Summary =
+            "Returns the name a coordinate transform",
+            Example = "xxx")]
+        public static object Name(
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
+            [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
+            [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
+            [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
+            [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
+            [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
+        {
+            if (ExcelDnaUtil.IsInFunctionWizard())
+                return ExcelError.ExcelErrorRef;
+
+            // Check general input data
+            int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
+            double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
+            double westLongitude = Optional.Check(oWestLongitude, -1000.0);
+            double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
+            double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
+            double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
+
+            if (nMode < 0 || nMode > 4096)
+                return ExcelError.ExcelErrorValue;
+
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform       transform = null;
+
+            // do the work; exceptions may occur...
+            try
+            {
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
+                {
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
+
+                // start core of function
+                return transform.Name;
+                // end core of function
+
+            }
+            catch (Exception ex)
+            {
+                return Lib.ExceptionHandler(ex);
+            }
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
+        } // Name
+
+        [ExcelFunctionDoc(
+            IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
+            Name = "TL.cct.RoundTrip",
+            Description = "Get the error of a roundtrip of N forward/backward transforms", 
+            Category = "CCT - Coordinate Conversion and Transformation",
+            HelpTopic = "TopoLib-AddIn.chm!1005",
+
+            Returns = "error incurred in the roundtrip(s)",
+            Summary =
+            "Returns error incurred in N forward roundtrip(s) in a coordinate transform",
+            Remarks = "For the test point, it is recommended to select the centerpoint of the usage area of the Source CRS." +
+            "<p>If no test point is given (0, 0, 0) will be used instead</p>",
+            Example = "xxx")]
+        public static object RoundTrip(
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("test point with adjacent [x, y] coordinates", Name = "point(x, y)")] object[,] TestCoord,
+            [ExcelArgument("N - nr of roundtrips to make", Name = "nr roundtrips")] object oRoundTrips,
+            [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
+            [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
+            [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
+            [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
+            [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
+            [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
+        {
+            if (ExcelDnaUtil.IsInFunctionWizard())
+                return ExcelError.ExcelErrorRef;
+
+            // Check general input data
+            int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
+            double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
+            double westLongitude = Optional.Check(oWestLongitude, -1000.0);
+            double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
+            double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
+            double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
+
+            if (nMode < 0 || nMode > 4096)
+                return ExcelError.ExcelErrorValue;
+
+            // Check specific input data
+            int nTrips = (int)Optional.Check(oRoundTrips, 1.0);
+            // max three adjacent [x, y, z] cells on the same row
+            if (TestCoord.GetLength(0) > 1 || TestCoord.GetLength(1) > 3 ) return ExcelError.ExcelErrorValue;
+
+            double x = TestCoord.GetLength(1) > 0 ? (double)TestCoord[0, 0] : 0;
+            double y = TestCoord.GetLength(1) > 1 ? (double)TestCoord[0, 1] : 0;
+            double z = TestCoord.GetLength(1) > 2 ? (double)TestCoord[0, 2] : 0;
+            PPoint pt = new PPoint(x, y, z);
+
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform       transform = null;
+
+            // do the work; exceptions may occur...
+            try
+            {
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
+                {
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
+
+                // start core of function
+                double error = transform.RoundTrip(true, nTrips, pt);
+
+                if (Double.IsInfinity(error))
+                    throw new System.InvalidOperationException("Infinite roundtrip error");
+
+                return error;
+                // end core of function
+
+            }
+            catch (Exception ex)
+            {
+                return Lib.ExceptionHandler(ex);
+            }
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
+        } // RoundTrip
+
+        [ExcelFunctionDoc(
+            IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
+            Name = "TL.cct.Scope",
+            Description = "Get the scope of the coordinate transform", 
+            Category = "CCT - Coordinate Conversion and Transformation",
+            HelpTopic = "TopoLib-AddIn.chm!1004",
+
+            Returns = "Scope of the coordinate transform",
+            Summary =
+            "Returns the scope of a coordinate transform",
+            Example = "xxx")]
+        public static object Scope(
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
+            [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
+            [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
+            [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
+            [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
+            [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
+        {
+            if (ExcelDnaUtil.IsInFunctionWizard())
+                return ExcelError.ExcelErrorRef;
+
+            // Check general input data
+            int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
+            double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
+            double westLongitude = Optional.Check(oWestLongitude, -1000.0);
+            double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
+            double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
+            double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
+
+            if (nMode < 0 || nMode > 4096)
+                return ExcelError.ExcelErrorValue;
+
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform       transform = null;
+
+            // do the work; exceptions may occur...
+            try
+            {
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
+                {
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
+
+                // start core of function
+                return transform.Scope;
+                // end core of function
+
+            }
+            catch (Exception ex)
+            {
+                return Lib.ExceptionHandler(ex);
+            }
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
+        } // Scope
+
+        [ExcelFunctionDoc(
+            IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
+            Name = "TL.cct.SourceCRS",
+            Description = "Get the source-CRS used in a coordinate transform", 
+            Category = "CCT - Coordinate Conversion and Transformation",
+            HelpTopic = "TopoLib-AddIn.chm!1006",
+
+            Returns = "Source-CRS of a coordinate transform in one of three different formats",
+            Summary =
+            "Returns the source-CRS of a coordinate transform in one of three different formats",
+            Example = "xxx")]
+        public static object SourceCRS(
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("Output mode: (0); 0 = PROJ string, 1 = WKT string, 2 = JSON string. Mode is combined with 2^n flag: 8, 16, ..., 2048. See help file for more information", Name = "mode")] object oMode,
+            [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
+            [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
+            [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
+            [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
+            [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
+        {
+            if (ExcelDnaUtil.IsInFunctionWizard())
+                return ExcelError.ExcelErrorRef;
+
+            // Check general input data
+            int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
+            double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
+            double westLongitude = Optional.Check(oWestLongitude, -1000.0);
+            double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
+            double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
+            double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
+
+            if (nMode < 0 || nMode > 4096)
+                return ExcelError.ExcelErrorValue;
+
+            // Check specific input data
+            int nOutput = nMode & 3;
+
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform       transform = null;
+
+            // do the work; exceptions may occur...
+            try
+            {
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
+                {
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
+
+                // start core of function
+                CoordinateReferenceSystem SourceCRS = transform.SourceCRS;
+                if (SourceCRS is null)
+                    return "Unknown";
+
+                switch(nOutput)
+                {
+                    default:
+                    case 0:
+                        return SourceCRS.AsProjString();
+                    case 1:
+                        return SourceCRS.AsWellKnownText();
+                    case 2:
+                        return SourceCRS.AsProjJson();
+                }
+                // end core of function
+
+            }
+            catch (Exception ex)
+            {
+                return Lib.ExceptionHandler(ex);
+            }
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
+        } // SourceCRS
+
+        [ExcelFunctionDoc(
+            IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
+            Name = "TL.cct.Steps.Count",
+            Description = "Get the number of steps incorporated in a coordinate transform", 
+            Category = "CCT - Coordinate Conversion and Transformation",
+            HelpTopic = "TopoLib-AddIn.chm!1006",
+
+            Returns = "number of steps incorporated in a coordinate transform",
+            Summary =
+            "Returns the number of steps incorporated in a coordinate transform",
+            Example = "xxx")]
+        public static object Steps_Count(
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
+            [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
+            [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
+            [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
+            [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
+            [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
+        {
+            if (ExcelDnaUtil.IsInFunctionWizard())
+                return ExcelError.ExcelErrorRef;
+
+            // Check general input data
+            int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
+            double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
+            double westLongitude = Optional.Check(oWestLongitude, -1000.0);
+            double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
+            double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
+            double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
+
+            if (nMode < 0 || nMode > 4096)
+                return ExcelError.ExcelErrorValue;
+
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform       transform = null;
+
+            // do the work; exceptions may occur...
+            try
+            {
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
+                {
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
+
+                // start core of function
+                CoordinateTransformList steps = transform as CoordinateTransformList;
+                return (steps is null) ? 0 : steps.Count;
+                // end core of function
+
+            }
+            catch (Exception ex)
+            {
+                return Lib.ExceptionHandler(ex);
+            }
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
+        } // Steps_Count
+
+        [ExcelFunctionDoc(
+            IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
+            Name = "TL.cct.Steps.MethodName",
+            Description = "Get the method name of step N in a coordinate transform", 
+            Category = "CCT - Coordinate Conversion and Transformation",
+            HelpTopic = "TopoLib-AddIn.chm!1007",
+
+            Returns = "method name of step N in a coordinate transform",
+            Summary =
+            "Returns the method name of step N in a coordinate transform",
+            Example = "xxx")]
+        public static object Steps_MethodName(
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("Zero based index of Steps list (0) ", Name = "Index")] object index,
+            [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
+            [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
+            [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
+            [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
+            [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
+            [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
+        {
+            if (ExcelDnaUtil.IsInFunctionWizard())
+                return ExcelError.ExcelErrorRef;
+
+            // Check general input data
+            int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
+            double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
+            double westLongitude = Optional.Check(oWestLongitude, -1000.0);
+            double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
+            double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
+            double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
+
+            if (nMode < 0 || nMode > 4096)
+                return ExcelError.ExcelErrorValue;
+
+            // Check specific input data
+            int nIndex  = (int)Optional.Check(index , 0.0);
+
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform       transform = null;
+
+            // do the work; exceptions may occur...
+            try
+            {
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
+                {
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
+
+                // start core of function
+                CoordinateTransformList steps = transform as CoordinateTransformList;
+                return (steps is null) ? "Unknown" : steps[nIndex].MethodName;
+                // end core of function
+
+            }
+            catch (Exception ex)
+            {
+                return Lib.ExceptionHandler(ex);
+            }
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
+        } // Steps_MethodName
+
+        [ExcelFunctionDoc(
+            IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
+            Name = "TL.cct.Steps.Name",
+            Description = "Get the name of step N in a coordinate transform", 
+            Category = "CCT - Coordinate Conversion and Transformation",
+            HelpTopic = "TopoLib-AddIn.chm!1008",
+
+            Returns = "name of step N in a coordinate transform",
+            Summary =
+            "Returns the name of step N in a coordinate transform",
+            Example = "xxx")]
+        public static object Steps_Name(
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("Zero based index of Steps list (0) ", Name = "Index")] object index,
+            [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
+            [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
+            [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
+            [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
+            [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
+            [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
+        {
+            if (ExcelDnaUtil.IsInFunctionWizard())
+                return ExcelError.ExcelErrorRef;
+
+            // Check general input data
+            int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
+            double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
+            double westLongitude = Optional.Check(oWestLongitude, -1000.0);
+            double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
+            double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
+            double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
+
+            if (nMode < 0 || nMode > 4096)
+                return ExcelError.ExcelErrorValue;
+
+            // Check specific input data
+            int nIndex  = (int)Optional.Check(index , 0.0);
+
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform       transform = null;
+
+            // do the work; exceptions may occur...
+            try
+            {
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
+                {
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
+
+                // start core of function
+                CoordinateTransformList steps = transform as CoordinateTransformList;
+                return (steps is null) ? "Unknown" : steps[nIndex].Name;
+                // end core of function
+
+            }
+            catch (Exception ex)
+            {
+                return Lib.ExceptionHandler(ex);
+            }
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
+        } // Steps_Name
+
+        [ExcelFunctionDoc(
+            IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
+            Name = "TL.cct.Steps.Transform",
+            Description = "Get the transform-string of step N in a coordinate transform", 
+            Category = "CCT - Coordinate Conversion and Transformation",
+            HelpTopic = "TopoLib-AddIn.chm!1008",
+
+            Returns = "Transform string of step N in a coordinate transform",
+            Summary =
+            "Returns the transform string of step N in a coordinate transform in three different formats",
+            Remarks = "Every step in a multi-step coordinate transform, is basically a coordinate transform on its own" +
+            "<p>By making the transform string available for each step, we prevent having to implement (duplicate) all transform functionality for 'cct.Steps'.</p>",
+            Example = "xxx")]
+        public static object Steps_Transform(
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("Zero based index of Steps list (0) ", Name = "Index")] object index,
+            [ExcelArgument("Output mode: (0); 0 = PROJ string, 1 = WKT string, 2 = JSON string. Mode is combined with 2^n flag: 8, 16, ..., 2048. See help file for more information", Name = "mode")] object oMode,
+            [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
+            [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
+            [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
+            [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
+            [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
+        {
+            if (ExcelDnaUtil.IsInFunctionWizard())
+                return ExcelError.ExcelErrorRef;
+
+            // Check general input data
+            int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
+            double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
+            double westLongitude = Optional.Check(oWestLongitude, -1000.0);
+            double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
+            double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
+            double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
+
+            if (nMode < 0 || nMode > 4096)
+                return ExcelError.ExcelErrorValue;
+
+            // Check specific input data
+            int nIndex  = (int)Optional.Check(index , 0.0);
+            int nOutput = nMode & 3;
+
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform       transform = null;
+
+            // do the work; exceptions may occur...
+            try
+            {
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
+                {
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
+
+                // start core of function
+                CoordinateTransformList steps = transform as CoordinateTransformList;
+                if (steps is null) 
+                    return "Unknown";
+
+                switch(nOutput)
+                {
+                    default:
+                    case 0:
+                        return steps[nIndex].AsProjString();
+                    case 1:
+                        return steps[nIndex].AsWellKnownText();
+                    case 2:
+                        return steps[nIndex].AsProjJson();
+                }
+                // end core of function
+
+            }
+            catch (Exception ex)
+            {
+                return Lib.ExceptionHandler(ex);
+            }
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
+        } // Steps_Name
+
+        [ExcelFunctionDoc(
+            IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
+            Name = "TL.cct.TargetCRS",
+            Description = "Get the target-CRS used in a coordinate transform", 
+            Category = "CCT - Coordinate Conversion and Transformation",
+            HelpTopic = "TopoLib-AddIn.chm!1006",
+
+            Returns = "Target-CRS of a coordinate transform in one of three different formats",
+            Summary =
+            "Returns the target-CRS of a coordinate transform in one of three different formats",
+            Example = "xxx")]
+        public static object TargetCRS(
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("Output mode: (0); 0 = PROJ string, 1 = WKT string, 2 = JSON string. Mode is combined with 2^n flag: 8, 16, ..., 2048. See help file for more information", Name = "mode")] object oMode,
+            [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
+            [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
+            [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
+            [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
+            [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
+        {
+            if (ExcelDnaUtil.IsInFunctionWizard())
+                return ExcelError.ExcelErrorRef;
+
+            // Check general input data
+            int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
+            double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
+            double westLongitude = Optional.Check(oWestLongitude, -1000.0);
+            double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
+            double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
+            double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
+
+            if (nMode < 0 || nMode > 4096)
+                return ExcelError.ExcelErrorValue;
+
+            // Check specific input data
+            int nOutput = nMode & 3;
+
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform       transform = null;
+
+            // do the work; exceptions may occur...
+            try
+            {
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
+                {
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
+
+                // start core of function
+                CoordinateReferenceSystem SourceCRS = transform.SourceCRS;
+                if (SourceCRS is null)
+                    return "Unknown";
+
+                switch(nOutput)
+                {
+                    default:
+                    case 0:
+                        return SourceCRS.AsProjString();
+                    case 1:
+                        return SourceCRS.AsWellKnownText();
+                    case 2:
+                        return SourceCRS.AsProjJson();
+                }
+                // end core of function
+
+            }
+            catch (Exception ex)
+            {
+                return Lib.ExceptionHandler(ex);
+            }
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
+        } // TargetCRS
 
         [ExcelFunctionDoc(
             IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
@@ -1678,7 +2328,7 @@ namespace TopoLib
             ProjContext               pjContext = null;
             CoordinateReferenceSystem crsSource = null;
             CoordinateReferenceSystem crsTarget = null;
-            CoordinateTransform transform = null;
+            CoordinateTransform       transform = null;
 
             // do the work; exceptions may occur...
             try
@@ -1763,7 +2413,7 @@ namespace TopoLib
             ProjContext               pjContext = null;
             CoordinateReferenceSystem crsSource = null;
             CoordinateReferenceSystem crsTarget = null;
-            CoordinateTransform transform = null;
+            CoordinateTransform       transform = null;
 
             // do the work; exceptions may occur...
             try
@@ -1871,6 +2521,7 @@ namespace TopoLib
                             ids = string.Join(", ", ctl.Where(x => x.Identifiers != null).SelectMany(x => x.Identifiers));
                             scopes = string.Join(", ", ctl.Select(x => x.Scope).Where(x => x != null).Distinct());
                         }
+
                         if (transforms[i].Accuracy is null || transforms[i].Accuracy <= 0.0)
                         { 
                             accuracy = "Unknown"; 
@@ -1924,6 +2575,89 @@ namespace TopoLib
                 pjContext?.Dispose();
             }
         } // Transforms_ListAll
+
+        [ExcelFunctionDoc(
+            IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
+            Name = "TL.cct.Type",
+            Description = "Get the typeof the coordinate transform", 
+            Category = "CCT - Coordinate Conversion and Transformation",
+            HelpTopic = "TopoLib-AddIn.chm!1004",
+
+            Returns = "Type of the coordinate transform",
+            Summary =
+            "Returns the type a coordinate transform",
+            Example = "xxx")]
+        public static object Type(
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
+            [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
+            [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
+            [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
+            [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
+            [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
+        {
+            if (ExcelDnaUtil.IsInFunctionWizard())
+                return ExcelError.ExcelErrorRef;
+
+            // Check general input data
+            int nMode       = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
+            double Accuracy      = Optional.Check(oAccuracy,      -1000.0);
+            double westLongitude = Optional.Check(oWestLongitude, -1000.0);
+            double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
+            double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
+            double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
+
+            if (nMode < 0 || nMode > 4096)
+                return ExcelError.ExcelErrorValue;
+
+            // Deal with optional parameters
+            bool bUseNetwork = false;
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+
+            // setup all disposable objects
+            ProjContext               pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform       transform = null;
+
+            // do the work; exceptions may occur...
+            try
+            {
+                pjContext = new ProjContext();
+
+                if (bUsingTransform)
+                {
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                }
+
+                // start core of function
+                return transform.Type.ToString();
+                // end core of function
+
+            }
+            catch (Exception ex)
+            {
+                return Lib.ExceptionHandler(ex);
+            }
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
+        } // Type
+
 
     } // class
 
