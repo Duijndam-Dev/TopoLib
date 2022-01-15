@@ -23,7 +23,7 @@ namespace TopoLib
             Name = "TL.env.SetEnvironmentVariable",
             Description = "sets a [key, value] pair in the environment settings",
             Category = "ENV - Environment",
-            HelpTopic = "TopoLib-AddIn.chm!1401",
+            HelpTopic = "TopoLib-AddIn.chm!1400",
 
             Returns = "[env:<{key}>, value:<{value}>, mode<{mode}>] string in case of succes, #VALUE in case of failure.",
             Remarks = "In case of a #VALUE error, please ensure the {key} and {value} strings are in between \"double quotes\".")]
@@ -76,7 +76,7 @@ namespace TopoLib
             Name = "TL.env.GetEnvironmentVariable",
             Description = "reads a [key, value] pair in the environment settings",
             Category = "ENV - Environment",
-            HelpTopic = "TopoLib-AddIn.chm!1402",
+            HelpTopic = "TopoLib-AddIn.chm!1401",
 
             Returns = "[env:<{key}>, value:<{value}>, mode<{mode}>] string in case of succes, #VALUE in case of failure.",
             Remarks = "In case of a #VALUE error, please ensure the {key} string is in between \"double quotes\".")]
@@ -125,7 +125,7 @@ namespace TopoLib
             Name = "TL.env.GetEnvironmentVariableValue",
             Description = "reads a [key, value] pair in the environment settings",
             Category = "ENV - Environment",
-            HelpTopic = "TopoLib-AddIn.chm!1403",
+            HelpTopic = "TopoLib-AddIn.chm!1402",
 
             Returns = "Value of environment variable in case of succes, #VALUE in case of failure.",
             Remarks = "In case of a #VALUE error, please ensure the {key} string is in between \"double quotes\".")]

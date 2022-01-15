@@ -42,8 +42,17 @@
     <Reference Include="ExcelDna.IntelliSense, Version=1.5.1.0, Culture=neutral, PublicKeyToken=f225e9659857edbe, processorArchitecture=MSIL">
       <HintPath>..\packages\ExcelDna.IntelliSense.1.5.1\lib\net452\ExcelDna.IntelliSense.dll</HintPath>
     </Reference>
+    <Reference Include="ExcelDna.Registration, Version=1.1.0.0, Culture=neutral, PublicKeyToken=f225e9659857edbe, processorArchitecture=MSIL">
+      <HintPath>..\packages\ExcelDna.Registration.1.5.1\lib\net452\ExcelDna.Registration.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Office.Interop.Excel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
       <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Serilog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
+      <HintPath>..\packages\Serilog.2.10.0\lib\net46\Serilog.dll</HintPath>
+    </Reference>
+    <Reference Include="Serilog.Sinks.ExcelDnaLogDisplay, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f225e9659857edbe, processorArchitecture=MSIL">
+      <HintPath>..\packages\Serilog.Sinks.ExcelDnaLogDisplay.1.5.0\lib\net472\Serilog.Sinks.ExcelDnaLogDisplay.dll</HintPath>
     </Reference>
     <Reference Include="SharpProj, Version=8.2001.106.0, Culture=neutral, PublicKeyToken=3a930e679d9a0873, processorArchitecture=x86">
       <HintPath>..\packages\SharpProj.Core.8.2001.106\lib\net45\SharpProj.dll</HintPath>
@@ -52,6 +61,7 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -63,12 +73,16 @@
     <Compile Include="Cct.cs" />
     <Compile Include="CctOptions.cs" />
     <Compile Include="Cfg.cs" />
+    <Compile Include="Cmd.cs" />
+    <Compile Include="AddIn.cs" />
     <Compile Include="Crs.cs" />
+    <Compile Include="CustomRibbon.cs" />
     <Compile Include="Env.cs" />
-    <Compile Include="ExcelAddin.cs" />
     <Compile Include="Lib.cs" />
+    <Compile Include="Log.cs" />
     <Compile Include="Optional.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="XlDialogBox.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -123,8 +137,8 @@
     <Error Condition="!Exists('..\packages\SharpProj.8.2001.106\build\SharpProj.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SharpProj.8.2001.106\build\SharpProj.targets'))" />
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>if $(ConfigurationName)==Release  "$(SolutionDir)batch\publish.bat" $(SolutionDir)  $(ConfigurationName)
-"D:\Source\VS19\TopoLib\packages\ExcelDnaDoc.1.5.1\tools\ExcelDnaDoc.exe" "$(TargetDir)TopoLib-AddIn.dna" /Y</PostBuildEvent>
+    <PostBuildEvent>REM if $(ConfigurationName)==Release  "$(SolutionDir)batch\publish.bat" $(SolutionDir)  $(ConfigurationName)
+REM "D:\Source\VS19\TopoLib\packages\ExcelDnaDoc.1.5.1\tools\ExcelDnaDoc.exe" "$(TargetDir)TopoLib-AddIn.dna" /X</PostBuildEvent>
   </PropertyGroup>
   <Import Project="..\packages\ExcelDna.AddIn.1.5.1\build\ExcelDna.AddIn.targets" Condition="Exists('..\packages\ExcelDna.AddIn.1.5.1\build\ExcelDna.AddIn.targets')" />
   <Import Project="..\packages\SharpProj.8.2001.106\build\SharpProj.targets" Condition="Exists('..\packages\SharpProj.8.2001.106\build\SharpProj.targets')" />

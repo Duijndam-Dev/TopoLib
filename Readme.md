@@ -2,26 +2,24 @@
 
 ### Excel extension library (*.xll) for Coordinate Conversion and Transformation functions
 
-#### 1	Packages used
+#### 1	Introduction
 
 **TopoLib** contains a number of User Defined Functions (UDFs) for *Coordinate Conversion and Transformation*, supported by Ribbon Commands, made available as an Excel extension. The code is based on a number of open source libraries, that are available for download on [GitHub](https://github.com/).
 
 The code is made available under the [ZLib license](License.md).   The  main open source libraries underpinning TopoLib are :
 
-| Library                                                      | Version   | License type |
-| ------------------------------------------------------------ | --------- | :----------: |
-| [ExcelDna](https://github.com/Excel-DNA/ExcelDna).Add-In     | 1.5.0     |     ZLIB     |
-| [ExcelDna](https://github.com/Excel-DNA/ExcelDna).Integration | 1.5.0     |     ZLIB     |
-| [ExcelDna](https://github.com/Excel-DNA/ExcelDna).IntelliSense | 1.5.0     |     ZLIB     |
-| [ExcelDnaDoc](https://github.com/Excel-DNA/ExcelDnaDoc)      | 1.5.0     |     ZLIB     |
-| [MSTest](https://github.com/microsoft/testfx).TestFramework  | 2.2.8     |     MIT      |
-| [SharpProj](https://github.com/AmpScm/SharpProj)             | 8.1001.76 |  Apache 2.0  |
-| [SharpProj](https://github.com/AmpScm/SharpProj).Core        | 8.1001.76 |  Apache 2.0  |
-| [SharpProj](https://github.com/AmpScm/SharpProj).Database    | 8.1.1     |  Apache 2.0  |
-| [SharpProj](https://github.com/AmpScm/SharpProj).NettopologySuite | 8.100.76  |  Apache 2.0  |
-| [XlDialogBox](https://github.com/Duijndam-Dev/XlDialogBox)   | 1.0.0     |     MIT      |
+| Library                                                      | Version    | License type |
+| ------------------------------------------------------------ | ---------- | :----------: |
+| [ExcelDna](https://github.com/Excel-DNA/ExcelDna).Add-In     | 1.5.1      |     ZLIB     |
+| [ExcelDna](https://github.com/Excel-DNA/ExcelDna).Integration | 1.5.1      |     ZLIB     |
+| [ExcelDna](https://github.com/Excel-DNA/ExcelDna).IntelliSense | 1.5.1      |     ZLIB     |
+| [ExcelDna](https://github.com/Excel-DNA/ExcelDna).XmlSchemas | 1.5.0      |     ZLIB     |
+| [ExcelDnaDoc](https://github.com/Excel-DNA/ExcelDnaDoc)      | 1.5.1      |     ZLIB     |
+| [SharpProj](https://github.com/AmpScm/SharpProj)             | 8.2001.106 |  Apache 2.0  |
+| [SharpProj](https://github.com/AmpScm/SharpProj).Core        | 8.2001.106 |  Apache 2.0  |
+| [XlDialogBox](https://github.com/Duijndam-Dev/XlDialogBox)   | 1.0.0      |     MIT      |
 
-These packages need to be installed from [NuGet](https://www.nuget.org/).  Note that higher versions of Excel.Dna do exist, but at present (29/12/2021) they may create issues with virus scanners, and therefore 1.1.1 is still your safest bet. Furthermore you'll need to add a reference to `Microsoft.Office.Interop.Excel` and `System.Configuration` in your project.
+These packages need to be installed from [NuGet](https://www.nuget.org/).  Furthermore you need to add a reference to `System.Configuration` and to `Microsoft.Office.Interop.Excel` in your project.
 
 Please note that SharpProj is the core package in TopoLib, as it makes the [proj library](https://proj.org/index.html) writtten in C/C++ accessible from C#.
 
@@ -49,8 +47,6 @@ The advantage of using C++/CLI is that the resulting 'mixed language' DLL can **
 
 This is where [SharpProj](https://github.com/AmpScm/SharpProj) comes into the picture. It exposes the PROJ library through managed C++/CLI classes, which in turn can be consumed by Excel-DNA to create UDF's in Excel. Almost every  PROJ C++-routine finds its counterpart in SharpProj.
 
-After some unit testing of the SharpProj.dll (that includes the PROJ static library) it became apparent that memory leaks occur, when doing coordinate transforms using a deprecated CRS from the `Proj.db` database. Ultimately, this results in Excel crashing, and your work being lost... For that reason deprecated CRS-es are disabled by default, unless enabled explicitly. 
-
 The PROJ library uses an environment variable `PROJ_LIB` to locate its database and the (GeoTiff) grid-files. To help the end user, three routines have been added for you to set and read environment variables under `=TL.env` in TopoLib. 
 
 Parameters that need to be persistent outside of a particular spreadsheet can be saved in a `TopoLib.config` file that resides in the folder`LocalApplicationData\TopoLib\`. See routines under  `=TL.cfg`in TopoLib for more information.
@@ -59,7 +55,7 @@ Parameters that need to be persistent outside of a particular spreadsheet can be
 
 **After** installing the required packages from GitHub, it is time to build the project. This is as simple as hitting `F7`. As part of the Post-build events, a batch file `build.bat` is called that creates a `publish` folder at the root of the project. Step into this folder and step down to select the proper version of Excel you are using (x64 or x86). Then double-click the *.xll file, to load the Add-In. Once the Add-In is loaded, the UDF's are recognized by Excel and you can run the example spreadsheets. Separate spreadsheets have been included that demonstrate the use of **static arrays**, using so-called Control-Shift-Enter (CSE) functions used in Excel 2019 and earlier. Later versions of Excel (Office 365) use so-called **dynamic arrays**, where the results 'spill over' (to the bottom-right ) from the active cell. No more worries on having to pre-select the (anticipated) output area beforehand. 
 
-An installation script will be developed to store the *.xll and associated files in the right folder on your PC. Right now, please double click the *.xll file to get it loaded.  Have fun using the tool and make improvement suggestions if you'd have these...
+An installation script has been developed to store the *.xll and associated files in the right folder on your PC. Alternatively, just double-click the *.xll file to get it loaded.  Have fun using the tool and make improvement suggestions if you'd have these...
 
 #### 6	Current status
 
@@ -67,13 +63,12 @@ At present, TopoLib is still Work-in-Progress. Not all classes/functions from Sh
 
 But overall, the Add-In is already very functional; after all, as an end-user you want to convert coordinates from `(lat, long)` to `(x, y)` and the like. For this to happen, you need effectively **just one call**: 
 
-`=TL.cct.TransformForward($F$89,$F$90,$B112:$C112)` 
+`=TL.cct.ApplyForward($F$89,$F$90,$B112:$C112)` 
 
 This will transform the coordinates you provided in `$B112:$C112`to new coordinates using the source Coordinate Reference System (CRS) defined in `$F$89` and the target CRS defined in `$F$90`. That is all there is to it !
 
 The following is planned:
 
-- Finish installation batch file
 - Complete CCT (Coordinate Conversion and Transformation) functionality
 - Complete CRS (Coordinate Reference System) functionality
 - Add Ribbon interface for persistent library settings

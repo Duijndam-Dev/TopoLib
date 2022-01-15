@@ -14,18 +14,39 @@ using SharpProj.Proj;
 using Excel = Microsoft.Office.Interop.Excel; // Bart, from https://stackoverflow.com/questions/7916711/get-the-current-workbook-object-in-c-sharp
 using System.IO;
 
-// to refresh my memory on access modifiers in C# :
-// *internal* is for assembly scope (i.e. only accessible from code in the same .exe or .dll)
-// *private* is for class scope (i.e. accessible only from code in the same class).
-
 namespace TopoLib
 {
+    public delegate Action<ProjLogLevel, String> LOG(ProjLogLevel level, string message);
+
     public static class Lib
     {
+        // Create a method for the LOG delegate.
+        internal static void SendToSerilog(ProjLogLevel level, string message)
+        {
+            int nLevel = (int)level;
+
+            switch (nLevel)
+            {
+                default:
+                case 0:
+                    AddIn.Logger.Information(message);
+                    break;
+                case 1:
+                    AddIn.Logger.Error(message);
+                    break;
+                case 2:
+                    AddIn.Logger.Debug(message);
+                    break;
+                case 3:
+                    AddIn.Logger.Verbose(message);
+                    break;
+            }
+        }
+
         static bool? _supportsDynamicArrays;
 
         [ExcelFunction(IsHidden = true)]
-        private static bool SupportsDynamicArrays()
+        internal static bool SupportsDynamicArrays()
         {
             if (!_supportsDynamicArrays.HasValue)
             {
@@ -46,7 +67,7 @@ namespace TopoLib
             Name = "TL.lib.DynamicArraysSupported",
             Description = "Indicates if your version of Excel supports 'dynamic arrays'",
             Category = "LIB - Library",
-            HelpTopic = "TopoLib-AddIn.chm!1201",
+            HelpTopic = "TopoLib-AddIn.chm!1500",
             Returns = "A string showing if your version of Excel supports dynamic arrays",
             Remarks = "This function takes no input parameters",
             Example = "TL.lib.DynamicArraysSupported() returns 'Dynamic arrays are supported'")]
@@ -63,39 +84,38 @@ namespace TopoLib
         } // DynamicArrays
 
         // See: https://stackoverflow.com/questions/136035/catch-multiple-exceptions-at-once
-        internal static object ExceptionHandler(Exception ex, object hint = null)
+        internal static object ExceptionHandler(Exception ex)
         {
-            if (_verbose == 0) 
-                return ExcelError.ExcelErrorNA;
-
-            if (_verbose == 1 && hint != null)
-                return hint;
-
-            //string errorText = "#:[unknown exception]";
             string errorText;
             
-            switch (ex)
+            if (_logLevel > 0)
             {
-                case ArithmeticException _:
-                case InvalidOperationException _:
-                case ProjException _:
-                    errorText =  $"#:[{ex.GetBaseException().Message}]";
-                    break;
+                switch (ex)
+                {
+                    case ArithmeticException _:
+                    case InvalidOperationException _:
+                    case ProjException _:
+                        errorText =  $"#:[{ex.GetBaseException().Message}]";
+                        break;
 
-                case ArgumentNullException _:
-                    errorText =  $"#:[{ex.GetBaseException().Message} argument is null]";
-                    break;
+                    case ArgumentNullException _:
+                        errorText =  $"#:[{ex.GetBaseException().Message} argument is null]";
+                        break;
 
-                case ArgumentException _:
-                    errorText =  $"#:[{ex.GetType().Name}: {ex.Message}]";
-                    break;
+                    case ArgumentException _:
+                        errorText =  $"#:[{ex.GetType().Name}: {ex.Message}]";
+                        break;
                    
-                default:
-                    // you can check here [F9] if certain exception types haven't been handled yet
-                    errorText =  $"#:[{ex.GetBaseException().Message}]";
-                    break;
+                    default:
+                        // you can check here [F9] if certain exception types haven't been handled yet
+                        errorText =  $"#:[{ex.GetBaseException().Message}]";
+                        break;
+
+                }
+                AddIn.Logger.Error(errorText);
             }
-            return errorText;
+    
+            return ExcelError.ExcelErrorNA;
 
         } // ExceptionHandler
 
@@ -105,7 +125,7 @@ namespace TopoLib
             Name = "TL.lib.GridCacheLocation",
             Description = "Gets or sets the path for the cached grid files",
             Category = "LIB - Library",
-            HelpTopic = "TopoLib-AddIn.chm!1207",
+            HelpTopic = "TopoLib-AddIn.chm!1501",
             IsHidden = false,
             Returns = "A string showing the path for the cached grid files",
             Remarks = "This function takes no input parameters",
@@ -140,7 +160,7 @@ namespace TopoLib
             Name = "TL.lib.InstallationPath",
             Description = "Returns the path where library is installed",
             Category = "LIB - Library",
-            HelpTopic = "TopoLib-AddIn.chm!1205",
+            HelpTopic = "TopoLib-AddIn.chm!1502",
 
             Returns = "the path where the AddIn is installed",
             Remarks = "This function takes no input parameters")]
@@ -156,7 +176,7 @@ namespace TopoLib
             Name = "TL.lib.OperatingSystem",
             Description = "Returns version of Operating System and Excel",
             Category = "LIB - Library",
-            HelpTopic = "TopoLib-AddIn.chm!1202",
+            HelpTopic = "TopoLib-AddIn.chm!1503",
 
             Returns = "Name and version number of the current operating system",
             Remarks = "This function takes no input parameters",
@@ -173,77 +193,99 @@ namespace TopoLib
             }
         } // OperatingSystem
 
+        private static int _logLevel = 0;
 
-        private static int _verbose = 0;
+        public static int LogLevel   // property
+		{
+			get { return _logLevel; }   // get method
+			set { _logLevel =  value; }  // set method
+		}
 
         [ExcelFunctionDoc(
             IsVolatile = true,
-            Name = "TL.lib.Verbose",
-            Description = "Returns or sets error handling method",
+            Name = "TL.lib.LoggingLevel",
+            Description = "Returns or sets the logging level",
             Category = "LIB - Library",
-            HelpTopic = "TopoLib-AddIn.chm!1200",
+            HelpTopic = "TopoLib-AddIn.chm!1504",
 
-            Returns = "the current verbose setting",
-            Remarks = "This function takes 1 input parameter 'ErrorHandling' to set the Verbose Level, to manage error handling: " +
-                        "<ul>    <li><p>0 = Excel compliant error handling; return #N/A! in case of an error</p></li>" +
-                                "<li><p>1 = Where appropriate, return a numerical value, (e.g. -1 or FALSE). Otherwise return #N/A! error</p></li>" +
-                                "<li><p>2 = Return error string in format: #:[exception message]</p></li></ul>" +
+            Returns = "the current logging level",
+            Remarks = "This function takes 1 input parameter to set the logging Level, to QC error handling: " +
+                        "<ul>    <li><p>0 = No logging taking place (default)</p></li>" +
+                                "<li><p>1 = All errors being logged</p></li>" +
+                                "<li><p>2 = Debug merssages being logged as well</p></li>" +
+                                "<li><p>3 = Verbose; trace messages logged as well</p></li>" +
+                        "</ul>" +
                         "<p>Use the function without an input parameter to get the current verbose setting</p>" +
-                        "<p>This functionality will be updated when a 'decent' logger has been added to the library</p>.",
+                        "<p>Using this function to set the logging level is not recommended, as it may interfere with setting the logging level from the TopoLib Ribbon!</p>.",
             Example = "xxx")]
-        public static object Verbose(
-             [ExcelArgument("Use no arguments to get the current setting; use one argument [0, 1, 2] (0) to set the verbose setting", Name = "ErrorHandling")] object oVerbose)
+        public static object SetLoggingLevel(
+             [ExcelArgument("Use no arguments to get the current setting; use one argument [0, 1, 2, 3] (0) to set the logging level", Name = "Logging")] object oLogging)
         {
             // if (ExcelDnaUtil.IsInFunctionWizard()) return ExcelError.ExcelErrorRef;
 
-            int tmp = (int)Optional.Check(oVerbose, (double)_verbose);
-             if (tmp < 0 || tmp > 2 ) return ExcelError.ExcelErrorValue;
+            int tmp = (int)Optional.Check(oLogging, (double)_logLevel); // use the current logging level as a default value
+             if (tmp < 0 || tmp > 3 ) return ExcelError.ExcelErrorValue;
 
-            _verbose = tmp;
+            _logLevel= tmp;
 
-            return (double)_verbose;
+            return (double)_logLevel;
         
-        } // Verbose
+        } // SetLoggingLevel
+
+        // For Version Info, see also:
+        // https://proj.org/development/reference/functions.html?highlight=proj_operation_factory_context#various
 
         [ExcelFunctionDoc(
             Name = "TL.lib.VersionInfo",
             Category = "LIB - Library",
             Description = "Version of Proj library and its database(s)",
-            HelpTopic = "TopoLib-AddIn.chm!1206",
+            HelpTopic = "TopoLib-AddIn.chm!1505",
 
             Returns = "A string with version information",
             Summary = "Function that returns version of Proj-library or its database(s)",
-            Example = "Topo.prj.ProjVersionInfo() returns: 8.1.1"
+            Remarks = "This function takes 1 input parameter to get information from : " +
+            "<ul>    <li><p>0 = Version of the PROJ-database (0 = default)</p></li>" +
+                    "<li><p>1 = Version of the PROJ-data package with which this database is most compatible</p></li>" +
+                    "<li><p>2 = Version of the EPSG-database</p></li>" +
+                    "<li><p>3 = Version of the ESRI-database</p></li>" +
+                    "<li><p>4 = Version of the IGNF-database</p></li>" +
+                    "<li><p>5 = Version of the TopoLib AddIn</p></li>" +
+                    "<li><p>6 = Compile time of the TopoLib AddIn</p></li>" +
+            "</ul>",
+            Example = "Topo.prj.ProjVersionInfo() returns: 8.2.1"
         )]
         public static string VersionInfo(
-             [ExcelArgument("Version Info (0); 0 = Proj lib version, 1 = EPSG version, 2 = ESRI version, 3 = IGNF vesrion , 4 = TopoLib version, 5 = Compile time", Name = "Mode")] object oMode)
+             [ExcelArgument("Version Info (0); 0 = PROJ database version, 1 = PROJ data version, 2 = EPSG databaseversion, 3 = ESRI databaseversion, 4 = IGNF database version ,  5 = TopoLib version, 6 = TopoLib compile time", Name = "Mode")] object oMode)
         {
             int nMode = (int)Optional.Check(oMode, 0.0);
             
             string info;
 
-            using (var pc = new ProjContext())
+            using (ProjContext pjContext = Crs.CreateContext())
             {
                 switch (nMode)
                 {
                     case 0:
                     default:
-                        info = pc.Version.ToString();
+                        info = pjContext.Version.ToString();
                         break;
                     case 1:
-                        info = pc.EpsgVersion.ToString();
+                        info = pjContext.ProjDataVersion.ToString();
                         break;
                     case 2:
-                        info = pc.EsriVersion.ToString();
+                        info = pjContext.EpsgVersion.ToString();
                         break;
                     case 3:
-                        info = pc.IgnfVersion.ToString();
+                        info = pjContext.EsriVersion.ToString();
                         break;
                     case 4:
+                        info = pjContext.IgnfVersion.ToString();
+                        break;
+                    case 5:
                         Version v = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
                         info = v.ToString();
                         break;
-                    case 5:
+                    case 6:
                         System.DateTime date_time = System.IO.File.GetLastWriteTime(ExcelDnaUtil.XllPath);
                         info = date_time .ToString();
                         break;
@@ -253,5 +295,7 @@ namespace TopoLib
 
         } // VersionInfo
 
-    }
-}
+    } // class Lib
+
+} // namespace TopoLib
+

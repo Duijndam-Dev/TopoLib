@@ -28,7 +28,10 @@ using System.IO;
 // git push --set-upstream origin master -f
 //
 // This solved the problem, and my latest changes are uploaded to GitHub....
-
+//
+// To prevent static classes from other files to become visible in the Compiled Help File "TopoLib-AddIn.chm!1234" you need to use the /X flag when running ExcelDnaDoc.exe
+// In the Post-build event command line put: "D:\Source\VS19\TopoLib\packages\ExcelDnaDoc.1.5.1\tools\ExcelDnaDoc.exe" "$(TargetDir)TopoLib-AddIn.dna" /X
+//
 // The reference to SharpProj is effectively a reference to:
 // D:\Source\VS19\TopoLib\packages\SharpProj.Core.8.1001.60\lib\net45\SharpProj.dll
 // 
@@ -45,6 +48,10 @@ using System.IO;
 // Replace by : "TopoLib-AddIn.chm!\i{1200}"
 // This will generate a counter starting at 1200 and incrementing by 1.
 // See also https://community.notepad-plus-plus.org/topic/19414/replace-text-with-incremented-counter
+
+// to refresh my memory on access modifiers in C# :
+// *internal* is for assembly scope (i.e. only accessible from code in the same .exe or .dll)
+// *private* is for class scope (i.e. accessible only from code in the same class).
 
 #pragma warning disable IDE0019 // Use pattern matching
 
@@ -116,7 +123,7 @@ namespace TopoLib
 
         } // GetCoordinateTransformOptions
 
-        internal static CoordinateTransform CreateCoordinateTransform(in object[,] oTransform, ProjContext pc)
+        internal static CoordinateTransform CreateCoordinateTransform(in object[,] oTransform, ProjContext pjContext)
         {
             int nTransformRows = oTransform.GetLength(0);
             int nTransformCols = oTransform.GetLength(1);
@@ -138,7 +145,7 @@ namespace TopoLib
                     nTransform = (int)(double)oTransform[0, 0];
 
                     // we have an EPSG number from a single input parameter:
-                    return CoordinateTransform.CreateFromEpsg(nTransform, pc);
+                    return CoordinateTransform.CreateFromEpsg(nTransform, pjContext);
                 }
                 else if (oTransform[0, 0] is string)
                 {
@@ -149,7 +156,7 @@ namespace TopoLib
                     if (success)
                     {
                         // we have an EPSG number from a single input parameter:
-                        return CoordinateTransform.CreateFromEpsg(nTransform, pc);
+                        return CoordinateTransform.CreateFromEpsg(nTransform, pjContext);
                     }
                     else
                     {
@@ -159,7 +166,7 @@ namespace TopoLib
                             // it must be WKT (well, we hope)
 
                             // Note the cast used below is not required for CoordinateReferenceSystem where this function has been implemented as part of the inherited class
-                            return (CoordinateTransform)CoordinateTransform.CreateFromWellKnownText(sTransform, pc);
+                            return (CoordinateTransform)CoordinateTransform.CreateFromWellKnownText(sTransform, pjContext);
 
                             // CreateFromWellKnownText() is translated into CreateFromWellKnownText(from, wars, ctx); where array<String^>^ wars = nullptr;
                             // It may throw an ArgumentNullException
@@ -168,7 +175,7 @@ namespace TopoLib
                         else
                         {
                             // it might be anything
-                            return CoordinateTransform.Create(sTransform, pc);
+                            return CoordinateTransform.Create(sTransform, pjContext);
 
                             // Create() is translated into proj_create(ctx, fromStr); 
                             // It may throw an ArgumentNullException("from");
@@ -206,11 +213,11 @@ namespace TopoLib
                 else
                     throw new ArgumentNullException("Incorrect coordinate transform format");
 
-                return CoordinateTransform.CreateFromDatabase(sTransform, nTransform, pc);
+                return CoordinateTransform.CreateFromDatabase(sTransform, nTransform, pjContext);
 
                 // CreateFromDatabase() is translated into proj_create_from_database 
                 // It may throw a ArgumentNullException
-                // It may throw a pc->ConstructException
+                // It may throw a pjContext->ConstructException
             }
 
             // Oops, something went wrong if we get here...
@@ -218,7 +225,7 @@ namespace TopoLib
 
         }
 
-        internal static CoordinateTransform CreateCoordinateTransform(CoordinateReferenceSystem crsSource, CoordinateReferenceSystem crsTarget, CoordinateTransformOptions options, ProjContext pc, bool bAllowDeprecatedCRS, bool bUseNetwork)
+        internal static CoordinateTransform CreateCoordinateTransform(CoordinateReferenceSystem crsSource, CoordinateReferenceSystem crsTarget, CoordinateTransformOptions options, ProjContext pjContext, bool bAllowDeprecatedCRS, bool bUseNetwork)
         {
             bool bHasDeprecatedCRS = crsSource.IsDeprecated || crsTarget.IsDeprecated; 
 
@@ -226,9 +233,9 @@ namespace TopoLib
                 throw new System.InvalidOperationException ("Using deprecated CRS when not allowed");
 
             if (bUseNetwork)                       
-                pc.EnableNetworkConnections = true;
+                pjContext.EnableNetworkConnections = true;
 
-            var transform = CoordinateTransform.Create(crsSource.WithAxisNormalized(), crsTarget.WithAxisNormalized(), options, pc);
+            var transform = CoordinateTransform.Create(crsSource.WithAxisNormalized(), crsTarget.WithAxisNormalized(), options, pjContext);
         
             if (transform == null)
                 throw new System.InvalidOperationException ("No transformation available");
@@ -242,7 +249,7 @@ namespace TopoLib
             Name = "TL.cct.Accuracy",
             Description = "Get the accuracy of a transform", 
             Category = "CCT - Coordinate Conversion and Transformation",
-            HelpTopic = "TopoLib-AddIn.chm!1001",
+            HelpTopic = "TopoLib-AddIn.chm!1000",
 
             Returns = "Accuracy of a transform [m]",
             Summary = "Returns accuracy of a  coordinate transform",
@@ -287,7 +294,7 @@ namespace TopoLib
             // do the work; exceptions may occur...
             try
             {
-                pjContext = new ProjContext();
+                pjContext = Crs.CreateContext();
 
                 if (bUsingTransform)
                 {
@@ -295,8 +302,8 @@ namespace TopoLib
                 }
                 else
                 {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    crsSource = Crs.CreateCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
                     transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
                 }
 
@@ -329,7 +336,7 @@ namespace TopoLib
             Name = "TL.cct.ApplyForward",
             Description = "Coordinate conversion of one or more input points", 
             Category = "CCT - Coordinate Conversion and Transformation",
-            HelpTopic = "TopoLib-AddIn.chm!1009",
+            HelpTopic = "TopoLib-AddIn.chm!1001",
 
             Returns = "the reprojected coordinate(s)",
             Summary =
@@ -407,7 +414,7 @@ namespace TopoLib
             // do the work; exceptions may occur...
             try
             {
-                pjContext = new ProjContext();
+                pjContext = Crs.CreateContext();
 
                 if (bUsingTransform)
                 {
@@ -415,8 +422,8 @@ namespace TopoLib
                 }
                 else
                 {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    crsSource = Crs.CreateCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
                     transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
                 }
 
@@ -559,7 +566,7 @@ namespace TopoLib
             Name = "TL.cct.ApplyInverse",
             Description = "Inverse coordinate conversion of one or more input points", 
             Category = "CCT - Coordinate Conversion and Transformation",
-            HelpTopic = "TopoLib-AddIn.chm!1011",
+            HelpTopic = "TopoLib-AddIn.chm!1002",
 
             Returns = "the reprojected coordinate(s)",
             Summary =
@@ -645,8 +652,8 @@ namespace TopoLib
                 }
                 else
                 {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    crsSource = Crs.CreateCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
                     transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
                 }
 
@@ -789,7 +796,7 @@ namespace TopoLib
             Name = "TL.cct.Grids.Count",
             Description = "Nr of grids used in a transform", 
             Category = "CCT - Coordinate Conversion and Transformation",
-            HelpTopic = "TopoLib-AddIn.chm!1002",
+            HelpTopic = "TopoLib-AddIn.chm!1003",
 
             Returns = "Nr of grids used in a transform",
             Summary = "Function returns nr of grids used in a transform",
@@ -833,7 +840,7 @@ namespace TopoLib
             // do the work; exceptions may occur...
             try
             {
-                pjContext = new ProjContext();
+                pjContext = Crs.CreateContext();
 
                 if (bUsingTransform)
                 {
@@ -841,8 +848,8 @@ namespace TopoLib
                 }
                 else
                 {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    crsSource = Crs.CreateCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
                     transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
                 }
 
@@ -871,7 +878,7 @@ namespace TopoLib
             Name = "TL.cct.Grids.FullName",
             Description = "Get the full name (path) of grid nr N, used in a coordinate transform", 
             Category = "CCT - Coordinate Conversion and Transformation",
-            HelpTopic = "TopoLib-AddIn.chm!1008",
+            HelpTopic = "TopoLib-AddIn.chm!1004",
 
             Returns = "full name (path) of grid nr N, used in in a coordinate transform",
             Summary =
@@ -920,7 +927,7 @@ namespace TopoLib
             // do the work; exceptions may occur...
             try
             {
-                pjContext = new ProjContext();
+                pjContext = Crs.CreateContext();
 
                 if (bUsingTransform)
                 {
@@ -928,8 +935,8 @@ namespace TopoLib
                 }
                 else
                 {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    crsSource = Crs.CreateCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
                     transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
                 }
 
@@ -961,7 +968,7 @@ namespace TopoLib
             Name = "TL.cct.Grids.IsAvailable",
             Description = "Checks whether grid nr N, used in a coordinate transform is available", 
             Category = "CCT - Coordinate Conversion and Transformation",
-            HelpTopic = "TopoLib-AddIn.chm!1008",
+            HelpTopic = "TopoLib-AddIn.chm!1005",
 
             Returns = "TRUE if grid nr N, used in a coordinate transform is available",
             Summary =
@@ -1010,7 +1017,7 @@ namespace TopoLib
             // do the work; exceptions may occur...
             try
             {
-                pjContext = new ProjContext();
+                pjContext = Crs.CreateContext();
 
                 if (bUsingTransform)
                 {
@@ -1018,8 +1025,8 @@ namespace TopoLib
                 }
                 else
                 {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    crsSource = Crs.CreateCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
                     transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
                 }
 
@@ -1051,7 +1058,7 @@ namespace TopoLib
             Name = "TL.cct.Grids.Name",
             Description = "Get the name of grid nr N, used in a coordinate transform", 
             Category = "CCT - Coordinate Conversion and Transformation",
-            HelpTopic = "TopoLib-AddIn.chm!1008",
+            HelpTopic = "TopoLib-AddIn.chm!1006",
 
             Returns = "name of grid nr N, used in in a coordinate transform",
             Summary =
@@ -1100,7 +1107,7 @@ namespace TopoLib
             // do the work; exceptions may occur...
             try
             {
-                pjContext = new ProjContext();
+                pjContext = Crs.CreateContext();
 
                 if (bUsingTransform)
                 {
@@ -1108,8 +1115,8 @@ namespace TopoLib
                 }
                 else
                 {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    crsSource = Crs.CreateCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
                     transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
                 }
 
@@ -1141,7 +1148,7 @@ namespace TopoLib
             Name = "TL.cct.HasBallParkTransformation",
             Category = "CCT - Coordinate Conversion and Transformation",
             Description = "Confirms whether the transform has a ballpark transformation",
-            HelpTopic = "TopoLib-AddIn.chm!1003",
+            HelpTopic = "TopoLib-AddIn.chm!1007",
 
             Returns = "TRUE when the transform has a ballpark transformation; FALSE when not",
             Summary = "Function that confirms that the transform has a ballpark transformation",
@@ -1186,7 +1193,7 @@ namespace TopoLib
             // do the work; exceptions may occur...
             try
             {
-                pjContext = new ProjContext();
+                pjContext = Crs.CreateContext();
 
                 if (bUsingTransform)
                 {
@@ -1194,8 +1201,8 @@ namespace TopoLib
                 }
                 else
                 {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    crsSource = Crs.CreateCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
                     transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
                 }
 
@@ -1224,7 +1231,7 @@ namespace TopoLib
             Name = "TL.cct.HasInverse",
             Category = "CCT - Coordinate Conversion and Transformation",
             Description = "Confirms whether the transform can be done in the reversed direction",
-            HelpTopic = "TopoLib-AddIn.chm!1003",
+            HelpTopic = "TopoLib-AddIn.chm!1008",
 
             Returns = "TRUE when the transform can be done in the reversed direction; FALSE when not",
             Summary = "Function that confirms that the transform can be done in the reversed direction",
@@ -1269,7 +1276,7 @@ namespace TopoLib
             // do the work; exceptions may occur...
             try
             {
-                pjContext = new ProjContext();
+                pjContext = Crs.CreateContext();
 
                 if (bUsingTransform)
                 {
@@ -1277,8 +1284,8 @@ namespace TopoLib
                 }
                 else
                 {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    crsSource = Crs.CreateCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
                     transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
                 }
 
@@ -1306,7 +1313,7 @@ namespace TopoLib
             Name = "TL.cct.IsAvailable",
             Category = "CCT - Coordinate Conversion and Transformation",
             Description = "Confirms whether the transform is available",
-            HelpTopic = "TopoLib-AddIn.chm!1003",
+            HelpTopic = "TopoLib-AddIn.chm!1009",
 
             Returns = "TRUE when the transform is available; FALSE when not",
             Summary = "Function that confirms that the transform is available",
@@ -1351,7 +1358,7 @@ namespace TopoLib
             // do the work; exceptions may occur...
             try
             {
-                pjContext = new ProjContext();
+                pjContext = Crs.CreateContext();
 
                 if (bUsingTransform)
                 {
@@ -1359,8 +1366,8 @@ namespace TopoLib
                 }
                 else
                 {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    crsSource = Crs.CreateCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
                     transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
                 }
 
@@ -1388,7 +1395,7 @@ namespace TopoLib
             Name = "TL.cct.MethodName",
             Description = "Get the method name of the coordinate transform", 
             Category = "CCT - Coordinate Conversion and Transformation",
-            HelpTopic = "TopoLib-AddIn.chm!1004",
+            HelpTopic = "TopoLib-AddIn.chm!1010",
 
             Returns = "name of the coordinate transform",
             Summary = "Returns the method name a coordinate transform",
@@ -1432,7 +1439,7 @@ namespace TopoLib
             // do the work; exceptions may occur...
             try
             {
-                pjContext = new ProjContext();
+                pjContext = Crs.CreateContext();
 
                 if (bUsingTransform)
                 {
@@ -1440,13 +1447,13 @@ namespace TopoLib
                 }
                 else
                 {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    crsSource = Crs.CreateCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
                     transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
                 }
 
                 // start core of function
-                return (transform.MethodName == null) ? "Unknown" : transform.MethodName;
+                return transform.MethodName ?? "Unknown";
                 // end core of function
 
             }
@@ -1469,7 +1476,7 @@ namespace TopoLib
             Name = "TL.cct.Name",
             Description = "Get the name of the coordinate transform", 
             Category = "CCT - Coordinate Conversion and Transformation",
-            HelpTopic = "TopoLib-AddIn.chm!1004",
+            HelpTopic = "TopoLib-AddIn.chm!1011",
 
             Returns = "name of the coordinate transform",
             Summary =
@@ -1514,7 +1521,7 @@ namespace TopoLib
             // do the work; exceptions may occur...
             try
             {
-                pjContext = new ProjContext();
+                pjContext = Crs.CreateContext();
 
                 if (bUsingTransform)
                 {
@@ -1522,8 +1529,8 @@ namespace TopoLib
                 }
                 else
                 {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    crsSource = Crs.CreateCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
                     transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
                 }
 
@@ -1551,7 +1558,7 @@ namespace TopoLib
             Name = "TL.cct.RoundTrip",
             Description = "Get the error of a roundtrip of N forward/backward transforms", 
             Category = "CCT - Coordinate Conversion and Transformation",
-            HelpTopic = "TopoLib-AddIn.chm!1005",
+            HelpTopic = "TopoLib-AddIn.chm!1012",
 
             Returns = "error incurred in the roundtrip(s)",
             Summary =
@@ -1610,7 +1617,7 @@ namespace TopoLib
             // do the work; exceptions may occur...
             try
             {
-                pjContext = new ProjContext();
+                pjContext = Crs.CreateContext();
 
                 if (bUsingTransform)
                 {
@@ -1618,8 +1625,8 @@ namespace TopoLib
                 }
                 else
                 {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    crsSource = Crs.CreateCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
                     transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
                 }
 
@@ -1652,7 +1659,7 @@ namespace TopoLib
             Name = "TL.cct.Scope",
             Description = "Get the scope of the coordinate transform", 
             Category = "CCT - Coordinate Conversion and Transformation",
-            HelpTopic = "TopoLib-AddIn.chm!1004",
+            HelpTopic = "TopoLib-AddIn.chm!1013",
 
             Returns = "Scope of the coordinate transform",
             Summary =
@@ -1697,7 +1704,7 @@ namespace TopoLib
             // do the work; exceptions may occur...
             try
             {
-                pjContext = new ProjContext();
+                pjContext = Crs.CreateContext();
 
                 if (bUsingTransform)
                 {
@@ -1705,8 +1712,8 @@ namespace TopoLib
                 }
                 else
                 {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    crsSource = Crs.CreateCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
                     transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
                 }
 
@@ -1734,7 +1741,7 @@ namespace TopoLib
             Name = "TL.cct.SourceCRS",
             Description = "Get the source-CRS used in a coordinate transform", 
             Category = "CCT - Coordinate Conversion and Transformation",
-            HelpTopic = "TopoLib-AddIn.chm!1006",
+            HelpTopic = "TopoLib-AddIn.chm!1014",
 
             Returns = "Source-CRS of a coordinate transform in one of three different formats",
             Summary =
@@ -1782,7 +1789,7 @@ namespace TopoLib
             // do the work; exceptions may occur...
             try
             {
-                pjContext = new ProjContext();
+                pjContext = Crs.CreateContext();
 
                 if (bUsingTransform)
                 {
@@ -1790,8 +1797,8 @@ namespace TopoLib
                 }
                 else
                 {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    crsSource = Crs.CreateCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
                     transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
                 }
 
@@ -1832,7 +1839,7 @@ namespace TopoLib
             Name = "TL.cct.Steps.Count",
             Description = "Get the number of steps incorporated in a coordinate transform", 
             Category = "CCT - Coordinate Conversion and Transformation",
-            HelpTopic = "TopoLib-AddIn.chm!1006",
+            HelpTopic = "TopoLib-AddIn.chm!1015",
 
             Returns = "number of steps incorporated in a coordinate transform",
             Summary =
@@ -1877,7 +1884,7 @@ namespace TopoLib
             // do the work; exceptions may occur...
             try
             {
-                pjContext = new ProjContext();
+                pjContext = Crs.CreateContext();
 
                 if (bUsingTransform)
                 {
@@ -1885,8 +1892,8 @@ namespace TopoLib
                 }
                 else
                 {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    crsSource = Crs.CreateCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
                     transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
                 }
 
@@ -1915,7 +1922,7 @@ namespace TopoLib
             Name = "TL.cct.Steps.MethodName",
             Description = "Get the method name of step N in a coordinate transform", 
             Category = "CCT - Coordinate Conversion and Transformation",
-            HelpTopic = "TopoLib-AddIn.chm!1007",
+            HelpTopic = "TopoLib-AddIn.chm!1016",
 
             Returns = "method name of step N in a coordinate transform",
             Summary =
@@ -1964,7 +1971,7 @@ namespace TopoLib
             // do the work; exceptions may occur...
             try
             {
-                pjContext = new ProjContext();
+                pjContext = Crs.CreateContext();
 
                 if (bUsingTransform)
                 {
@@ -1972,8 +1979,8 @@ namespace TopoLib
                 }
                 else
                 {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    crsSource = Crs.CreateCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
                     transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
                 }
 
@@ -2002,7 +2009,7 @@ namespace TopoLib
             Name = "TL.cct.Steps.Name",
             Description = "Get the name of step N in a coordinate transform", 
             Category = "CCT - Coordinate Conversion and Transformation",
-            HelpTopic = "TopoLib-AddIn.chm!1008",
+            HelpTopic = "TopoLib-AddIn.chm!1017",
 
             Returns = "name of step N in a coordinate transform",
             Summary =
@@ -2051,7 +2058,7 @@ namespace TopoLib
             // do the work; exceptions may occur...
             try
             {
-                pjContext = new ProjContext();
+                pjContext = Crs.CreateContext();
 
                 if (bUsingTransform)
                 {
@@ -2059,8 +2066,8 @@ namespace TopoLib
                 }
                 else
                 {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    crsSource = Crs.CreateCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
                     transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
                 }
 
@@ -2089,7 +2096,7 @@ namespace TopoLib
             Name = "TL.cct.Steps.Transform",
             Description = "Get the transform-string of step N in a coordinate transform", 
             Category = "CCT - Coordinate Conversion and Transformation",
-            HelpTopic = "TopoLib-AddIn.chm!1008",
+            HelpTopic = "TopoLib-AddIn.chm!1018",
 
             Returns = "Transform string of step N in a coordinate transform",
             Summary =
@@ -2141,7 +2148,7 @@ namespace TopoLib
             // do the work; exceptions may occur...
             try
             {
-                pjContext = new ProjContext();
+                pjContext = Crs.CreateContext();
 
                 if (bUsingTransform)
                 {
@@ -2149,8 +2156,8 @@ namespace TopoLib
                 }
                 else
                 {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    crsSource = Crs.CreateCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
                     transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
                 }
 
@@ -2191,13 +2198,13 @@ namespace TopoLib
             Name = "TL.cct.TargetCRS",
             Description = "Get the target-CRS used in a coordinate transform", 
             Category = "CCT - Coordinate Conversion and Transformation",
-            HelpTopic = "TopoLib-AddIn.chm!1006",
+            HelpTopic = "TopoLib-AddIn.chm!1019",
 
             Returns = "Target-CRS of a coordinate transform in one of three different formats",
             Summary =
             "Returns the target-CRS of a coordinate transform in one of three different formats",
             Example = "xxx")]
-        public static object TargetCRS(
+        public static object TarCreateCrs(
             [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
             [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Output mode: (0); 0 = PROJ string, 1 = WKT string, 2 = JSON string. Mode is combined with 2^n flag: 8, 16, ..., 2048. See help file for more information", Name = "mode")] object oMode,
@@ -2239,7 +2246,7 @@ namespace TopoLib
             // do the work; exceptions may occur...
             try
             {
-                pjContext = new ProjContext();
+                pjContext = Crs.CreateContext();
 
                 if (bUsingTransform)
                 {
@@ -2247,8 +2254,8 @@ namespace TopoLib
                 }
                 else
                 {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    crsSource = Crs.CreateCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
                     transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
                 }
 
@@ -2289,7 +2296,7 @@ namespace TopoLib
             Name = "TL.cct.Transforms.Count",
             Description = "Get the number of available transforms",
             Category = "CCT - Coordinate Conversion and Transformation",
-            HelpTopic = "TopoLib-AddIn.chm!1000",
+            HelpTopic = "TopoLib-AddIn.chm!1020",
 
             Returns = "The number of available transforms",
             Summary = "Returns the number of available transforms that exist between two Coordinate Reference Systems",
@@ -2333,7 +2340,7 @@ namespace TopoLib
             // do the work; exceptions may occur...
             try
             {
-                pjContext = new ProjContext();
+                pjContext = Crs.CreateContext();
 
                 if (bUsingTransform)
                 {
@@ -2341,8 +2348,8 @@ namespace TopoLib
                 }
                 else
                 {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    crsSource = Crs.CreateCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
                     transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
                 }
 
@@ -2371,7 +2378,7 @@ namespace TopoLib
             Name = "TL.cct.Transforms.ListAll",
             Description = "Get the number of available transforms",
             Category = "CCT - Coordinate Conversion and Transformation",
-            HelpTopic = "TopoLib-AddIn.chm!1000",
+            HelpTopic = "TopoLib-AddIn.chm!1021",
 
             Returns = "The number of available transforms",
             Summary = "Returns the number of available transforms that exist between two Coordinate Reference Systems",
@@ -2418,7 +2425,7 @@ namespace TopoLib
             // do the work; exceptions may occur...
             try
             {
-                pjContext = new ProjContext();
+                pjContext = Crs.CreateContext();
 
                 if (bUsingTransform)
                 {
@@ -2426,8 +2433,8 @@ namespace TopoLib
                 }
                 else
                 {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    crsSource = Crs.CreateCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
                     transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
                 }
 
@@ -2581,7 +2588,7 @@ namespace TopoLib
             Name = "TL.cct.Type",
             Description = "Get the typeof the coordinate transform", 
             Category = "CCT - Coordinate Conversion and Transformation",
-            HelpTopic = "TopoLib-AddIn.chm!1004",
+            HelpTopic = "TopoLib-AddIn.chm!1022",
 
             Returns = "Type of the coordinate transform",
             Summary =
@@ -2626,7 +2633,7 @@ namespace TopoLib
             // do the work; exceptions may occur...
             try
             {
-                pjContext = new ProjContext();
+                pjContext = Crs.CreateContext();
 
                 if (bUsingTransform)
                 {
@@ -2634,8 +2641,8 @@ namespace TopoLib
                 }
                 else
                 {
-                    crsSource = Crs.GetCrs(SourceCrs, pjContext);
-                    crsTarget = Crs.GetCrs(TargetCrs, pjContext);
+                    crsSource = Crs.CreateCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
                     transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
                 }
 

@@ -22,4 +22,7 @@
   <!-- Bart: These references are c# libraries for documentation & intellisense -->
   <Reference Path="ExcelDna.Documentation.dll" Pack="true" xmlns="" />
   <Reference Path="ExcelDna.IntelliSense.dll" Pack="true" />
+  <!-- Bart: These references are c# libraries for logging -->
+  <Reference Path="Serilog.dll" Pack="true" />
+  <Reference Path="Serilog.Sinks.ExcelDnaLogDisplay.dll" Pack="true" />
 </DnaLibrary>

@@ -18,12 +18,14 @@ namespace TopoLib
     {
 		static CctOptions()  
 		{
-			_transformOptions = new CoordinateTransformOptions();
-			_useNetworkConnection = false;
-			_allowDeprecatedCRS = false;
+			_transformOptions     = new CoordinateTransformOptions();
+            _projContext          = new ProjContext { LogLevel = ProjLogLevel.Debug };
+            _useNetworkConnection = false;
+			_allowDeprecatedCRS   = false;
 		}  
 
 		private static CoordinateTransformOptions _transformOptions;
+		private static ProjContext _projContext;	// needed for logging
 		private static bool _useNetworkConnection;
 		private static bool _allowDeprecatedCRS;
 		
@@ -31,6 +33,12 @@ namespace TopoLib
 		{
 			get { return _transformOptions; }   // get method
 			set { _transformOptions =  value; }  // set method
+		}
+
+		public static ProjContext ProjContext   // property
+		{
+			get { return _projContext; }   // get method
+			set { _projContext =  value; }  // set method
 		}
 
 		public static bool UseNetworkConnection   // property

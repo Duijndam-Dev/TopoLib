@@ -43,7 +43,7 @@ namespace TopoLib
             Name = "TL.cfg.AddOrUpdateKey",
             Description = "Adds new, or updates existing [key, value] pair in the TopoLib configuration file",
             Category = "CFG - Configuration",
-            HelpTopic = "TopoLib-AddIn.chm!1301",
+            HelpTopic = "TopoLib-AddIn.chm!1100",
 
             Returns = "[key:<{key}>, value:<{value}>] string in case of succes, #VALUE in case of failure.",
             Remarks = "In case of a #VALUE error, please ensure the {key} and {value} strings are in between \"double quotes\".")]
@@ -93,7 +93,7 @@ namespace TopoLib
             Name = "TL.cfg.ClearAllKeys",
             Description = "Removes all [key, value] pairs from the TopoLib configuration file",
             Category = "CFG - Configuration",
-            HelpTopic = "TopoLib-AddIn.chm!1302",
+            HelpTopic = "TopoLib-AddIn.chm!1101",
 
             Returns = "[all key-value pairs cleared] or [no key-value pairs present] in case of success, #VALUE in case of failure.")]
         public static object ClearAllKeys()
@@ -129,7 +129,7 @@ namespace TopoLib
             Name = "TL.cfg.GetKeyValue",
             Description = "Gets the 'value' from a [key, value] pair from the TopoLib configuration file",
             Category = "CFG - Configuration",
-            HelpTopic = "TopoLib-AddIn.chm!1303",
+            HelpTopic = "TopoLib-AddIn.chm!1102",
 
             Returns = "the 'value' of a [key, value] pair or [key:<{key}>, not found], #VALUE in case of failure.",
             Remarks = "In case of a #VALUE error, please ensure the {key}-string is in between \"double quotes\".")]
@@ -169,7 +169,7 @@ namespace TopoLib
             Name = "TL.cfg.ReadAllKeys",
             Description = "Reads all [key, value] pairs from the TopoLib configuration file",
             Category = "CFG - Configuration",
-            HelpTopic = "TopoLib-AddIn.chm!1304",
+            HelpTopic = "TopoLib-AddIn.chm!1103",
 
             Returns = "Depending on Mode: Number of [key, value] pairs, or table with all [key and/or value] pairs from the TopoLib configuration file")]
         public static object ReadAllKeys(
@@ -249,7 +249,7 @@ namespace TopoLib
             Name = "TL.cfg.ReadKey",
             Description = "Reads a 'value' from [key, value] pair from the TopoLib configuration file",
             Category = "CFG - Configuration",
-            HelpTopic = "TopoLib-AddIn.chm!1305",
+            HelpTopic = "TopoLib-AddIn.chm!1104",
 
             Returns = "[key:<{key}>, value:<{value}>] pair or [key:<{key}>, not found], #VALUE in case of failure.",
             Remarks = "In case of a #VALUE error, please ensure the {key}-string is in between \"double quotes\".")]
@@ -291,7 +291,7 @@ namespace TopoLib
             Name = "TL.cfg.RemoveKey",
             Description = "Removes existing [key, value] pair from the TopoLib configuration file",
             Category = "CFG - Configuration",
-            HelpTopic = "TopoLib-AddIn.chm!1306",
+            HelpTopic = "TopoLib-AddIn.chm!1105",
 
             Returns = "[key:<{key}> removed] or [key:<{key}>, not found] in case of succes, #VALUE in case of failure.",
             Remarks = "In case of a #VALUE error, please ensure the {key}-string is in between \"double quotes\".")]
