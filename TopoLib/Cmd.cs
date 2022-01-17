@@ -12,6 +12,7 @@
 //
 using System;
 using System.IO;
+using System.Windows.Forms;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -265,12 +266,12 @@ namespace TopoLib
             ctrl_03.IO_string = version;
             ctrl_05.IO_string = compileDate;
             dialog.CallingMethod = System.Reflection.MethodBase.GetCurrentMethod(); 
-            bool bOK = dialog.ShowDialog();
+            bool bOK = dialog.ShowDialog(Validate);
             if (bOK == false) return;
         }
 
         [ExcelCommand(
-            Name = "Logging_Level",
+            Name = "Logging_Dialog",
             Description = "Sets the logging level for the TopoLib AddIn",
             HelpTopic = "TopoLib-AddIn.chm!1203")]
         public static void LoggingDialog()
@@ -312,11 +313,11 @@ namespace TopoLib
         } // LoggingDialog
 
         [ExcelCommand(
-        Name = "PROJ_LIB_Selector",
-        Description = "Starts a File Selector Dialog to set the PROJ_LIB environment variable",
-        HelpTopic = "XlmDialogExample-AddIn.chm!1204"
+            Name = "PROJ_LIB_Dialog",
+            Description = "Starts a File Selector Dialog to set the PROJ_LIB environment variable",
+            HelpTopic = "TopoLib-AddIn.chm!1204"
         )]
-        public static void Cmd_Proj_LibSelector()
+        public static void ProjLibDialog()
         {
             var dialog  = new XlDialogBox()                  {	                   W = 420, H = 240, Text = "Define location of PROJ grid (*.tif) files ",  IO =  7, };
             var ctrl_01 = new XlDialogBox.GroupBox()         {	 X = 013, Y = 010, W = 394, H = 040, Text = "PROJ_LIB folder at launch of dialog. Use ⭮ button to refresh ",  };
@@ -343,6 +344,7 @@ namespace TopoLib
 
             string key = "PROJ_LIB";
             string sProjLib = Environment.GetEnvironmentVariable(key, EnvironmentVariableTarget.User);
+            string sOldDir = sProjLib; 
 
             // The controls in this dialog function by modifying the Current Directory.
             // No information from the controls themselves is being used.
@@ -359,10 +361,113 @@ namespace TopoLib
             if (bOK == false) return;
 
             sProjLib = Directory.GetCurrentDirectory();
-            Environment.SetEnvironmentVariable(key,  sProjLib, EnvironmentVariableTarget.User);
 
-        } // Cmd_Proj_LibSelector
+            if (sOldDir != sProjLib)
+            {
+                // changes have been made; we need to do something
+                Environment.SetEnvironmentVariable(key,  sProjLib, EnvironmentVariableTarget.User);
+                MessageBox.Show(
+                    "The PROJ_LIB environment variable has been updated. You need to close and re-open Excel for this change to have effect", 
+                    "Please note", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
 
+        } // ProjLibDialog
+
+        [ExcelCommand(
+            Name = "GlobalSettings_Dialog",
+            Description = "Sets global transform parameters for the TopoLib AddIn",
+            HelpTopic = "TopoLib-AddIn.chm!1205")]
+        public static void GlobalOptionsDialog()
+        {
+            var dialog  = new XlDialogBox()                  {	                   W = 500, H = 280, Text = "Transform Optional Parameters",  };
+            var ctrl_01 = new XlDialogBox.GroupBox()         {	 X = 020, Y = 020, W = 190, H = 065, Text = "&Select Optional Parameters",  };
+            var ctrl_02 = new XlDialogBox.RadioButtonGroup() {	                                     IO = 1, };
+            var ctrl_03 = new XlDialogBox.RadioButton()      {	          Y = 040,                   Text = "From the &Mode Flags",  };
+            var ctrl_04 = new XlDialogBox.RadioButton()      {	          Y = 060,                   Text = "From &Global Settings",  IO = 1, };
+            var ctrl_05 = new XlDialogBox.GroupBox()         {	 X = 020, Y = 095, W = 190, H = 060, Text = "&Miscellaneous",  IO = 2, };
+            var ctrl_06 = new XlDialogBox.Label()            {	 X = 030, Y = 110, W = 075,          Text = "Authority",  };
+            var ctrl_07 = new XlDialogBox.TextEdit()         {	 X = 030, Y = 126, W = 075,          IO = "EPSG", };
+            var ctrl_08 = new XlDialogBox.Label()            {	 X = 120, Y = 110, W = 075,          Text = "Accurac&y [m]",  };
+            var ctrl_09 = new XlDialogBox.DoubleEdit()       {	 X = 120, Y = 126, W = 075,          IO = -1000, };
+            var ctrl_10 = new XlDialogBox.GroupBox()         {	 X = 020, Y = 165, W = 190, H = 100, Text = "Useage Area",  IO = 2, };
+            var ctrl_11 = new XlDialogBox.Label()            {	 X = 030, Y = 180,                   Text = "Min Lat. [°]",  };
+            var ctrl_12 = new XlDialogBox.DoubleEdit()       {	 X = 030, Y = 196, W = 075,          IO = -1000, };
+            var ctrl_13 = new XlDialogBox.Label()            {	 X = 120, Y = 180,                   Text = "Max Lat. [°]",  };
+            var ctrl_14 = new XlDialogBox.DoubleEdit()       {	 X = 120, Y = 196, W = 075,          IO = -1000, };
+            var ctrl_15 = new XlDialogBox.Label()            {	 X = 030, Y = 220,                   Text = "Min Long. [°]",  };
+            var ctrl_16 = new XlDialogBox.DoubleEdit()       {	 X = 030, Y = 236, W = 075,          IO = -1000, };
+            var ctrl_17 = new XlDialogBox.Label()            {	 X = 120, Y = 220,                   Text = "Max Long. [°]",  };
+            var ctrl_18 = new XlDialogBox.DoubleEdit()       {	 X = 120, Y = 236, W = 075,          IO = -1000, };
+            var ctrl_19 = new XlDialogBox.GroupBox()         {	 X = 230, Y = 020, W = 250, H = 210, Text = "&Optional Parameters",  };
+            var ctrl_20 = new XlDialogBox.CheckBox()         {	          Y = 040, W = 230,          Text = "Disallow &Ballpark Conversions",  IO = false, };
+            var ctrl_21 = new XlDialogBox.CheckBox()         {	          Y = 060, W = 230,          Text = "Allow if &Grid is Missing",  IO = false, };
+            var ctrl_22 = new XlDialogBox.CheckBox()         {	          Y = 080, W = 230,          Text = "Use &Primary Grid Names",  IO = false, };
+            var ctrl_23 = new XlDialogBox.CheckBox()         {	          Y = 100, W = 230,          Text = "Use &Superseded Transforms",  IO = false, };
+            var ctrl_24 = new XlDialogBox.CheckBox()         {	          Y = 120, W = 230,          Text = "Allow &Deprecated CRSs",  IO = false, };
+            var ctrl_25 = new XlDialogBox.CheckBox()         {	          Y = 140, W = 230,          Text = "Strictly &Contains Area",  IO = false, };
+            var ctrl_26 = new XlDialogBox.CheckBox()         {	          Y = 160, W = 230,          Text = "&Always Allow Intermediate CRS",  IO = false, };
+            var ctrl_27 = new XlDialogBox.CheckBox()         {	          Y = 180, W = 230,          Text = "&Never Allow Intermediate CRS",  IO = false, };
+            var ctrl_28 = new XlDialogBox.CheckBox()         {	          Y = 200, W = 230,          Text = "&Use Network Connection",  IO = false, };
+            var ctrl_29 = new XlDialogBox.Label()            {	 X = 430, Y = 020, W = 030,          Text = "(flag)",  };
+            var ctrl_30 = new XlDialogBox.Label()            {	 X = 430, Y = 042, W = 040,          Text = "(8)",  };
+            var ctrl_31 = new XlDialogBox.Label()            {	 X = 430, Y = 062, W = 040,          Text = "(16)",  };
+            var ctrl_32 = new XlDialogBox.Label()            {	 X = 430, Y = 082, W = 040,          Text = "(32)",  };
+            var ctrl_33 = new XlDialogBox.Label()            {	 X = 430, Y = 102, W = 040,          Text = "(64)",  };
+            var ctrl_34 = new XlDialogBox.Label()            {	 X = 430, Y = 122, W = 040,          Text = "(128)",  };
+            var ctrl_35 = new XlDialogBox.Label()            {	 X = 430, Y = 142, W = 040,          Text = "(256)",  };
+            var ctrl_36 = new XlDialogBox.Label()            {	 X = 430, Y = 162, W = 040,          Text = "(512)",  };
+            var ctrl_37 = new XlDialogBox.Label()            {	 X = 430, Y = 182, W = 040,          Text = "(1024)",  };
+            var ctrl_38 = new XlDialogBox.Label()            {	 X = 430, Y = 202, W = 040,          Text = "(2048)",  };
+            var ctrl_39 = new XlDialogBox.OkButton()         {	 X = 230, Y = 245, W = 075,          Text = "&OK", Default = true, };
+            var ctrl_40 = new XlDialogBox.CancelButton()     {	 X = 317, Y = 245, W = 075,          Text = "&Cancel",  };
+            var ctrl_41 = new XlDialogBox.HelpButton2()      {	 X = 404, Y = 245, W = 075,          Text = "&Help",  };
+
+            dialog.Controls.Add(ctrl_01);
+            dialog.Controls.Add(ctrl_02);
+            dialog.Controls.Add(ctrl_03);
+            dialog.Controls.Add(ctrl_04);
+            dialog.Controls.Add(ctrl_05);
+            dialog.Controls.Add(ctrl_06);
+            dialog.Controls.Add(ctrl_07);
+            dialog.Controls.Add(ctrl_08);
+            dialog.Controls.Add(ctrl_09);
+            dialog.Controls.Add(ctrl_10);
+            dialog.Controls.Add(ctrl_11);
+            dialog.Controls.Add(ctrl_12);
+            dialog.Controls.Add(ctrl_13);
+            dialog.Controls.Add(ctrl_14);
+            dialog.Controls.Add(ctrl_15);
+            dialog.Controls.Add(ctrl_16);
+            dialog.Controls.Add(ctrl_17);
+            dialog.Controls.Add(ctrl_18);
+            dialog.Controls.Add(ctrl_19);
+            dialog.Controls.Add(ctrl_20);
+            dialog.Controls.Add(ctrl_21);
+            dialog.Controls.Add(ctrl_22);
+            dialog.Controls.Add(ctrl_23);
+            dialog.Controls.Add(ctrl_24);
+            dialog.Controls.Add(ctrl_25);
+            dialog.Controls.Add(ctrl_26);
+            dialog.Controls.Add(ctrl_27);
+            dialog.Controls.Add(ctrl_28);
+            dialog.Controls.Add(ctrl_29);
+            dialog.Controls.Add(ctrl_30);
+            dialog.Controls.Add(ctrl_31);
+            dialog.Controls.Add(ctrl_32);
+            dialog.Controls.Add(ctrl_33);
+            dialog.Controls.Add(ctrl_34);
+            dialog.Controls.Add(ctrl_35);
+            dialog.Controls.Add(ctrl_36);
+            dialog.Controls.Add(ctrl_37);
+            dialog.Controls.Add(ctrl_38);
+            dialog.Controls.Add(ctrl_39);
+            dialog.Controls.Add(ctrl_40);
+            dialog.Controls.Add(ctrl_41);
+            dialog.CallingMethod = System.Reflection.MethodBase.GetCurrentMethod(); 
+            dialog.DialogScaling = 125.0;  // Use this if the dialog was designed using a display with 120 DPI
+            bool bOK = dialog.ShowDialog(Validate);
+            if (bOK == false) return;
+        } // GlobalOptionsDialog
 
     }
 }

@@ -1006,6 +1006,8 @@ namespace ExcelDna.XlDialogBox
                                     hh.StartInfo.FileName = "HH.exe";
                                     hh.StartInfo.Arguments = helpArguments;
                                     hh.Start();
+//                                  hh.WaitForExit();
+                                    int returnCode = hh.ExitCode;
                                 }
                             }
                             else
@@ -1040,7 +1042,8 @@ namespace ExcelDna.XlDialogBox
             }
         }
 
-        /// <summary>
+/*        /// <summary>
+        ///     DEPRECATED
         ///     Show dialog box; this is the original code to show the Dialog Box
         ///     For reference; in future it should be merged by simply implementing:
         ///     public virtual bool dialog() { return ShowDialog(null); }
@@ -1066,6 +1069,8 @@ namespace ExcelDna.XlDialogBox
                 Controls.Dispose();
             }
         }
+*/
+
         #endregion ShowDialog() implementations
 
         #region ControlItem definition

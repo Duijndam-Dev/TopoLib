@@ -49,7 +49,7 @@ namespace TopoLib
                       <tab id='TopoLibTap' label='TopoLib'>
                         <group id='SettingGroup'        label='TopoLib Settings'>
                             <button id='Proj_LibButton' label='PROJ_LIB env setting' imageMso='PowerMapLaunch' size='large' onAction='Proj_LibButton_OnAction' />
-                            <button id='ContextButton'  label='Global Context'       imageMso='ColumnActionsColumnSettings'             size='large' onAction='ContextButton_OnAction' />
+                            <button id='OptionsButton'  label='Global Settings'      imageMso='ColumnActionsColumnSettings'             size='large' onAction='OptionsButton_OnAction' />
                             <button id='CacheButton'    label='Cache settings'       imageMso='ColumnListSetting'           size='large' onAction='CacheButton_OnAction' />
                             <button id='LogLevelButton' label='Logging Level'        imageMso='ComAddInsDialog'              size='large' onAction='LogLevelButton_OnAction' />
                         </group>
@@ -59,7 +59,6 @@ namespace TopoLib
                             <button id='VerboseButton'  label='Log Verbose'          imageMso='Callout'            onAction='VerboseButton_OnAction' />
                         </group>
                         <group id='LogDisplayGroup' label='Log Handling'>
-                            <separator id='LogLevelSeparator' />
                             <button id='ViewLogDisplayButton' label='View Log'       imageMso='FileDocumentInspect' size='large' onAction='ViewLogDisplayButton_OnAction' />
                             <button id='ClearLogButton' label='Clear Log'            imageMso='Clear'               size='large' onAction='ClearLogDisplayButton_OnAction' />
                             <separator id='DisplayOrderSeparator' />
@@ -167,11 +166,11 @@ namespace TopoLib
             }
         }
 
-        public void LogLevelButton_OnAction(IRibbonControl control)
+        public void OptionsButton_OnAction(IRibbonControl control)
         {
             try
             {
-                _excel.Application.Run("Logging_Level");
+                _excel.Application.Run("GlobalSettings_Dialog");
             }
             catch (Exception ex)
             {
@@ -179,11 +178,17 @@ namespace TopoLib
             }
         }
 
-
-
-
-
-
+        public void LogLevelButton_OnAction(IRibbonControl control)
+        {
+            try
+            {
+                _excel.Application.Run("Logging_Dialog");
+            }
+            catch (Exception ex)
+            {
+                AddIn.ProcessUnhandledException(ex);
+            }
+        }
 
         public string DisplayOrderMenu_GetImage(IRibbonControl control)
         {
@@ -270,7 +275,7 @@ namespace TopoLib
         {
             try
             {
-                _excel.Application.Run("PROJ_LIB_Selector");
+                _excel.Application.Run("PROJ_LIB_Dialog");
             }
             catch (Exception ex)
             {

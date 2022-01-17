@@ -13,6 +13,10 @@ using SharpProj.Proj;
 
 #pragma warning disable IDE0075 // Conditional expression can be simplified
 
+// When connecting to the internet through a proxy; please read the following on stackoverflow:
+// https://stackoverflow.com/questions/1938990/c-sharp-connecting-through-proxy
+
+
 // On solving a missing reference to the next package:
 // For me adding the PackageReference for MSTest.TestFramework did the trick. I didn't need to reference the TestAdapter.
 // see https://stackoverflow.com/questions/13602508/where-to-find-microsoft-visualstudio-testtools-unittesting-missing-dll
