@@ -41,4 +41,8 @@ rem copy 32-bit stuff next
 COPY "%1TopoLib\bin\Release\TopoLib-AddIn-packed.xll"      "%1publish\x86\TopoLib-AddIn.xll"
 COPY "%1TopoLib\bin\Release\TopoLib-AddIn.chm"               "%1publish\x86\TopoLib-AddIn.chm"
 @echo Copied 32-bit xll and chm file
+
+COPY "%1TopoLib\bin\Release\TopoLib-AddIn.chm"               "%1TopoLib\bin\Debug\TopoLib-AddIn.chm"
+@echo Copied chm file back to debug folder (need it here too)
+
 exit

@@ -35,6 +35,11 @@ namespace TopoLib
         private IRibbonUI         _thisRibbon;
         private ILogger           _log = Serilog.Log.Logger;
  
+        private void OnInvalidateRibbon(object obj)
+        {
+            _thisRibbon.Invalidate();
+        }
+
         public override string GetCustomUI(string ribbonId)
         {
             _excel = (Excel.Application)ExcelDna.Integration.ExcelDnaUtil.Application;
@@ -178,11 +183,23 @@ namespace TopoLib
             }
         }
 
+        public void CacheButton_OnAction(IRibbonControl control)
+        {
+            try
+            {
+                _excel.Application.Run("CacheSettings_Dialog");
+            }
+            catch (Exception ex)
+            {
+                AddIn.ProcessUnhandledException(ex);
+            }
+        }
+
         public void LogLevelButton_OnAction(IRibbonControl control)
         {
             try
             {
-                _excel.Application.Run("Logging_Dialog");
+                _excel.Application.Run("LogSettings_Dialog");
             }
             catch (Exception ex)
             {
@@ -298,10 +315,6 @@ namespace TopoLib
             _excel.Application.Run("About_TopoLib");
         }
         
-        private void OnInvalidateRibbon(object obj)
-        {
-            _thisRibbon.Invalidate();
-        }
     }
 
 }

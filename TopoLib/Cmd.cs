@@ -271,7 +271,7 @@ namespace TopoLib
         }
 
         [ExcelCommand(
-            Name = "Logging_Dialog",
+            Name = "LogSettings_Dialog",
             Description = "Sets the logging level for the TopoLib AddIn",
             HelpTopic = "TopoLib-AddIn.chm!1203")]
         public static void LoggingDialog()
@@ -379,17 +379,17 @@ namespace TopoLib
             HelpTopic = "TopoLib-AddIn.chm!1205")]
         public static void GlobalOptionsDialog()
         {
-            var dialog  = new XlDialogBox()                  {	                   W = 500, H = 280, Text = "Transform Optional Parameters",  };
-            var ctrl_01 = new XlDialogBox.GroupBox()         {	 X = 020, Y = 020, W = 190, H = 065, Text = "&Select Optional Parameters",  };
+            var dialog  = new XlDialogBox()                  {	                   W = 500, H = 280, Text = "Global Optional Transform Parameters",  };
+            var ctrl_01 = new XlDialogBox.GroupBox()         {	 X = 020, Y = 020, W = 190, H = 065, Text = "&Select Optional Parameters From: ",  };
             var ctrl_02 = new XlDialogBox.RadioButtonGroup() {	                                     IO = 1, };
-            var ctrl_03 = new XlDialogBox.RadioButton()      {	          Y = 040,                   Text = "From the &Mode Flags",  };
-            var ctrl_04 = new XlDialogBox.RadioButton()      {	          Y = 060,                   Text = "From &Global Settings",  IO = 1, };
-            var ctrl_05 = new XlDialogBox.GroupBox()         {	 X = 020, Y = 095, W = 190, H = 060, Text = "&Miscellaneous",  IO = 2, };
+            var ctrl_03 = new XlDialogBox.RadioButton()      {	          Y = 040,                   Text = "&Function Call Parameters",  };
+            var ctrl_04 = new XlDialogBox.RadioButton()      {	          Y = 060,                   Text = "These &Global Settings",  IO = 1, };
+            var ctrl_05 = new XlDialogBox.GroupBox()         {	 X = 020, Y = 095, W = 190, H = 060, Text = "&Miscellaneous Global",  IO = 2, };
             var ctrl_06 = new XlDialogBox.Label()            {	 X = 030, Y = 110, W = 075,          Text = "Authority",  };
             var ctrl_07 = new XlDialogBox.TextEdit()         {	 X = 030, Y = 126, W = 075,          IO = "EPSG", };
             var ctrl_08 = new XlDialogBox.Label()            {	 X = 120, Y = 110, W = 075,          Text = "Accurac&y [m]",  };
             var ctrl_09 = new XlDialogBox.DoubleEdit()       {	 X = 120, Y = 126, W = 075,          IO = -1000, };
-            var ctrl_10 = new XlDialogBox.GroupBox()         {	 X = 020, Y = 165, W = 190, H = 100, Text = "Useage Area",  IO = 2, };
+            var ctrl_10 = new XlDialogBox.GroupBox()         {	 X = 020, Y = 165, W = 190, H = 100, Text = "Global Useage Area",  IO = 2, };
             var ctrl_11 = new XlDialogBox.Label()            {	 X = 030, Y = 180,                   Text = "Min Lat. [°]",  };
             var ctrl_12 = new XlDialogBox.DoubleEdit()       {	 X = 030, Y = 196, W = 075,          IO = -1000, };
             var ctrl_13 = new XlDialogBox.Label()            {	 X = 120, Y = 180,                   Text = "Max Lat. [°]",  };
@@ -398,7 +398,7 @@ namespace TopoLib
             var ctrl_16 = new XlDialogBox.DoubleEdit()       {	 X = 030, Y = 236, W = 075,          IO = -1000, };
             var ctrl_17 = new XlDialogBox.Label()            {	 X = 120, Y = 220,                   Text = "Max Long. [°]",  };
             var ctrl_18 = new XlDialogBox.DoubleEdit()       {	 X = 120, Y = 236, W = 075,          IO = -1000, };
-            var ctrl_19 = new XlDialogBox.GroupBox()         {	 X = 230, Y = 020, W = 250, H = 210, Text = "&Optional Parameters",  };
+            var ctrl_19 = new XlDialogBox.GroupBox()         {	 X = 230, Y = 020, W = 250, H = 210, Text = "&Global Transform Restrictions",  };
             var ctrl_20 = new XlDialogBox.CheckBox()         {	          Y = 040, W = 230,          Text = "Disallow &Ballpark Conversions",  IO = false, };
             var ctrl_21 = new XlDialogBox.CheckBox()         {	          Y = 060, W = 230,          Text = "Allow if &Grid is Missing",  IO = false, };
             var ctrl_22 = new XlDialogBox.CheckBox()         {	          Y = 080, W = 230,          Text = "Use &Primary Grid Names",  IO = false, };
@@ -468,6 +468,49 @@ namespace TopoLib
             bool bOK = dialog.ShowDialog(Validate);
             if (bOK == false) return;
         } // GlobalOptionsDialog
+
+        [ExcelCommand(
+            Name = "CacheSettings_Dialog",
+            Description = "Sets global transform parameters for the TopoLib AddIn",
+            HelpTopic = "TopoLib-AddIn.chm!1205")]
+        public static void CacheOptionsDialog()
+        {
+            var dialog  = new XlDialogBox()                  {	                   W = 360, H = 230, Text = "Proj Library Cache Settings",  };
+            var ctrl_01 = new XlDialogBox.Label()            {	 X = 020, Y = 010,                   Text = "&Cache Path && File Name",  };
+            var ctrl_02 = new XlDialogBox.ApplyButton()      {	 X = 020, Y = 025, W = 025,          Text = "⭮",  };
+            var ctrl_03 = new XlDialogBox.TextEdit()         {	 X = 047, Y = 027, W = 272,          IO = "c:\\users\\bart\appdata\\local\\proj\\cache.db", };
+            var ctrl_04 = new XlDialogBox.GroupBox()         {	 X = 020, Y = 055, W = 300, H = 050, Text = "Cache Useage",  };
+            var ctrl_05 = new XlDialogBox.CheckBox()         {	          Y = 073, W = 090,          Text = "&Enable Cache",  IO = true, };
+            var ctrl_06 = new XlDialogBox.ApplyButton()      {	 X = 150, Y = 070, W = 150,          Text = "&Clear Cache",  IO = 3, };
+            var ctrl_07 = new XlDialogBox.GroupBox()         {	 X = 020, Y = 110, W = 300, H = 065, Text = "Cache Parameters",  };
+            var ctrl_08 = new XlDialogBox.Label()            {	 X = 030, Y = 128,                   Text = "&File Size [MB]",  };
+            var ctrl_09 = new XlDialogBox.IntegerEdit()      {	 X = 030, Y = 144, W = 100,          IO = -1, };
+            var ctrl_10 = new XlDialogBox.Label()            {	 X = 150, Y = 128,                   Text = "&Expiration Time [s]",  IO = 1, };
+            var ctrl_11 = new XlDialogBox.IntegerEdit()      {	 X = 150, Y = 144, W = 100,          IO = -1, };
+            var ctrl_12 = new XlDialogBox.OkButton()         {	 X = 050, Y = 190, W = 075,          Text = "&OK", Default = true, };
+            var ctrl_13 = new XlDialogBox.CancelButton()     {	 X = 137, Y = 190, W = 075,          Text = "&Cancel",  };
+            var ctrl_14 = new XlDialogBox.HelpButton2()      {	 X = 224, Y = 190, W = 075,          Text = "&Help",  };
+
+            dialog.Controls.Add(ctrl_01);
+            dialog.Controls.Add(ctrl_02);
+            dialog.Controls.Add(ctrl_03);
+            dialog.Controls.Add(ctrl_04);
+            dialog.Controls.Add(ctrl_05);
+            dialog.Controls.Add(ctrl_06);
+            dialog.Controls.Add(ctrl_07);
+            dialog.Controls.Add(ctrl_08);
+            dialog.Controls.Add(ctrl_09);
+            dialog.Controls.Add(ctrl_10);
+            dialog.Controls.Add(ctrl_11);
+            dialog.Controls.Add(ctrl_12);
+            dialog.Controls.Add(ctrl_13);
+            dialog.Controls.Add(ctrl_14);
+            dialog.CallingMethod = System.Reflection.MethodBase.GetCurrentMethod(); 
+            dialog.DialogScaling = 125.0;  // Use this if the dialog was designed using a display with 120 DPI
+            bool bOK = dialog.ShowDialog(Validate);
+            if (bOK == false) return;
+
+        } // CacheOptionsDialog
 
     }
 }

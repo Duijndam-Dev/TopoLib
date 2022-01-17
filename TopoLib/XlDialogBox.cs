@@ -1007,7 +1007,7 @@ namespace ExcelDna.XlDialogBox
                                     hh.StartInfo.Arguments = helpArguments;
                                     hh.Start();
 //                                  hh.WaitForExit();
-                                    int returnCode = hh.ExitCode;
+//                                  int returnCode = hh.ExitCode;
                                 }
                             }
                             else
