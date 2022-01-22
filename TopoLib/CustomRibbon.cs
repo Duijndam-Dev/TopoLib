@@ -53,10 +53,10 @@ namespace TopoLib
                     <tabs>
                       <tab id='TopoLibTap' label='TopoLib'>
                         <group id='SettingGroup'        label='TopoLib Settings'>
-                            <button id='Proj_LibButton' label='Resource Settings'    imageMso='PowerMapLaunch'              size='large' onAction='Proj_LibButton_OnAction' />
-                            <button id='OptionsButton'  label='Transform Settings'   imageMso='ColumnActionsColumnSettings' size='large' onAction='OptionsButton_OnAction' />
-                            <button id='CacheButton'    label='Cache Settings'       imageMso='ColumnListSetting'           size='large' onAction='CacheButton_OnAction' />
-                            <button id='LogLevelButton' label='Logging Settings'     imageMso='ComAddInsDialog'             size='large' onAction='LogLevelButton_OnAction' />
+                            <button id='Proj_LibButton' label='Resource Settings'    imageMso='SiteColumnActionsColumnSettings' size='large' onAction='Proj_LibButton_OnAction' />
+                            <button id='OptionsButton'  label='Transform Settings'   imageMso='ColumnActionsColumnSettings'     size='large' onAction='OptionsButton_OnAction' />
+                            <button id='CacheButton'    label='Cache Settings'       imageMso='ColumnListSetting'               size='large' onAction='CacheButton_OnAction' />
+                            <button id='LogLevelButton' label='Logging Settings'     imageMso='ComAddInsDialog'                 size='large' onAction='LogLevelButton_OnAction' />
                         </group>
                         <group id='LoggingGroup'        label='Test Logging Messages'>
                             <button id='ErrorButton'    label='Log Error'            imageMso='OutlineViewClose'   onAction='ErrorButton_OnAction' />

@@ -24,6 +24,10 @@ using ExcelDna.XlDialogBox;
 using Microsoft.Office.Core;
 using Microsoft.Office.Interop.Excel;
 
+// Added Bart
+using SharpProj;
+using SharpProj.Proj;
+
 namespace TopoLib
 {
     public class R1C1
@@ -787,17 +791,52 @@ namespace TopoLib
             dialog.CallingMethod = System.Reflection.MethodBase.GetCurrentMethod(); 
             dialog.DialogScaling = 125.0;  // Use this if the dialog was designed using a display with 120 DPI
 
-            ctrl_02.IO_index = CctOptions.UseGlobalOptions;
+            ctrl_02.IO_index  = CctOptions.UseGlobalOptions;
+
+            ctrl_07.IO_string = CctOptions.TransformOptions.Authority;
+            ctrl_09.IO_double = CctOptions.TransformOptions.Accuracy?? -1000;
+
+            if (CctOptions.TransformOptions.Area  is null)
+            {
+                ctrl_12.IO_double = -1000;
+                ctrl_14.IO_double = -1000;
+                ctrl_16.IO_double = -1000;
+                ctrl_18.IO_double = -1000;
+            }
+            else
+            {
+                ctrl_12.IO_double = CctOptions.TransformOptions.Area.SouthLatitude;
+                ctrl_14.IO_double = CctOptions.TransformOptions.Area.NorthLatitude;
+                ctrl_16.IO_double = CctOptions.TransformOptions.Area.WestLongitude;
+                ctrl_18.IO_double = CctOptions.TransformOptions.Area.EastLongitude;
+            }
+
+            ctrl_20.IO_checked = CctOptions.TransformOptions.NoBallparkConversions;
+            ctrl_21.IO_checked = CctOptions.TransformOptions.NoDiscardIfMissing;
+            ctrl_22.IO_checked = CctOptions.TransformOptions.UsePrimaryGridNames;
+            ctrl_23.IO_checked = CctOptions.TransformOptions.UseSuperseded;
+            ctrl_24.IO_checked = CctOptions.AllowDeprecatedCRS;
+            ctrl_25.IO_checked = CctOptions.TransformOptions.StrictContains;
+            ctrl_26.IO_index   = (int) CctOptions.TransformOptions.IntermediateCrsUsage;
 
 
             bool bOK = dialog.ShowDialog(Validate);
             if (bOK == false) return;
 
-            CctOptions.UseGlobalOptions = ctrl_02.IO_index;
+            CctOptions.UseGlobalOptions           = ctrl_02.IO_index;
 
+            CctOptions.TransformOptions.Authority = ctrl_07.IO_string;
+            CctOptions.TransformOptions.Accuracy  = ctrl_09.IO_double;
 
+            CctOptions.TransformOptions.Area = ctrl_16.IO_double > -1000 ? new CoordinateArea(ctrl_16.IO_double, ctrl_12.IO_double, ctrl_18.IO_double, ctrl_14.IO_double) : null;
 
-
+            CctOptions.TransformOptions.NoBallparkConversions = ctrl_20.IO_checked;
+            CctOptions.TransformOptions.NoDiscardIfMissing    = ctrl_21.IO_checked;
+            CctOptions.TransformOptions.UsePrimaryGridNames   = ctrl_22.IO_checked;
+            CctOptions.TransformOptions.UseSuperseded         = ctrl_23.IO_checked;
+            CctOptions.AllowDeprecatedCRS                     = ctrl_24.IO_checked;
+            CctOptions.TransformOptions.StrictContains        = ctrl_25.IO_checked;
+            CctOptions.TransformOptions.IntermediateCrsUsage  = (IntermediateCrsUsage) ctrl_26.IO_index;
 
         } // GlobalOptionsDialog
 
