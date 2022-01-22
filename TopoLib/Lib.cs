@@ -16,33 +16,8 @@ using System.IO;
 
 namespace TopoLib
 {
-    public delegate Action<ProjLogLevel, String> LOG(ProjLogLevel level, string message);
-
     public static class Lib
     {
-        // Create a method for the LOG delegate.
-        internal static void SendToSerilog(ProjLogLevel level, string message)
-        {
-            int nLevel = (int)level;
-
-            switch (nLevel)
-            {
-                default:
-                case 0:
-                    AddIn.Logger.Information(message);
-                    break;
-                case 1:
-                    AddIn.Logger.Error(message);
-                    break;
-                case 2:
-                    AddIn.Logger.Debug(message);
-                    break;
-                case 3:
-                    AddIn.Logger.Verbose(message);
-                    break;
-            }
-        }
-
         static bool? _supportsDynamicArrays;
 
         [ExcelFunction(IsHidden = true)]
@@ -82,42 +57,6 @@ namespace TopoLib
                 return strNo;
 
         } // DynamicArrays
-
-        // See: https://stackoverflow.com/questions/136035/catch-multiple-exceptions-at-once
-        internal static object ExceptionHandler(Exception ex)
-        {
-            string errorText;
-            
-            if (_logLevel > 0)
-            {
-                switch (ex)
-                {
-                    case ArithmeticException _:
-                    case InvalidOperationException _:
-                    case ProjException _:
-                        errorText =  $"#:[{ex.GetBaseException().Message}]";
-                        break;
-
-                    case ArgumentNullException _:
-                        errorText =  $"#:[{ex.GetBaseException().Message} argument is null]";
-                        break;
-
-                    case ArgumentException _:
-                        errorText =  $"#:[{ex.GetType().Name}: {ex.Message}]";
-                        break;
-                   
-                    default:
-                        // you can check here [F9] if certain exception types haven't been handled yet
-                        errorText =  $"#:[{ex.GetBaseException().Message}]";
-                        break;
-
-                }
-                AddIn.Logger.Error(errorText);
-            }
-    
-            return ExcelError.ExcelErrorNA;
-
-        } // ExceptionHandler
 
         static string _gridCachePath = "";
 
@@ -193,14 +132,6 @@ namespace TopoLib
             }
         } // OperatingSystem
 
-        private static int _logLevel = 0;
-
-        public static int LogLevel   // property
-		{
-			get { return _logLevel; }   // get method
-			set { _logLevel =  value; }  // set method
-		}
-
         [ExcelFunctionDoc(
             IsVolatile = true,
             Name = "TL.lib.LoggingLevel",
@@ -210,10 +141,10 @@ namespace TopoLib
 
             Returns = "the current logging level",
             Remarks = "This function takes 1 input parameter to set the logging Level, to QC error handling: " +
-                        "<ul>    <li><p>0 = No logging taking place (default)</p></li>" +
-                                "<li><p>1 = All errors being logged</p></li>" +
-                                "<li><p>2 = Debug merssages being logged as well</p></li>" +
-                                "<li><p>3 = Verbose; trace messages logged as well</p></li>" +
+                        "<ul>    <li><p>0 = Verbose - all messages being logged (default)</p></li>" +
+                                "<li><p>1 = Debug messages being logged </p></li>" +
+                                "<li><p>2 = Warnings being logged </p></li>" +
+                                "<li><p>3 = Errors (only) being logged</p></li>" +
                         "</ul>" +
                         "<p>Use the function without an input parameter to get the current verbose setting</p>" +
                         "<p>Using this function to set the logging level is not recommended, as it may interfere with setting the logging level from the TopoLib Ribbon!</p>.",
@@ -223,12 +154,12 @@ namespace TopoLib
         {
             // if (ExcelDnaUtil.IsInFunctionWizard()) return ExcelError.ExcelErrorRef;
 
-            int tmp = (int)Optional.Check(oLogging, (double)_logLevel); // use the current logging level as a default value
+            int tmp = (int)Optional.Check(oLogging, (double)CctOptions.ProjContext.LogLevel); // use the current logging level as a default value
              if (tmp < 0 || tmp > 3 ) return ExcelError.ExcelErrorValue;
 
-            _logLevel= tmp;
+            CctOptions.ProjContext.LogLevel = (ProjLogLevel) tmp;
 
-            return (double)_logLevel;
+            return (double)tmp;
         
         } // SetLoggingLevel
 

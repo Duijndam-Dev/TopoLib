@@ -85,7 +85,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
         }
 
@@ -121,7 +121,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
         }
 
@@ -161,7 +161,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
         }
 
@@ -241,7 +241,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
         }
 
@@ -283,7 +283,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
         }
 
@@ -326,7 +326,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
         }
     }

@@ -75,6 +75,7 @@
     <Compile Include="Crs.cs" />
     <Compile Include="CustomRibbon.cs" />
     <Compile Include="Env.cs" />
+    <Compile Include="FolderPicker.cs" />
     <Compile Include="Lib.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="Optional.cs" />

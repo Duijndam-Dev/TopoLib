@@ -45,7 +45,7 @@ namespace TopoLib
             _excel = (Excel.Application)ExcelDna.Integration.ExcelDnaUtil.Application;
 
             _log = Serilog.Log.ForContext<CustomRibbon>();
-            _log.Debug("Loading ribbon {ribbonId} via GetCustomUI", ribbonId);
+            _log.Information("[TOP] Loading ribbon {ribbonId} via GetCustomUI", ribbonId);
 
             string ribbonXml =
                 @"<customUI xmlns='http://schemas.microsoft.com/office/2006/01/customui' onLoad='OnLoad'>
@@ -53,10 +53,10 @@ namespace TopoLib
                     <tabs>
                       <tab id='TopoLibTap' label='TopoLib'>
                         <group id='SettingGroup'        label='TopoLib Settings'>
-                            <button id='Proj_LibButton' label='PROJ_LIB env setting' imageMso='PowerMapLaunch' size='large' onAction='Proj_LibButton_OnAction' />
-                            <button id='OptionsButton'  label='Global Settings'      imageMso='ColumnActionsColumnSettings'             size='large' onAction='OptionsButton_OnAction' />
-                            <button id='CacheButton'    label='Cache settings'       imageMso='ColumnListSetting'           size='large' onAction='CacheButton_OnAction' />
-                            <button id='LogLevelButton' label='Logging Level'        imageMso='ComAddInsDialog'              size='large' onAction='LogLevelButton_OnAction' />
+                            <button id='Proj_LibButton' label='Resource Settings'    imageMso='PowerMapLaunch'              size='large' onAction='Proj_LibButton_OnAction' />
+                            <button id='OptionsButton'  label='Transform Settings'   imageMso='ColumnActionsColumnSettings' size='large' onAction='OptionsButton_OnAction' />
+                            <button id='CacheButton'    label='Cache Settings'       imageMso='ColumnListSetting'           size='large' onAction='CacheButton_OnAction' />
+                            <button id='LogLevelButton' label='Logging Settings'     imageMso='ComAddInsDialog'             size='large' onAction='LogLevelButton_OnAction' />
                         </group>
                         <group id='LoggingGroup'        label='Test Logging Messages'>
                             <button id='ErrorButton'    label='Log Error'            imageMso='OutlineViewClose'   onAction='ErrorButton_OnAction' />
@@ -99,23 +99,22 @@ namespace TopoLib
                 _excel.Workbooks.Add();
             }
 
-            // read here from configuration settigs.
-            // by now all functions have been registered, and it should be safe to do
-            int nLogLevel;
+            // read the configuration settings when loading the Ribbon
+            // At this point, all functions have been registered, and it should be safe to do so...
+            int nTmp;
             string sLogLevel = (string)Cfg.GetKeyValue("LogLevel");
-            bool success = int.TryParse(sLogLevel, out nLogLevel);
+            bool success = int.TryParse(sLogLevel, out nTmp);
             if (success)
             {
-                Lib.LogLevel = nLogLevel;
+                CctOptions.ProjContext.LogLevel = (SharpProj.ProjLogLevel) nTmp;
             }
-
         }
 
         public void ErrorButton_OnAction(IRibbonControl control)
         {
             try
             {
-                _log.Error("This is an **Error** message");
+                _log.Error("[TOP] This is an **Error** message");
             }
             catch (Exception ex)
             {
@@ -127,7 +126,7 @@ namespace TopoLib
         {
             try
             {
-                _log.Debug("This is a **Debug** message");
+                _log.Debug("[TOP] This is a **Debug** message");
             }
             catch (Exception ex)
             {
@@ -139,7 +138,7 @@ namespace TopoLib
         {
             try
             {
-                _log.Verbose("This is a **Verbose** message");
+                _log.Verbose("[TOP] This is a **Verbose** message");
             }
             catch (Exception ex)
             {
@@ -292,7 +291,7 @@ namespace TopoLib
         {
             try
             {
-                _excel.Application.Run("PROJ_LIB_Dialog");
+                _excel.Application.Run("Resource_Dialog");
             }
             catch (Exception ex)
             {

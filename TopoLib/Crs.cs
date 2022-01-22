@@ -22,8 +22,13 @@ namespace TopoLib
     {
         internal static ProjContext CreateContext()
         {
-            ProjContext pjContext = new ProjContext { LogLevel = (ProjLogLevel) Lib.LogLevel};
-            pjContext.Log += Lib.SendToSerilog;
+            // Create context with proper Logging Level
+            ProjContext pjContext = new ProjContext { LogLevel = CctOptions.ProjContext.LogLevel};
+
+            // Only use call-back when needed...
+            if (CctOptions.ProjContext.LogLevel > 0)
+                pjContext.Log += AddIn.ProcessSharpProjException;
+            
             return pjContext;
         }
 
@@ -87,7 +92,7 @@ namespace TopoLib
                     }
                 }
                 else 
-                    throw new ArgumentNullException("CRS");
+                    throw new ArgumentException("CRS");
             }
             else
             {
@@ -110,10 +115,10 @@ namespace TopoLib
 
                     bool success = int.TryParse(sTmp, out nCrs);
                     if (!success) 
-                        throw new ArgumentNullException("CRS");
+                        throw new ArgumentException("CRS");
                 }
                 else
-                    throw new ArgumentNullException("CRS");
+                    throw new ArgumentException("CRS");
 
                 return CoordinateReferenceSystem.CreateFromDatabase(sCrs, nCrs, pjContext);
 
@@ -123,7 +128,7 @@ namespace TopoLib
             }
 
             // Oops, something went wrong if we get here...
-            throw new ArgumentNullException("CRS");
+            throw new ArgumentException("CRS");
 
         } // GetCrs
 
@@ -158,7 +163,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex); 
+                return AddIn.ProcessException(ex); 
             }
 
         } // CoordinateSystemType
@@ -201,7 +206,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // CoordinateSystem_Axis_Name
@@ -244,7 +249,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // CoordinateSystem_Axis_Abbreviation
@@ -287,7 +292,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // CoordinateSystem_Axis_UnitName
@@ -330,7 +335,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // CoordinateSystem_Axis_UnitAuthName
@@ -370,7 +375,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // CoordinateSystem_Axis_UnitConversionFactor
@@ -414,7 +419,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // CoordinateSystem_Axis_UnitCode
@@ -457,7 +462,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // CoordinateSystem_Axis_Direction
@@ -496,7 +501,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // CoordinateSystem_Name
@@ -535,7 +540,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // CoordinateSystem_Type
@@ -574,7 +579,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // CoordinateSystem_CoordinateSystemType
@@ -613,7 +618,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // Datum_Name
@@ -652,7 +657,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // Datum_Type
@@ -691,7 +696,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // Ellipsoid_Name
@@ -730,7 +735,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // Ellipsoid_Type
@@ -766,7 +771,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // Ellipsoid_SemiMajorMetre
@@ -802,7 +807,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // Ellipsoid_SemiMinorMetre
@@ -838,7 +843,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // Ellipsoid_InverseFlattening
@@ -872,7 +877,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // EllipsoidIsSemiMinorComputed
@@ -916,7 +921,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // Identifiers_Code
@@ -961,7 +966,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // Identifiers_Authority
@@ -997,7 +1002,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // Identifiers_Count
@@ -1031,7 +1036,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // IsDeprecated
@@ -1071,7 +1076,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // Name
@@ -1110,7 +1115,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // GeodeticCRS_Name
@@ -1149,7 +1154,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // GeodeticCRS_Type
@@ -1188,7 +1193,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // PrimeMeridian_Name
@@ -1224,7 +1229,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // PrimeMeridian_Longitude
@@ -1260,7 +1265,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // PrimeMeridian_UnitConversionFactor
@@ -1299,7 +1304,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // PrimeMeridian_UnitName
@@ -1338,7 +1343,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // Scope
@@ -1376,7 +1381,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // ToJsonString
@@ -1414,7 +1419,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // ToWktString
@@ -1452,7 +1457,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // ToProjString
@@ -1491,7 +1496,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // UsageAreaCenterX
@@ -1530,7 +1535,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // UsageArea_Center
@@ -1564,7 +1569,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // UsageArea_Center_HasValues
@@ -1598,7 +1603,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // UsageArea_Center_X
@@ -1632,7 +1637,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // UsageArea_Center_Y
@@ -1671,7 +1676,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // UsageArea_Name
@@ -1707,7 +1712,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // UsageArea_WestLongitude
@@ -1743,7 +1748,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // UsageArea_EastLongitude
@@ -1779,7 +1784,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // UsageArea_SouthLatitude
@@ -1815,7 +1820,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
 
         } // UsageArea_NorthLatitude

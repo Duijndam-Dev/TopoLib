@@ -787,7 +787,7 @@ namespace ExcelDna.XlDialogBox
         ///     but the preferred location is column 7 in the row where the Help button is defined. 
         ///     Row 1, column 1 is usually left blank.
         /// </remarks>
-        private readonly ControlItem _formControl;
+        protected readonly ControlItem _formControl;
 
         public System.Reflection.MethodBase CallingMethod = null;
 
@@ -982,32 +982,37 @@ namespace ExcelDna.XlDialogBox
                             {   // is there an ExcelCommandAttribute attribute decorating the method where ShowDialog has been called from ?
                                 ExcelCommandAttribute attr = (ExcelCommandAttribute)CallingMethod.GetCustomAttributes(typeof(ExcelCommandAttribute), true)[0];
                                 if (attr != null)
-                                {   
-                                    // get the HelpTopic string and split it in two parts ([a] file name and [b] helptopic)
-                                    string[] parts = attr.HelpTopic.Split('!');
+                                {
+                                    try
+                                    {
+                                        // get the HelpTopic string and split it in two parts ([a] file name and [b] helptopic)
+                                        string[] parts = attr.HelpTopic.Split('!');
 
-                                    // the complete helpfile path consists of the xll directory + first part of HelpTopic attribute string 
-                                    string chmPath = System.IO.Path.Combine(xllDir, parts[0]);
+                                        // the complete helpfile path consists of the xll directory + first part of HelpTopic attribute string 
+                                        string chmPath = System.IO.Path.Combine(xllDir, parts[0]);
 
-                                    // See : http://www.help-info.de/en/Help_Info_HTMLHelp/hh_command.htm
-                                    // Example of opening a help topic using help ID = 12030
-                                    // ID is a number that you've defined in the [MAP] section of your project (*.hhp) file
-                                    // and mapped to the required topic in the [ALIAS] section.
-                                    // Note: The "-map ID chm" command line became available in HH 1.1b.
-                                    // C:\> HH.EXE -mapid 12030 ms-its:C:/xTemp/XMLconvert.chm
+                                        // See : http://www.help-info.de/en/Help_Info_HTMLHelp/hh_command.htm
+                                        // Example of opening a help topic using help ID = 12030
+                                        // ID is a number that you've defined in the [MAP] section of your project (*.hhp) file
+                                        // and mapped to the required topic in the [ALIAS] section.
+                                        // Note: The "-map ID chm" command line became available in HH 1.1b.
+                                        // C:\> HH.EXE -mapid 12030 ms-its:C:/xTemp/XMLconvert.chm
 
-                                    // get some help WITHOUT specifying HelpTopic
-                                    // System.Diagnostics.Process.Start(chmPath);
+                                        // get some help WITHOUT specifying HelpTopic
+                                        // System.Diagnostics.Process.Start(chmPath);
 
-                                    // get some help WITH specifying HelpTopic 
-                                    // string helpArguments = "-mapid " + HelpTopic + " ms-its:" + "\"" + chmPath + "\"";
-                                    System.Diagnostics.Process hh = new System.Diagnostics.Process();
-                                    string helpArguments = "-mapid " + parts[1] + " ms-its:" + chmPath;
-                                    hh.StartInfo.FileName = "HH.exe";
-                                    hh.StartInfo.Arguments = helpArguments;
-                                    hh.Start();
-//                                  hh.WaitForExit();
-//                                  int returnCode = hh.ExitCode;
+                                        // get some help WITH specifying HelpTopic 
+                                        // string helpArguments = "-mapid " + HelpTopic + " ms-its:" + "\"" + chmPath + "\"";
+                                        System.Diagnostics.Process hh = new System.Diagnostics.Process();
+                                        string helpArguments = "-mapid " + parts[1] + " ms-its:" + chmPath;
+                                        hh.StartInfo.FileName = "HH.exe";
+                                        hh.StartInfo.Arguments = helpArguments;
+                                        hh.Start();
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        TopoLib.AddIn.ProcessException(ex);
+                                    }
                                 }
                             }
                             else
@@ -1042,6 +1047,8 @@ namespace ExcelDna.XlDialogBox
             }
         }
 
+
+
 /*        /// <summary>
         ///     DEPRECATED
         ///     Show dialog box; this is the original code to show the Dialog Box
@@ -1050,6 +1057,7 @@ namespace ExcelDna.XlDialogBox
         ///     see other 'variations' of ShowDialog(...) above
         /// </summary>
         /// <returns></returns>
+        [Obsolete("doesn't trigger a dataValidation call")]
         public virtual bool ShowDialog()
         {
             try
@@ -2490,14 +2498,15 @@ namespace ExcelDna.XlDialogBox
                     }
 */
                 }
-                catch
+                catch (Exception ex)
                 {
-                    ;
+                    TopoLib.AddIn.ProcessException(ex);
                 }
             }
 
         }
         #endregion Dialog Control Collection
+
 
 /*
         /// <summary>
@@ -2606,4 +2615,67 @@ namespace ExcelDna.XlDialogBox
 */
 
     }
+
+    // This class implements an 'OpenFileDialog equivalent' as an XLM macro.
+    // It is fully functional, be it that the dialog cannot find 'hidden' folders
+    //
+    // Behind the scenes, the dialog changes the current irectory. Therefore:
+    // The folder aspect of the overall path is found by using GetCurrentDirectory
+    //
+    internal class XlFileDialogBox : XlDialogBox
+    { 
+        private XlDialogBox.GroupBox        m_grpBox;
+        private XlDialogBox.OkButton        m_update;
+        private XlDialogBox.DirectoryLabel  m_dirLbl;
+        private XlDialogBox.GroupBox        m_filSel;
+        private XlDialogBox.TextEdit        m_filNam;
+        private XlDialogBox.LinkedFilesList m_filLst;
+        private XlDialogBox.LinkedDriveList m_drvLst;
+        private XlDialogBox.OkButton        m_btnOke;
+        private XlDialogBox.CancelButton    m_btnCan;
+        private XlDialogBox.HelpButton2     m_btnHlp;
+
+        // constructor
+        public XlFileDialogBox() 
+        {
+            W = 420;
+            H = 240;
+            Text = "Select File";
+
+            m_grpBox = new XlDialogBox.GroupBox()         {	 X = 013, Y = 010, W = 394, H = 040, Text = "Current directory at launch of dialog. Use ? button to refresh ",  };
+            m_update = new XlDialogBox.OkButton()         {	 X = 018, Y = 026, W = 025,          Text = "⭮",  IO = 3, };
+            m_dirLbl = new XlDialogBox.DirectoryLabel()   {	 X = 048, Y = 030, W = 357,          };
+            m_filSel = new XlDialogBox.GroupBox()         {	 X = 013, Y = 055, W = 394, H = 140, Text = "File selector. Use *.* to search for all files in a folder ",  };
+            m_filNam = new XlDialogBox.TextEdit()         {	 X = 031, Y = 073, W = 170,          IO = "*.*", };
+            m_filLst = new XlDialogBox.LinkedFilesList()  {	 X = 220, Y = 073, W = 170, H = 110, IO = 2, };
+            m_drvLst = new XlDialogBox.LinkedDriveList()  {	 X = 031, Y = 096,          H = 090, };
+            m_btnOke = new XlDialogBox.OkButton()         {	 X = 151, Y = 205, W = 075,          Text = "&OK",  };
+            m_btnCan = new XlDialogBox.CancelButton()     {	 X = 238, Y = 205, W = 075,          Text = "&Cancel",  };
+            m_btnHlp = new XlDialogBox.HelpButton2()      {	 X = 330, Y = 205, W = 075,          Text = "&Help",  IO = -1, };
+
+            Controls.Add(m_update);
+            Controls.Add(m_dirLbl);
+            Controls.Add(m_filSel);
+            Controls.Add(m_filNam);
+            Controls.Add(m_filLst);
+            Controls.Add(m_drvLst);
+            Controls.Add(m_btnOke);
+            Controls.Add(m_btnCan);
+            Controls.Add(m_btnHlp);
+        }
+
+		public string CurrentDirectoryText   // property
+		{
+			get { return m_grpBox.Text; }   // get method
+			set { m_grpBox.Text =  value; }  // set method
+		}
+
+		public string FileName   // property
+		{
+			get { return m_filNam.Text; }   // get method
+			set { m_filNam.Text =  value; }  // set method
+		}
+
+    }
+
 }

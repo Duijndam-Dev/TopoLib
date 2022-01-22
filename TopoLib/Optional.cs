@@ -117,7 +117,7 @@ namespace TopoLib
             else
             {
                 // deal with a single object instead of array; not yet implemented
-                throw new ArgumentException("Not yet implemented");
+                throw new NotImplementedException("Not yet implemented");
             }
         } // IsNull
 

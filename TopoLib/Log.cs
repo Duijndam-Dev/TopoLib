@@ -41,7 +41,8 @@ namespace TopoLib
             Returns = "The message written to the log")]
         public static string LogVerbose(string message)
         {
-            _log.Verbose(message);
+            // _log.Verbose(message);
+            _log.Write(Serilog.Events.LogEventLevel.Verbose, message);
             return $"'[VRB] {message}' written to the log";
         }
 
@@ -54,7 +55,8 @@ namespace TopoLib
             Returns = "The message written to the log")]
         public static string LogDebug(string message)
         {
-            _log.Debug(message);
+            // _log.Debug(message);
+            _log.Write(Serilog.Events.LogEventLevel.Debug, message);
             return $"'[DBG] {message}' written to the log";
         }
 
@@ -83,7 +85,8 @@ namespace TopoLib
             Returns = "The message written to the log")]
         public static string LogWarning(string message)
         {
-            _log.Warning(message);
+            // _log.Warning(message);
+            _log.Write(Serilog.Events.LogEventLevel.Warning, message);
             return $"'[WRN] {message}' written to the log";
         }
 */
@@ -96,7 +99,8 @@ namespace TopoLib
             Returns = "The message written to the log")]
         public static string LogError(string message)
         {
-            _log.Error(message);
+            // _log.Error(message);
+            _log.Write(Serilog.Events.LogEventLevel.Error, message);
             return $"'[ERR] {message}' written to the log";
         }
     }

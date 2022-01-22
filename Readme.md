@@ -4,7 +4,7 @@
 
 #### 1	Introduction
 
-**TopoLib** contains a number of User Defined Functions (UDFs) for *Coordinate Conversion and Transformation*, supported by Ribbon Commands, made available as an Excel extension. The code is based on a number of open source libraries, that are available for download on [GitHub](https://github.com/).
+**TopoLib** contains a number of User Defined Functions (UDFs) for *Coordinate Conversion and Transformation*, supported by Ribbon commands and dialogs, made available as an Excel extension. The code is based on a number of open source libraries, that are available for download on [GitHub](https://github.com/).
 
 The code is made available under the [ZLib license](License.md).   The  main open source libraries underpinning TopoLib are :
 
@@ -35,8 +35,6 @@ PROJ is widely used in the industry, for instance [QGIS](https://www.qgis.org/en
 
 This is the second approach of creating the TopoLib library. The original version was built using C++ in conjunction with the [XLW-library](https://github.com/xlw/xlw) to create Excel extensions. The XLW-library is no longer actively maintained, and therefore the transition to 64-bit Excel became troublesome. This is where `Excel-DNA`  came to the rescue (*note: 'DNA' stands for DotNet for Applications, similar to VBA - Visual Basic for Applications*). This made a transition to C# mandatory.  Therefore, PROJ (*written in C++*) either needed to be replaced by a similar library written in C# (like the [DotSpatial](https://github.com/DotSpatial/DotSpatial) library),  or alternatively C#  bindings to PROJ needed to be used. 
 
-Though the latest version of ExcelDna.Addin,  ExcelDna.Integration and ExcelDna.Intellisense is currently 1.5.1-rc3, the ExcelDnaDoc package is restricted to version 1.5.0-rc. This limits the versions of the other packages to 1.5.0.
-
 #### 4	SharpProj
 
 The the [DotSpatial](https://github.com/DotSpatial/DotSpatial) library isn't very actively maintained. The PROJ library in contrary has made major changes to its functionality and API and an improved accuracy over the past few years. So it would be great to link against that library (somehow). 
@@ -47,7 +45,7 @@ The advantage of using C++/CLI is that the resulting 'mixed language' DLL can **
 
 This is where [SharpProj](https://github.com/AmpScm/SharpProj) comes into the picture. It exposes the PROJ library through managed C++/CLI classes, which in turn can be consumed by Excel-DNA to create UDF's in Excel. Almost every  PROJ C++-routine finds its counterpart in SharpProj.
 
-The PROJ library uses an environment variable `PROJ_LIB` to locate its database and the (GeoTiff) grid-files. To help the end user, three routines have been added for you to set and read environment variables under `=TL.env` in TopoLib. 
+The PROJ library uses an environment variable `PROJ_LIB` to locate its database and the (GeoTiff) grid-files. To help the end user, three routines have been added for you to set and read environment variables under `=TL.env` in TopoLib. Furthermore, `PROJ_LIB`  can be set using a dialog, launched from the TopoLib ribbon.
 
 Parameters that need to be persistent outside of a particular spreadsheet can be saved in a `TopoLib.config` file that resides in the folder`LocalApplicationData\TopoLib\`. See routines under  `=TL.cfg`in TopoLib for more information.
 
@@ -59,7 +57,7 @@ An installation script has been developed to store the *.xll and associated file
 
 #### 6	Current status
 
-At present, TopoLib is still Work-in-Progress. Not all classes/functions from SharpProj have yet been implemented, and the Ribbon Interface to set persistent library variables has not been completed.
+At present, TopoLib is still Work-in-Progress. Not all classes/functions from SharpProj have yet been implemented, and the Ribbon Interface to set persistent library variables has not been fully completed.
 
 But overall, the Add-In is already very functional; after all, as an end-user you want to convert coordinates from `(lat, long)` to `(x, y)` and the like. For this to happen, you need effectively **just one call**: 
 
@@ -71,7 +69,7 @@ The following is planned:
 
 - Complete CCT (Coordinate Conversion and Transformation) functionality
 - Complete CRS (Coordinate Reference System) functionality
-- Add Ribbon interface for persistent library settings
+- Complete Ribbon interface to handle persistent library settings
 
 #### 7	Finally
 
@@ -83,5 +81,5 @@ You should then see a dialog like the following
 
 ![image-20211217111622793](Typora/image-20211217111622793.png) 
 
-There is an explanation of the purpose of each variable, in this case **SourceCrs** is highlighted. Clicking `Help on this function` will bring up the precompiled help file with extra information on how to use this function.
+There is an explanation of the purpose of each variable, in this example **SourceCrs** is highlighted. Clicking `Help on this function` will bring up the precompiled help file with extra information on how to use this function.
 

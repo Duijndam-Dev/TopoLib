@@ -67,7 +67,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
         } // SetEnvironmentVariable
 
@@ -116,7 +116,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
         } // GetEnvironmentVariable
 
@@ -163,7 +163,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
         } // GetEnvironmentVariableValue
 

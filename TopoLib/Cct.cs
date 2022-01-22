@@ -120,7 +120,7 @@ namespace TopoLib
             {
                 // get options from static variables
                 options     = CctOptions.TransformOptions;
-                bUseNetwork = CctOptions.UseNetworkConnection;
+                bUseNetwork = CctOptions.UseNetwork > 0;
                 bAllowDeprecatedCRS = CctOptions.AllowDeprecatedCRS;
             }
 			return options;
@@ -189,7 +189,7 @@ namespace TopoLib
                     }
                 }
                 else
-                    throw new ArgumentNullException("Incorrect coordinate transform format");
+                    throw new ArgumentException("Incorrect coordinate transform format");
             }
             else
             {
@@ -212,10 +212,10 @@ namespace TopoLib
 
                     bool success = int.TryParse(sTmp, out nTransform);
                     if (!success) 
-                        throw new ArgumentNullException("Incorrect coordinate transform format");
+                        throw new ArgumentException("Incorrect coordinate transform format");
                 }
                 else
-                    throw new ArgumentNullException("Incorrect coordinate transform format");
+                    throw new ArgumentException("Incorrect coordinate transform format");
 
                 return CoordinateTransform.CreateFromDatabase(sTransform, nTransform, pjContext);
 
@@ -225,7 +225,7 @@ namespace TopoLib
             }
 
             // Oops, something went wrong if we get here...
-            throw new ArgumentNullException("Incorrect coordinate transform format");
+            throw new ArgumentException("Incorrect coordinate transform format");
 
         }
 
@@ -234,7 +234,7 @@ namespace TopoLib
             bool bHasDeprecatedCRS = crsSource.IsDeprecated || crsTarget.IsDeprecated; 
 
             if (bHasDeprecatedCRS && !bAllowDeprecatedCRS)
-                throw new System.InvalidOperationException ("Using deprecated CRS when not allowed");
+                throw new ArgumentException ("Using deprecated CRS when not allowed");
 
             if (bUseNetwork)                       
                 pjContext.EnableNetworkConnections = true;
@@ -242,7 +242,7 @@ namespace TopoLib
             var transform = CoordinateTransform.Create(crsSource.WithAxisNormalized(), crsTarget.WithAxisNormalized(), options, pjContext);
         
             if (transform == null)
-                throw new System.InvalidOperationException ("No transformation available");
+                throw new ArgumentException ("No transformation available");
 
             return transform;
 
@@ -323,7 +323,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
             finally
             {
@@ -545,7 +545,7 @@ namespace TopoLib
                         }
                         break;
                     default:
-                        throw new System.InvalidOperationException("error in switch statement");
+                        throw new NotImplementedException("error in switch statement"); 
                 }
                 return res;
                 // end core of function
@@ -553,7 +553,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
             finally
             {
@@ -775,7 +775,7 @@ namespace TopoLib
                         }
                         break;
                     default:
-                        throw new System.InvalidOperationException("error in switch statement");
+                        throw new NotImplementedException("error in switch statement");
                 }
                 return res;
                 // end core of function
@@ -783,7 +783,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
             finally
             {
@@ -864,7 +864,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
             finally
             {
@@ -955,7 +955,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
             finally
             {
@@ -1045,7 +1045,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
             finally
             {
@@ -1135,7 +1135,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
             finally
             {
@@ -1217,7 +1217,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
             finally
             {
@@ -1300,7 +1300,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
             finally
             {
@@ -1382,7 +1382,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
             finally
             {
@@ -1463,7 +1463,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
             finally
             {
@@ -1545,7 +1545,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
             finally
             {
@@ -1638,7 +1638,7 @@ namespace TopoLib
                 double error = transform.RoundTrip(true, nTrips, pt);
 
                 if (Double.IsInfinity(error))
-                    throw new System.InvalidOperationException("Infinite roundtrip error");
+                    throw new NotImplementedException("Infinite roundtrip error");
 
                 return error;
                 // end core of function
@@ -1646,7 +1646,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
             finally
             {
@@ -1728,7 +1728,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
             finally
             {
@@ -1826,7 +1826,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
             finally
             {
@@ -1909,7 +1909,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
             finally
             {
@@ -1996,7 +1996,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
             finally
             {
@@ -2083,7 +2083,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
             finally
             {
@@ -2185,7 +2185,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
             finally
             {
@@ -2283,7 +2283,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
             finally
             {
@@ -2365,7 +2365,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
             finally
             {
@@ -2575,7 +2575,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
             finally
             {
@@ -2657,7 +2657,7 @@ namespace TopoLib
             }
             catch (Exception ex)
             {
-                return Lib.ExceptionHandler(ex);
+                return AddIn.ProcessException(ex);
             }
             finally
             {

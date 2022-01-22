@@ -25,4 +25,4 @@
   <!-- Bart: These references are c# libraries for logging -->
   <Reference Path="Serilog.dll" Pack="true" />
   <Reference Path="Serilog.Sinks.ExcelDnaLogDisplay.dll" Pack="true" />
-</DnaLibrary>
+  </DnaLibrary>
