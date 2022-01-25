@@ -93,36 +93,34 @@ namespace TopoLib
             return nOut;
         }
 
-		internal static CoordinateTransformOptions GetCoordinateTransformOptions(int nMode, double Accuracy, double westLongitude, double southLatitude, double eastLongitude, double northLatitude, ref bool bAllowDeprecatedCRS,  ref bool bUseNetwork)
+		internal static CoordinateTransformOptions GetCoordinateTransformOptions(int nMode, double Accuracy, double westLongitude, double southLatitude, double eastLongitude, double northLatitude, ref bool bAllowDeprecatedCRS)
         {
 			var options = new CoordinateTransformOptions();
 
-            if (nMode > 7)
+            if (CctOptions.UseGlobalSettings)
             {
-                // get stuff from nMode parameter, and set values for bAllowDeprecatedCRS & bUseNetwork.
-                // nMode = 4096 will arrive here but won't set any flags; for debugging only
+                // get options from static variables
+                options     = CctOptions.TransformOptions;
+                bAllowDeprecatedCRS = CctOptions.AllowDeprecatedCRS;
+            }
+            else
+            {
                 options.Accuracy              = Accuracy;
                 options.Area                  = westLongitude > -1000 ? new CoordinateArea(westLongitude, southLatitude, eastLongitude, northLatitude) : null;
                 options.NoBallparkConversions = (nMode &    8) != 0 ? true : false;
                 options.NoDiscardIfMissing    = (nMode &   16) != 0 ? true : false;
                 options.UsePrimaryGridNames   = (nMode &   32) != 0 ? true : false;
                 options.UseSuperseded         = (nMode &   64) != 0 ? true : false;
+
                     bAllowDeprecatedCRS       = (nMode &  128) != 0 ? true : false;
+
                 options.StrictContains        = (nMode &  256) != 0 ? true : false;
                 options.IntermediateCrsUsage  = (nMode &  512) != 0 ? IntermediateCrsUsage.Always : IntermediateCrsUsage.Auto;
                 options.IntermediateCrsUsage  = (nMode & 1024) != 0 ? IntermediateCrsUsage.Never  : IntermediateCrsUsage.Auto;
-                    bUseNetwork               = (nMode & 2048) != 0 ? true : false;
-
                 // deal with 'Always' and 'Never' both being set. Go back to 'Auto' !
                 if (((nMode & 512) != 0) && (nMode & 1024) != 0) options.IntermediateCrsUsage  = IntermediateCrsUsage.Auto;
             }
-            else
-            {
-                // get options from static variables
-                options     = CctOptions.TransformOptions;
-                bUseNetwork = CctOptions.UseNetwork > 0;
-                bAllowDeprecatedCRS = CctOptions.AllowDeprecatedCRS;
-            }
+
 			return options;
 
         } // GetCoordinateTransformOptions
@@ -229,15 +227,12 @@ namespace TopoLib
 
         }
 
-        internal static CoordinateTransform CreateCoordinateTransform(CoordinateReferenceSystem crsSource, CoordinateReferenceSystem crsTarget, CoordinateTransformOptions options, ProjContext pjContext, bool bAllowDeprecatedCRS, bool bUseNetwork)
+        internal static CoordinateTransform CreateCoordinateTransform(CoordinateReferenceSystem crsSource, CoordinateReferenceSystem crsTarget, CoordinateTransformOptions options, ProjContext pjContext, bool bAllowDeprecatedCRS)
         {
             bool bHasDeprecatedCRS = crsSource.IsDeprecated || crsTarget.IsDeprecated; 
 
             if (bHasDeprecatedCRS && !bAllowDeprecatedCRS)
                 throw new ArgumentException ("Using deprecated CRS when not allowed");
-
-            if (bUseNetwork)                       
-                pjContext.EnableNetworkConnections = true;
 
             var transform = CoordinateTransform.Create(crsSource.WithAxisNormalized(), crsTarget.WithAxisNormalized(), options, pjContext);
         
@@ -285,9 +280,8 @@ namespace TopoLib
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
-            bool bUseNetwork = false;
             bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS);
 
             // setup all disposable objects
             ProjContext               pjContext = null;
@@ -308,7 +302,7 @@ namespace TopoLib
                 {
                     crsSource = Crs.CreateCrs(SourceCrs, pjContext);
                     crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS);
                 }
 
                 // start core of function
@@ -405,9 +399,8 @@ namespace TopoLib
             int nOut = GetNrCoordinateColumns(nMode, nCoordCols);
 
             // Deal with optional parameters
-            bool bUseNetwork = false;
             bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS);
 
             // setup all disposable objects
             ProjContext               pjContext = null;
@@ -428,7 +421,7 @@ namespace TopoLib
                 {
                     crsSource = Crs.CreateCrs(SourceCrs, pjContext);
                     crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS);
                 }
 
                 // start core of function
@@ -635,9 +628,8 @@ namespace TopoLib
             int nOut = GetNrCoordinateColumns(nMode, nCoordCols);
 
             // Deal with optional parameters
-            bool bUseNetwork = false;
             bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS);
 
             // setup all disposable objects
             ProjContext               pjContext = null;
@@ -658,7 +650,7 @@ namespace TopoLib
                 {
                     crsSource = Crs.CreateCrs(SourceCrs, pjContext);
                     crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS);
                 }
 
                 // start core of function
@@ -831,9 +823,8 @@ namespace TopoLib
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
-            bool bUseNetwork = false;
             bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS);
 
             // setup all disposable objects
             ProjContext               pjContext = null;
@@ -854,7 +845,7 @@ namespace TopoLib
                 {
                     crsSource = Crs.CreateCrs(SourceCrs, pjContext);
                     crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS);
                 }
 
                 // start core of function
@@ -918,9 +909,8 @@ namespace TopoLib
             int nIndex  = (int)Optional.Check(index , 0.0);
 
             // Deal with optional parameters
-            bool bUseNetwork = false;
             bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS);
 
             // setup all disposable objects
             ProjContext               pjContext = null;
@@ -941,7 +931,7 @@ namespace TopoLib
                 {
                     crsSource = Crs.CreateCrs(SourceCrs, pjContext);
                     crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS);
                 }
 
                 // start core of function
@@ -1008,9 +998,8 @@ namespace TopoLib
             int nIndex  = (int)Optional.Check(index , 0.0);
 
             // Deal with optional parameters
-            bool bUseNetwork = false;
             bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS);
 
             // setup all disposable objects
             ProjContext               pjContext = null;
@@ -1031,7 +1020,7 @@ namespace TopoLib
                 {
                     crsSource = Crs.CreateCrs(SourceCrs, pjContext);
                     crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS);
                 }
 
                 // start core of function
@@ -1098,9 +1087,8 @@ namespace TopoLib
             int nIndex  = (int)Optional.Check(index , 0.0);
 
             // Deal with optional parameters
-            bool bUseNetwork = false;
             bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS);
 
             // setup all disposable objects
             ProjContext               pjContext = null;
@@ -1121,7 +1109,7 @@ namespace TopoLib
                 {
                     crsSource = Crs.CreateCrs(SourceCrs, pjContext);
                     crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS);
                 }
 
                 // start core of function
@@ -1184,9 +1172,8 @@ namespace TopoLib
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
-            bool bUseNetwork = false;
             bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS);
 
             // setup all disposable objects
             ProjContext               pjContext = null;
@@ -1207,7 +1194,7 @@ namespace TopoLib
                 {
                     crsSource = Crs.CreateCrs(SourceCrs, pjContext);
                     crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS);
                 }
 
                 // start core of function
@@ -1267,9 +1254,8 @@ namespace TopoLib
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
-            bool bUseNetwork = false;
             bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS);
 
             // setup all disposable objects
             ProjContext               pjContext = null;
@@ -1290,7 +1276,7 @@ namespace TopoLib
                 {
                     crsSource = Crs.CreateCrs(SourceCrs, pjContext);
                     crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS);
                 }
 
                 // start core of function
@@ -1349,9 +1335,8 @@ namespace TopoLib
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
-            bool bUseNetwork = false;
             bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS);
 
             // setup all disposable objects
             ProjContext               pjContext = null;
@@ -1372,7 +1357,7 @@ namespace TopoLib
                 {
                     crsSource = Crs.CreateCrs(SourceCrs, pjContext);
                     crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS);
                 }
 
                 // start core of function
@@ -1430,9 +1415,8 @@ namespace TopoLib
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
-            bool bUseNetwork = false;
             bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS);
 
             // setup all disposable objects
             ProjContext               pjContext = null;
@@ -1453,7 +1437,7 @@ namespace TopoLib
                 {
                     crsSource = Crs.CreateCrs(SourceCrs, pjContext);
                     crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS);
                 }
 
                 // start core of function
@@ -1512,9 +1496,8 @@ namespace TopoLib
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
-            bool bUseNetwork = false;
             bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS);
 
             // setup all disposable objects
             ProjContext               pjContext = null;
@@ -1535,7 +1518,7 @@ namespace TopoLib
                 {
                     crsSource = Crs.CreateCrs(SourceCrs, pjContext);
                     crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS);
                 }
 
                 // start core of function
@@ -1608,9 +1591,8 @@ namespace TopoLib
             PPoint pt = new PPoint(x, y, z);
 
             // Deal with optional parameters
-            bool bUseNetwork = false;
             bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS);
 
             // setup all disposable objects
             ProjContext               pjContext = null;
@@ -1631,7 +1613,7 @@ namespace TopoLib
                 {
                     crsSource = Crs.CreateCrs(SourceCrs, pjContext);
                     crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS);
                 }
 
                 // start core of function
@@ -1695,9 +1677,8 @@ namespace TopoLib
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
-            bool bUseNetwork = false;
             bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS);
 
             // setup all disposable objects
             ProjContext               pjContext = null;
@@ -1718,7 +1699,7 @@ namespace TopoLib
                 {
                     crsSource = Crs.CreateCrs(SourceCrs, pjContext);
                     crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS);
                 }
 
                 // start core of function
@@ -1780,9 +1761,8 @@ namespace TopoLib
             int nOutput = nMode & 3;
 
             // Deal with optional parameters
-            bool bUseNetwork = false;
             bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS);
 
             // setup all disposable objects
             ProjContext               pjContext = null;
@@ -1803,7 +1783,7 @@ namespace TopoLib
                 {
                     crsSource = Crs.CreateCrs(SourceCrs, pjContext);
                     crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS);
                 }
 
                 // start core of function
@@ -1875,9 +1855,8 @@ namespace TopoLib
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
-            bool bUseNetwork = false;
             bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS);
 
             // setup all disposable objects
             ProjContext               pjContext = null;
@@ -1898,7 +1877,7 @@ namespace TopoLib
                 {
                     crsSource = Crs.CreateCrs(SourceCrs, pjContext);
                     crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS);
                 }
 
                 // start core of function
@@ -1962,9 +1941,8 @@ namespace TopoLib
             int nIndex  = (int)Optional.Check(index , 0.0);
 
             // Deal with optional parameters
-            bool bUseNetwork = false;
             bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS);
 
             // setup all disposable objects
             ProjContext               pjContext = null;
@@ -1985,7 +1963,7 @@ namespace TopoLib
                 {
                     crsSource = Crs.CreateCrs(SourceCrs, pjContext);
                     crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS);
                 }
 
                 // start core of function
@@ -2049,9 +2027,8 @@ namespace TopoLib
             int nIndex  = (int)Optional.Check(index , 0.0);
 
             // Deal with optional parameters
-            bool bUseNetwork = false;
             bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS);
 
             // setup all disposable objects
             ProjContext               pjContext = null;
@@ -2072,7 +2049,7 @@ namespace TopoLib
                 {
                     crsSource = Crs.CreateCrs(SourceCrs, pjContext);
                     crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS);
                 }
 
                 // start core of function
@@ -2139,9 +2116,8 @@ namespace TopoLib
             int nOutput = nMode & 3;
 
             // Deal with optional parameters
-            bool bUseNetwork = false;
             bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS);
 
             // setup all disposable objects
             ProjContext               pjContext = null;
@@ -2162,7 +2138,7 @@ namespace TopoLib
                 {
                     crsSource = Crs.CreateCrs(SourceCrs, pjContext);
                     crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS);
                 }
 
                 // start core of function
@@ -2237,9 +2213,8 @@ namespace TopoLib
             int nOutput = nMode & 3;
 
             // Deal with optional parameters
-            bool bUseNetwork = false;
             bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS /*, ref bUseNetwork */);
 
             // setup all disposable objects
             ProjContext               pjContext = null;
@@ -2260,7 +2235,7 @@ namespace TopoLib
                 {
                     crsSource = Crs.CreateCrs(SourceCrs, pjContext);
                     crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS /*, bUseNetwork*/);
                 }
 
                 // start core of function
@@ -2331,9 +2306,8 @@ namespace TopoLib
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
-            bool bUseNetwork = false;
             bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS);
 
             // setup all disposable objects
             ProjContext               pjContext = null;
@@ -2354,7 +2328,7 @@ namespace TopoLib
                 {
                     crsSource = Crs.CreateCrs(SourceCrs, pjContext);
                     crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS);
                 }
 
                 // start core of function
@@ -2416,9 +2390,8 @@ namespace TopoLib
             int nOutput = nMode & 3;
 
             // Deal with optional parameters
-            bool bUseNetwork = false;
             bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS);
 
             // setup all disposable objects
             ProjContext               pjContext = null;
@@ -2439,7 +2412,7 @@ namespace TopoLib
                 {
                     crsSource = Crs.CreateCrs(SourceCrs, pjContext);
                     crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS);
                 }
 
                 // start core of function
@@ -2530,7 +2503,7 @@ namespace TopoLib
                         if (ids == null && transforms[i] is CoordinateTransformList ctl)
                         {
                             ids = string.Join(", ", ctl.Where(x => x.Identifiers != null).SelectMany(x => x.Identifiers));
-                            scopes = string.Join(", ", ctl.Select(x => x.Scope).Where(x => x != null).Distinct());
+                            scopes = string.Join("  ", ctl.Select(x => x.Scope).Where(x => x != null).Distinct());
                         }
 
                         if (transforms[i].Accuracy is null || transforms[i].Accuracy <= 0.0)
@@ -2540,6 +2513,15 @@ namespace TopoLib
                         else 
                         { 
                             accuracy = transforms[i].Accuracy;
+                        }
+
+                        string gridName = "N.A.";
+
+                        if (transforms[i].GridUsages.Count > 0)
+                        {
+                            gridName  = transforms[i].GridUsages[0].FullName;
+                            if (string.IsNullOrEmpty(gridName))
+                                gridName = "Missing";
                         }
 
                         res[i + 1,  0] = transforms[i].Identifiers is null ? ids : transforms[i].Identifier.Authority;
@@ -2552,7 +2534,7 @@ namespace TopoLib
                         res[i + 1,  7] = transforms[i].UsageArea.NorthLatitude;
                         res[i + 1,  8] = transforms[i].UsageArea.EastLongitude;
                         res[i + 1,  9] = transforms[i].GridUsages.Count;
-                        res[i + 1, 10] = transforms[i].GridUsages.Count > 0 ? transforms[i].GridUsages[0].FullName : "N.A.";
+                        res[i + 1, 10] = gridName;
 
                         switch(nOutput)
                         {
@@ -2624,9 +2606,8 @@ namespace TopoLib
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
-            bool bUseNetwork = false;
             bool bAllowDeprecatedCRS = false;
-            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS, ref bUseNetwork);
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS);
 
             // setup all disposable objects
             ProjContext               pjContext = null;
@@ -2647,7 +2628,7 @@ namespace TopoLib
                 {
                     crsSource = Crs.CreateCrs(SourceCrs, pjContext);
                     crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
-                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS, bUseNetwork);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS);
                 }
 
                 // start core of function

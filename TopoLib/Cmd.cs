@@ -22,7 +22,7 @@ using ExcelDna.Integration;
 using ExcelDna.Documentation;
 using ExcelDna.XlDialogBox;
 using Microsoft.Office.Core;
-using Microsoft.Office.Interop.Excel;
+using Excel = Microsoft.Office.Interop.Excel;
 
 // Added Bart
 using SharpProj;
@@ -227,6 +227,7 @@ namespace TopoLib
             return true; // return to dialog
         }
 
+        // See discussion here https://stackoverflow.com/questions/11624298/how-to-use-openfiledialog-to-select-a-folder
         /// <summary>
         /// Validation routines only matter if you use a trigger on a control within an XlDialogBox
         /// </summary>
@@ -311,77 +312,44 @@ namespace TopoLib
             return true; // return to dialog
         }
 
-        [ExcelCommand(
-            Name = "Show_Help",
-            Description = "Shows the Compiled Help file",
-            HelpTopic = "TopoLib-AddIn.chm!1200")]
-        public static void ShowHelp()
+        /// <summary>
+        /// Validation routines only matter if you use a trigger on a control within an XlDialogBox
+        /// </summary>
+        /// <param name="index">the row index of the control that caused a trigger</param>
+        /// <param name="dialogResult">the object array, that the Dialog worked with</param>
+        /// <param name="Controls">the collection of controls, that can be edited in the callback function</param>
+        /// <returns>
+        /// return true, to show the dialog (again) with the updated control settings
+        /// return false, if no more changes need to be made
+        /// return false will have the same effect as pressing the OK button
+        /// </returns>
+        static bool ValidateTransformDialog(int index, object[,] dialogResult, XlDialogBox.XlDialogControlCollection Controls)
         {
-            // get the Path of xll file;
-            string xllPath = ExcelDnaUtil.XllPath;
-            string xllDir  = System.IO.Path.GetDirectoryName(xllPath);
+            // We need to reset all values in the Controls...
+            Controls[ 2].IO = 1;
+            Controls[ 8].IO = "EPSG";
+            Controls[10].IO = "-1";
+            Controls[13].IO = -1000;
+            Controls[15].IO = -1000;
+            Controls[17].IO = -1000;
+            Controls[19].IO = -1000;
 
-            var CallingMethod = System.Reflection.MethodBase.GetCurrentMethod();
-            if (CallingMethod != null)
-            {   // is there an ExcelCommandAttribute attribute decorating the method where ShowDialog has been called from ?
-                ExcelCommandAttribute attr = (ExcelCommandAttribute)CallingMethod.GetCustomAttributes(typeof(ExcelCommandAttribute), true)[0];
-                if (attr != null)
-                {
-                    // get the HelpTopic string and split it in two parts ([a] file name and [b] helptopic)
-                    string[] parts = attr.HelpTopic.Split('!');
+            Controls[21].IO = false;
+            Controls[22].IO = false;
+            Controls[23].IO = false;
+            Controls[24].IO = false;
+            Controls[25].IO = false;
+            Controls[26].IO = false;
+            Controls[27].IO = 1;
 
-                    // the complete helpfile path consists of the xll directory + first part of HelpTopic attribute string 
-                    string chmPath = System.IO.Path.Combine(xllDir, parts[0]);
-
-                    // don't bother to start at a particular help topic
-                    System.Diagnostics.Process.Start(chmPath);
-                }
-            }
-        } // ShowHelp
-
-        [ExcelCommand(
-            Name = "About_TopoLib",
-            Description = "Shows a dialog with a copy right statement and a list of referenced NuGet packages",
-            HelpTopic = "TopoLib-AddIn.chm!1201")]
-        public static void AboutDialog()
-        {
-            var dialog  = new XlDialogBox()                  {                   W = 333, H = 240, Text = "About TopoLib",  };
-            var ctrl_01 = new XlDialogBox.GroupBox()         { X = 013, Y = 013, W = 307, H = 130, Text = "This library uses the following NuGet packages",  };
-            var ctrl_02 = new XlDialogBox.ListBox()          { X = 031, Y = 038, W = 270,          Text = "List_02" };
-            var ctrl_03 = new XlDialogBox.OkButton()         { X = 031, Y = 160, W = 270,          Text = "Duijndam.Dev   |   Copyright © 2020 - 2022", IO = 1, };
-            var ctrl_04 = new XlDialogBox.OkButton()         { X = 031, Y = 200, W = 100,          Text = "&OK", Default = true, };
-            var ctrl_05 = new XlDialogBox.HelpButton2()      { X = 201, Y = 200, W = 100,          Text = "&Help",  };
-
-            ctrl_02.Items.AddRange(new string[]
-            {
-                "'ExcelDna.AddIn' version='1.5.1' developmentDependency='true'",
-                "'ExcelDna.Integration' version='1.5.1'",
-                "'ExcelDna.IntelliSense' version='1.5.1'",
-                "'ExcelDna.Registration' version='1.5.1'",
-                "'ExcelDna.XmlSchemas' version='1.0.0'",
-                "'ExcelDnaDoc' version='1.5.1'",
-                "'Serilog' version='2.10.0'",
-                "'Serilog.Sinks.ExcelDnaLogDisplay' version='1.5.0'",
-                "'SharpProj' version='8.2001.106'",
-                "'SharpProj.Core' version='8.2001.106'"
-            });
-
-            dialog.Controls.Add(ctrl_01);
-            dialog.Controls.Add(ctrl_02);
-            dialog.Controls.Add(ctrl_03);
-            dialog.Controls.Add(ctrl_04);
-            dialog.Controls.Add(ctrl_05);
-
-            dialog.CallingMethod = System.Reflection.MethodBase.GetCurrentMethod(); 
-            bool bOK = dialog.ShowDialog(ValidateAboutDialog);
-            if (bOK == false) return;
-        }
+            return true; // return to dialog
+        } // ValidateTransformDialog
 
         [ExcelCommand(
             Name = "CacheSettings_Dialog",
             Description = "Sets global transform parameters for the TopoLib AddIn",
             HelpTopic = "TopoLib-AddIn.chm!1205")]
-        public static void CacheOptionsDialog()
+        public static void CacheSetingsDialog()
         {
             var dialog  = new XlDialogBox()                  {	                   W = 360, H = 230, Text = "Proj Library Cache Settings", };
             var ctrl_01 = new XlDialogBox.Label()            {	 X = 020, Y = 010,                   Text = "&Cache Path && File Name",  };
@@ -431,13 +399,53 @@ namespace TopoLib
 
             CctOptions.ProjContext.SetGridCache(CctOptions.EnableCache, CctOptions.CachePath, CctOptions.CacheSize, (int) CctOptions.CacheExpiry);
 
-        } // CacheOptionsDialog
+        } // CacheSettingsDialog
 
         [ExcelCommand(
-            Name = "Resource_Dialog",
+            Name = "LogSettings_Dialog",
+            Description = "Sets the logging level for the TopoLib AddIn",
+            HelpTopic = "TopoLib-AddIn.chm!1203")]
+        public static void LogSettingsDialog()
+        {
+            var dialog  = new XlDialogBox()                  {	                   W = 320, H = 150, Text = "Logging settings",  IO = 2, };
+            var ctrl_01 = new XlDialogBox.Label()            {	 X = 020, Y = 010,                   Text = "Select the required logging level in the option list below",  };
+            var ctrl_02 = new XlDialogBox.GroupBox()         {	 X = 020, Y = 030, W = 165, H = 100, Text = "Error logging ",  };
+            var ctrl_03 = new XlDialogBox.RadioButtonGroup() {	                                     IO = 3, };
+            var ctrl_04 = new XlDialogBox.RadioButton()      {	          Y = 045, W = 140,          Text = "&None      ➔  (few messages)",  };
+            var ctrl_05 = new XlDialogBox.RadioButton()      {	          Y = 065, W = 140,          Text = "&Errors",  };
+            var ctrl_06 = new XlDialogBox.RadioButton()      {	          Y = 085, W = 140,          Text = "&Debug",  };
+            var ctrl_07 = new XlDialogBox.RadioButton()      {	          Y = 105, W = 140,          Text = "&Verbose  ➔  (all messages)",  IO = true, };
+            var ctrl_08 = new XlDialogBox.OkButton()         {	 X = 210, Y = 060, W = 080,          Text = "&OK", Default = true, };
+            var ctrl_09 = new XlDialogBox.CancelButton()     {	 X = 210, Y = 085, W = 080,          Text = "&Cancel",  };
+            var ctrl_10 = new XlDialogBox.HelpButton2()      {	 X = 210, Y = 110, W = 080,          Text = "&Help",  };
+
+            dialog.Controls.Add(ctrl_01);
+            dialog.Controls.Add(ctrl_02);
+            dialog.Controls.Add(ctrl_03);
+            dialog.Controls.Add(ctrl_04);
+            dialog.Controls.Add(ctrl_05);
+            dialog.Controls.Add(ctrl_06);
+            dialog.Controls.Add(ctrl_07);
+            dialog.Controls.Add(ctrl_08);
+            dialog.Controls.Add(ctrl_09);
+            dialog.Controls.Add(ctrl_10);
+            dialog.CallingMethod = System.Reflection.MethodBase.GetCurrentMethod(); 
+            dialog.DialogScaling = 125.0;  // Use this if the dialog was designed using a display with 120 DPI
+
+            ctrl_03.IO_index = CctOptions.LogLevel; // get the LogLevel for use in the dialog
+
+            bool bOK = dialog.ShowDialog(Validate);
+            if (bOK == false) return;
+
+            CctOptions.LogLevel = ctrl_03.IO_index; // set the LogLevel; this also takes care of saving the LogLevel in the config file
+
+        } // LogSettingsDialog
+
+        [ExcelCommand(
+            Name = "ResourceSettings_Dialog",
             Description = "Sets the acces for PROJ Resources",
             HelpTopic = "TopoLib-AddIn.chm!1203")]
-        public static void ResourceDialog()
+        public static void ResourceSettingsDialog()
         {
             var dialog  = new XlDialogBox()                  {	                   W = 360, H = 230, Text = "Resource Settings",  };
             var ctrl_01 = new XlDialogBox.Label()            {	 X = 020, Y = 010,                   Text = "&PROJ_LIB Environment Variable",  };
@@ -479,14 +487,14 @@ namespace TopoLib
 
             ctrl_02.IO_string = sProjLib;
             ctrl_05.IO_string = CctOptions.EndpointUrl;
-            ctrl_08.IO_index  = CctOptions.UseNetwork;
+            ctrl_08.IO_index  = CctOptions.UseNetwork ? 1 : 0;
 
             bool bOK = dialog.ShowDialog(ValidateResourceDialog);
             if (bOK == false) return;
 
             sProjLib               = ctrl_02.IO_string;
             CctOptions.EndpointUrl = ctrl_05.IO_string;
-            CctOptions.UseNetwork  = ctrl_08.IO_index;
+            CctOptions.UseNetwork  = ctrl_08.IO_index > 0 ? true : false;
 
             if (sProjLib != sProjOld)
             {
@@ -503,247 +511,66 @@ namespace TopoLib
                 {
                     MessageBox.Show(
                         $"The PROJ_LIB environment variable cannot be updated to [{sProjLib}]. The folder does not exist", 
-                        "Please note", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                        "Please note", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
             }
-        }
 
+            // Get the correct application instance
+            Microsoft.Office.Interop.Excel.Application xlapp = (Microsoft.Office.Interop.Excel.Application)ExcelDnaUtil.Application;
+            xlapp.Calculate();
 
+        } // ResourceSettingsDialog
 
         [ExcelCommand(
-            Name = "LogSettings_Dialog",
-            Description = "Sets the logging level for the TopoLib AddIn",
-            HelpTopic = "TopoLib-AddIn.chm!1203")]
-        public static void LoggingDialog()
-        {
-            var dialog  = new XlDialogBox()                  {	                   W = 320, H = 150, Text = "TopoLib logging level",  IO = 2, };
-            var ctrl_01 = new XlDialogBox.Label()            {	 X = 020, Y = 010,                   Text = "Select the required logging level in the option list below",  };
-            var ctrl_02 = new XlDialogBox.GroupBox()         {	 X = 020, Y = 030, W = 165, H = 100, Text = "Error logging ",  };
-            var ctrl_03 = new XlDialogBox.RadioButtonGroup() {	                                     IO = 3, };
-            var ctrl_04 = new XlDialogBox.RadioButton()      {	          Y = 045, W = 140,          Text = "&None      ➔  (few messages)",  };
-            var ctrl_05 = new XlDialogBox.RadioButton()      {	          Y = 065, W = 140,          Text = "&Errors",  };
-            var ctrl_06 = new XlDialogBox.RadioButton()      {	          Y = 085, W = 140,          Text = "&Debug",  };
-            var ctrl_07 = new XlDialogBox.RadioButton()      {	          Y = 105, W = 140,          Text = "&Verbose  ➔  (all messages)",  IO = true, };
-            var ctrl_08 = new XlDialogBox.OkButton()         {	 X = 210, Y = 060, W = 080,          Text = "&OK", Default = true, };
-            var ctrl_09 = new XlDialogBox.CancelButton()     {	 X = 210, Y = 085, W = 080,          Text = "&Cancel",  };
-            var ctrl_10 = new XlDialogBox.HelpButton2()      {	 X = 210, Y = 110, W = 080,          Text = "&Help",  };
-
-            dialog.Controls.Add(ctrl_01);
-            dialog.Controls.Add(ctrl_02);
-            dialog.Controls.Add(ctrl_03);
-            dialog.Controls.Add(ctrl_04);
-            dialog.Controls.Add(ctrl_05);
-            dialog.Controls.Add(ctrl_06);
-            dialog.Controls.Add(ctrl_07);
-            dialog.Controls.Add(ctrl_08);
-            dialog.Controls.Add(ctrl_09);
-            dialog.Controls.Add(ctrl_10);
-            dialog.CallingMethod = System.Reflection.MethodBase.GetCurrentMethod(); 
-            dialog.DialogScaling = 125.0;  // Use this if the dialog was designed using a display with 120 DPI
-
-            ctrl_03.IO_index = CctOptions.LogLevel; // get the LogLevel for use in the dialog
-
-            bool bOK = dialog.ShowDialog(Validate);
-            if (bOK == false) return;
-
-            CctOptions.LogLevel = ctrl_03.IO_index; // set the LogLevel; this also takes care of saving the LogLevel in the config file
-
-        } // LoggingDialog
-
-
-        // See discussion here https://stackoverflow.com/questions/11624298/how-to-use-openfiledialog-to-select-a-folder
-        [ExcelCommand(
-            Name = "PROJ_LIB_Dialog",
-            Description = "Starts a File Selector Dialog to set the PROJ_LIB environment variable",
-            HelpTopic = "TopoLib-AddIn.chm!1204"
-        )]
-        public static void ProjLibDialog()
-        {
-            string key = "PROJ_LIB";
-            string sProjLib = Environment.GetEnvironmentVariable(key, EnvironmentVariableTarget.User);
-
-            /* 
-            {
-                using(var fbd = new FolderBrowserDialog())
-                {
-                    fbd.SelectedPath = sProjLib;
-                    fbd.Description = "Select PROJ resources folder";
-                    fbd.ShowNewFolderButton = false;
-
-                    DialogResult result = fbd.ShowDialog();
-
-                    if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
-                    {
-                        string[] files = Directory.GetFiles(fbd.SelectedPath);
-
-                        MessageBox.Show("Files found: " + files.Length.ToString(), "Message");
-                    }
-                }
-
-            }
-            */
-
-            {
-                OpenFileDialog dialog = new OpenFileDialog();
-                dialog.Title = "Select any file to confirm PROJ_LIB directory";
-                dialog.InitialDirectory = sProjLib;
-                dialog.ValidateNames = false;
-                dialog.CheckFileExists = false;
-                dialog.CheckPathExists = true;
-                dialog.Filter = "GeoTiff files (*.tif)|*.tif|All files (*.*)|*.*";  
-
-                // Always default to Folder Selection.
-                if (dialog.ShowDialog() == DialogResult.OK)
-                {
-                    string folderPath = Path.GetDirectoryName(dialog.FileName);
-
-                    if (folderPath != dialog.InitialDirectory)
-                    {
-                        // changes have been made; we need to do something
-                        Environment.SetEnvironmentVariable(key,  dialog.FileName, EnvironmentVariableTarget.User);
-                        MessageBox.Show(
-                            $"The PROJ_LIB environment variable has been updated to [{folderPath}] You need to close and re-open Excel for this change to have effect", 
-                            "Please note", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-
-                }
-            }
-
-/*            
- *            This dialog needs NuGet packages "Microsoft.WindowsAPICodePack-Core" and "Microsoft.WindowsAPICodePack-Shell" 
- *            These need to be packed, and referenced as well. Too much hassle; code has been repalced
- *            {
-                CommonOpenFileDialog dialog = new CommonOpenFileDialog();
-                dialog.InitialDirectory = sProjLib;
-                dialog.IsFolderPicker   = true;
-                dialog.RestoreDirectory = true;
-                dialog.EnsurePathExists = true;
-
-                if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
-                {
-                    if (dialog.FileName != dialog.InitialDirectory)
-                    {
-                        // changes have been made; we need to do something
-                        Environment.SetEnvironmentVariable(key,  dialog.FileName, EnvironmentVariableTarget.User);
-                        MessageBox.Show(
-                            $"The PROJ_LIB environment variable has been updated to [{dialog.FileName}] You need to close and re-open Excel for this change to have effect", 
-                            "Please note", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                }
-            }
-*/
-        } // ProjLibDialog
-
-        // this routine was originally used to select the PROJ_LIB folder.
-        // it has the advantage of showing the *.tif files
-        // as a downside; it is quite quirky and does not show hidden folders
-        public static void OldProjLibDialog()
-        {
-            var dialog  = new XlDialogBox()                  {	                   W = 420, H = 240, Text = "Define location of PROJ grid (*.tif) files ",  IO =  7, };
-            var ctrl_01 = new XlDialogBox.GroupBox()         {	 X = 013, Y = 010, W = 394, H = 040, Text = "PROJ_LIB folder at launch of dialog. Use ⭮ button to refresh ",  };
-            var ctrl_02 = new XlDialogBox.OkButton()         {	 X = 018, Y = 026, W = 025,          Text = "⭮",  IO = 3, };
-            var ctrl_03 = new XlDialogBox.DirectoryLabel()   {	 X = 048, Y = 030, W = 357,          };
-            var ctrl_04 = new XlDialogBox.GroupBox()         {	 X = 013, Y = 055, W = 394, H = 140, Text = "File selector. Use *.* to search for all files in a folder ",  };
-            var ctrl_05 = new XlDialogBox.TextEdit()         {	 X = 031, Y = 073, W = 170,          IO = "*.*", };
-            var ctrl_06 = new XlDialogBox.LinkedFilesList()  {	 X = 220, Y = 073, W = 170, H = 110, IO = 2, };
-            var ctrl_07 = new XlDialogBox.LinkedDriveList()  {	 X = 031, Y = 096,          H = 090, };
-            var ctrl_08 = new XlDialogBox.OkButton()         {	 X = 151, Y = 205, W = 075,          Text = "&OK",  };
-            var ctrl_09 = new XlDialogBox.CancelButton()     {	 X = 238, Y = 205, W = 075,          Text = "&Cancel",  };
-            var ctrl_10 = new XlDialogBox.HelpButton2()      {	 X = 330, Y = 205, W = 075,          Text = "&Help",  IO = -1, };
-
-            dialog.Controls.Add(ctrl_01);
-            dialog.Controls.Add(ctrl_02);
-            dialog.Controls.Add(ctrl_03);
-            dialog.Controls.Add(ctrl_04);
-            dialog.Controls.Add(ctrl_05);
-            dialog.Controls.Add(ctrl_06);
-            dialog.Controls.Add(ctrl_07);
-            dialog.Controls.Add(ctrl_08);
-            dialog.Controls.Add(ctrl_09);
-            dialog.Controls.Add(ctrl_10);
-
-            string key = "PROJ_LIB";
-            string sProjLib = Environment.GetEnvironmentVariable(key, EnvironmentVariableTarget.User);
-            string sOldProjLibDir = sProjLib; 
-            string sOldCurrentDir = Directory.GetCurrentDirectory();
-
-            // The controls in this dialog function by modifying the Current Directory.
-            // No information from the controls themselves is being used.
-
-            if( ! string.IsNullOrEmpty(sProjLib))
-            {
-                Directory.SetCurrentDirectory(sProjLib);
-            }
-
-            dialog.CallingMethod = System.Reflection.MethodBase.GetCurrentMethod(); 
-            dialog.DialogScaling = 125.0;  // Use this if the dialog was designed using a display with 120 DPI
-            bool bOK = dialog.ShowDialog(Validate);
-
-            if (bOK == false) return;
-
-            sProjLib = Directory.GetCurrentDirectory();
-
-            if (sOldProjLibDir != sProjLib)
-            {
-                // changes have been made; we need to do something
-                Directory.SetCurrentDirectory(sOldCurrentDir);
-                Environment.SetEnvironmentVariable(key,  sProjLib, EnvironmentVariableTarget.User);
-                MessageBox.Show(
-                    "The PROJ_LIB environment variable has been updated. You need to close and re-open Excel for this change to have effect", 
-                    "Please note", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-
-        } // OldProjLibDialog
-
-        [ExcelCommand(
-            Name = "GlobalSettings_Dialog",
+            Name = "TransformSettings_Dialog",
             Description = "Sets global transform parameters for the TopoLib AddIn",
             HelpTopic = "TopoLib-AddIn.chm!1205")]
-        public static void GlobalSettingsDialog()
+        public static void TransformSettingsDialog()
         {
-            var dialog  = new XlDialogBox()                  {	                   W = 500, H = 280, Text = "Transform Optional Parameters",  };
-            var ctrl_01 = new XlDialogBox.GroupBox()         {	 X = 020, Y = 020, W = 190, H = 065, Text = "&Select Optional Parameters",  };
+            var dialog  = new XlDialogBox()                  {	                   W = 500, H = 280, Text = "Global Transform Settings",  };
+            var ctrl_01 = new XlDialogBox.GroupBox()         {	 X = 020, Y = 020, W = 195, H = 070, Text = "Use Transform Parameters from",  };
             var ctrl_02 = new XlDialogBox.RadioButtonGroup() {	                                     IO = 1, };
-            var ctrl_03 = new XlDialogBox.RadioButton()      {	          Y = 040,                   Text = "From the &Mode Flags",  };
-            var ctrl_04 = new XlDialogBox.RadioButton()      {	          Y = 060,                   Text = "From &Global Settings",  IO = 1, };
-            var ctrl_05 = new XlDialogBox.GroupBox()         {	 X = 020, Y = 095, W = 190, H = 060, Text = "&Miscellaneous",  IO = 2, };
-            var ctrl_06 = new XlDialogBox.Label()            {	 X = 030, Y = 110, W = 075,          Text = "Authority",  };
-            var ctrl_07 = new XlDialogBox.TextEdit()         {	 X = 030, Y = 126, W = 075,          IO   = "EPSG", };
-            var ctrl_08 = new XlDialogBox.Label()            {	 X = 120, Y = 110, W = 075,          Text = "Accurac&y [m]",  };
-            var ctrl_09 = new XlDialogBox.DoubleEdit()       {	 X = 120, Y = 126, W = 075,          IO = -1000, };
-            var ctrl_10 = new XlDialogBox.GroupBox()         {	 X = 020, Y = 165, W = 190, H = 100, Text = "Useage Area",  IO = 2, };
-            var ctrl_11 = new XlDialogBox.Label()            {	 X = 030, Y = 180,                   Text = "Min Lat. [°]",  };
-            var ctrl_12 = new XlDialogBox.DoubleEdit()       {	 X = 030, Y = 196, W = 075,          IO = -1000, };
-            var ctrl_13 = new XlDialogBox.Label()            {	 X = 120, Y = 180,                   Text = "Max Lat. [°]",  };
-            var ctrl_14 = new XlDialogBox.DoubleEdit()       {	 X = 120, Y = 196, W = 075,          IO = -1000, };
-            var ctrl_15 = new XlDialogBox.Label()            {	 X = 030, Y = 220,                   Text = "Min Long. [°]",  };
-            var ctrl_16 = new XlDialogBox.DoubleEdit()       {	 X = 030, Y = 236, W = 075,          IO = -1000, };
-            var ctrl_17 = new XlDialogBox.Label()            {	 X = 120, Y = 220,                   Text = "Max Long. [°]",  };
-            var ctrl_18 = new XlDialogBox.DoubleEdit()       {	 X = 120, Y = 236, W = 075,          IO = -1000, };
-            var ctrl_19 = new XlDialogBox.GroupBox()         {	 X = 230, Y = 020, W = 250, H = 210, Text = "&Optional Parameters",  };
-            var ctrl_20 = new XlDialogBox.CheckBox()         {	          Y = 040, W = 230,          Text = "Disallow &Ballpark Conversions",  IO = false, };
-            var ctrl_21 = new XlDialogBox.CheckBox()         {	          Y = 060, W = 230,          Text = "Allow if &Grid is Missing",  IO = false, };
-            var ctrl_22 = new XlDialogBox.CheckBox()         {	          Y = 080, W = 230,          Text = "Use &Primary Grid Names",  IO = false, };
-            var ctrl_23 = new XlDialogBox.CheckBox()         {	          Y = 100, W = 230,          Text = "Use &Superseded Transforms",  IO = false, };
-            var ctrl_24 = new XlDialogBox.CheckBox()         {	          Y = 120, W = 230,          Text = "Allow &Deprecated CRSs",  IO = false, };
-            var ctrl_25 = new XlDialogBox.CheckBox()         {	          Y = 140, W = 230,          Text = "Strictly &Contains Area",  IO = false, };
-            var ctrl_26 = new XlDialogBox.RadioButtonGroup() {	          Y = 140, W = 230,          IO = 2, };
-            var ctrl_27 = new XlDialogBox.RadioButton()      {	          Y = 160, W = 230,          Text = "&Automatic Intermediate CRS",  };
-            var ctrl_28 = new XlDialogBox.RadioButton()      {	          Y = 180, W = 230,          Text = "&Always Allow Intermediate CRS",  };
-            var ctrl_29 = new XlDialogBox.RadioButton()      {	          Y = 200, W = 230,          Text = "&Never Allow Intermediate CRS",  };
-            var ctrl_30 = new XlDialogBox.Label()            {	 X = 425, Y = 020, W = 033,          Text = " (flag)",  };
-            var ctrl_31 = new XlDialogBox.Label()            {	 X = 430, Y = 042, W = 040,          Text = "(8)",  };
-            var ctrl_32 = new XlDialogBox.Label()            {	 X = 430, Y = 062, W = 040,          Text = "(16)",  };
-            var ctrl_33 = new XlDialogBox.Label()            {	 X = 430, Y = 082, W = 040,          Text = "(32)",  };
-            var ctrl_34 = new XlDialogBox.Label()            {	 X = 430, Y = 102, W = 040,          Text = "(64)",  };
-            var ctrl_35 = new XlDialogBox.Label()            {	 X = 430, Y = 122, W = 040,          Text = "(128)",  };
-            var ctrl_36 = new XlDialogBox.Label()            {	 X = 430, Y = 142, W = 040,          Text = "(256)",  };
-            var ctrl_37 = new XlDialogBox.Label()            {	 X = 430, Y = 162, W = 040,          Text = "- - -",  };
-            var ctrl_38 = new XlDialogBox.Label()            {	 X = 430, Y = 182, W = 040,          Text = "(512)",  };
-            var ctrl_39 = new XlDialogBox.Label()            {	 X = 430, Y = 202, W = 040,          Text = "(1024)",  };
-            var ctrl_40 = new XlDialogBox.OkButton()         {	 X = 230, Y = 245, W = 075,          Text = "&OK", Default = true, };
-            var ctrl_41 = new XlDialogBox.CancelButton()     {	 X = 317, Y = 245, W = 075,          Text = "&Cancel",  };
-            var ctrl_42 = new XlDialogBox.HelpButton2()      {	 X = 404, Y = 245, W = 075,          Text = "&Help",  };
+            var ctrl_03 = new XlDialogBox.RadioButton()      {	          Y = 040,                   Text = "&Mode Flags",  };
+            var ctrl_04 = new XlDialogBox.RadioButton()      {	          Y = 060,                   Text = "&Global Settings",  };
+            var ctrl_05 = new XlDialogBox.OkButton()         {	 X = 125, Y = 040, W = 075,          Text = "&Reset",  IO = 3, };
+            var ctrl_06 = new XlDialogBox.GroupBox()         {	 X = 020, Y = 095, W = 195, H = 065, Text = "&Miscellaneous",  IO = 2, };
+            var ctrl_07 = new XlDialogBox.Label()            {	 X = 030, Y = 110, W = 075,          Text = "Authority",  };
+            var ctrl_08 = new XlDialogBox.TextEdit()         {	 X = 030, Y = 126, W = 075,          IO   = "EPSG", };
+            var ctrl_09 = new XlDialogBox.Label()            {	 X = 125, Y = 110, W = 075,          Text = "Accurac&y [m]",  };
+            var ctrl_10 = new XlDialogBox.DoubleEdit()       {	 X = 125, Y = 126, W = 075,          IO = -1000, };
+            var ctrl_11 = new XlDialogBox.GroupBox()         {	 X = 020, Y = 165, W = 195, H = 100, Text = "Area of Interest" };
+            var ctrl_12 = new XlDialogBox.Label()            {	 X = 030, Y = 180,                   Text = "Min Lon (W) [°]",  };
+            var ctrl_13 = new XlDialogBox.DoubleEdit()       {	 X = 030, Y = 196, W = 075,          IO = -1000, };
+            var ctrl_14 = new XlDialogBox.Label()            {	 X = 125, Y = 180,                   Text = "Max Lon (E) [°]",  };
+            var ctrl_15 = new XlDialogBox.DoubleEdit()       {	 X = 125, Y = 196, W = 075,          IO = -1000, };
+            var ctrl_16 = new XlDialogBox.Label()            {	 X = 030, Y = 220,                   Text = "Min Lat (S) [°]",  };
+            var ctrl_17 = new XlDialogBox.DoubleEdit()       {	 X = 030, Y = 236, W = 075,          IO = -1000, };
+            var ctrl_18 = new XlDialogBox.Label()            {	 X = 125, Y = 220,                   Text = "Max Lat (N) [°]",  };
+            var ctrl_19 = new XlDialogBox.DoubleEdit()       {	 X = 125, Y = 236, W = 075,          IO = -1000, };
+            var ctrl_20 = new XlDialogBox.GroupBox()         {	 X = 230, Y = 020, W = 250, H = 205, Text = "&Optional Parameters",  };
+            var ctrl_21 = new XlDialogBox.CheckBox()         {	          Y = 040, W = 230,          Text = "Disallow &Ballpark Conversions",  IO = false, };
+            var ctrl_22 = new XlDialogBox.CheckBox()         {	          Y = 060, W = 230,          Text = "Allow if &Grid is Missing",  IO = false, };
+            var ctrl_23 = new XlDialogBox.CheckBox()         {	          Y = 080, W = 230,          Text = "Use &Primary Grid Names",  IO = false, };
+            var ctrl_24 = new XlDialogBox.CheckBox()         {	          Y = 100, W = 230,          Text = "Use &Superseded Transforms",  IO = false, };
+            var ctrl_25 = new XlDialogBox.CheckBox()         {	          Y = 120, W = 230,          Text = "Allow &Deprecated CRSs",  IO = false, };
+            var ctrl_26 = new XlDialogBox.CheckBox()         {	          Y = 140, W = 230,          Text = "Strictly &Contains Area",  IO = false, };
+            var ctrl_27 = new XlDialogBox.RadioButtonGroup() {	          Y = 140, W = 230,          IO = 1, };
+            var ctrl_28 = new XlDialogBox.RadioButton()      {	          Y = 160, W = 230,          Text = "&Automatic Intermediate CRS",  };
+            var ctrl_29 = new XlDialogBox.RadioButton()      {	          Y = 180, W = 230,          Text = "&Always Allow Intermediate CRS",  };
+            var ctrl_30 = new XlDialogBox.RadioButton()      {	          Y = 200, W = 230,          Text = "&Never Allow Intermediate CRS",  };
+            var ctrl_31 = new XlDialogBox.Label()            {	 X = 425, Y = 020, W = 033,          Text = " (flag)",  };
+            var ctrl_32 = new XlDialogBox.Label()            {	 X = 430, Y = 042, W = 040,          Text = "(8)",  };
+            var ctrl_33 = new XlDialogBox.Label()            {	 X = 430, Y = 062, W = 040,          Text = "(16)",  };
+            var ctrl_34 = new XlDialogBox.Label()            {	 X = 430, Y = 082, W = 040,          Text = "(32)",  };
+            var ctrl_35 = new XlDialogBox.Label()            {	 X = 430, Y = 102, W = 040,          Text = "(64)",  };
+            var ctrl_36 = new XlDialogBox.Label()            {	 X = 430, Y = 122, W = 040,          Text = "(128)",  };
+            var ctrl_37 = new XlDialogBox.Label()            {	 X = 430, Y = 142, W = 040,          Text = "(256)",  };
+            var ctrl_38 = new XlDialogBox.Label()            {	 X = 430, Y = 162, W = 040,          Text = "- - -",  };
+            var ctrl_39 = new XlDialogBox.Label()            {	 X = 430, Y = 182, W = 040,          Text = "(512)",  };
+            var ctrl_40 = new XlDialogBox.Label()            {	 X = 430, Y = 202, W = 040,          Text = "(1024)",  };
+            var ctrl_41 = new XlDialogBox.OkButton()         {	 X = 230, Y = 245, W = 075,          Text = "&OK", Default = true, };
+            var ctrl_42 = new XlDialogBox.CancelButton()     {	 X = 317, Y = 245, W = 075,          Text = "&Cancel",  };
+            var ctrl_43 = new XlDialogBox.HelpButton2()      {	 X = 404, Y = 245, W = 075,          Text = "&Help",  };
 
             dialog.Controls.Add(ctrl_01);
             dialog.Controls.Add(ctrl_02);
@@ -787,58 +614,215 @@ namespace TopoLib
             dialog.Controls.Add(ctrl_40);
             dialog.Controls.Add(ctrl_41);
             dialog.Controls.Add(ctrl_42);
+            dialog.Controls.Add(ctrl_43);
 
             dialog.CallingMethod = System.Reflection.MethodBase.GetCurrentMethod(); 
             dialog.DialogScaling = 125.0;  // Use this if the dialog was designed using a display with 120 DPI
 
-            ctrl_02.IO_index  = CctOptions.UseGlobalOptions;
+            ctrl_02.IO_index  = CctOptions.UseGlobalSettings ? 1 : 0;
 
-            ctrl_07.IO_string = CctOptions.TransformOptions.Authority;
-            ctrl_09.IO_double = CctOptions.TransformOptions.Accuracy?? -1000;
+            ctrl_08.IO_string = CctOptions.GlobalAuthority;
+            ctrl_10.IO_double = CctOptions.GlobalAccuracy;
 
-            if (CctOptions.TransformOptions.Area  is null)
-            {
-                ctrl_12.IO_double = -1000;
-                ctrl_14.IO_double = -1000;
-                ctrl_16.IO_double = -1000;
-                ctrl_18.IO_double = -1000;
-            }
-            else
-            {
-                ctrl_12.IO_double = CctOptions.TransformOptions.Area.SouthLatitude;
-                ctrl_14.IO_double = CctOptions.TransformOptions.Area.NorthLatitude;
-                ctrl_16.IO_double = CctOptions.TransformOptions.Area.WestLongitude;
-                ctrl_18.IO_double = CctOptions.TransformOptions.Area.EastLongitude;
-            }
+            ctrl_13.IO_double = CctOptions.GlobalWestLongitude;
+            ctrl_15.IO_double = CctOptions.GlobalEastLongitude;
+            ctrl_17.IO_double = CctOptions.GlobalSouthLatitude;
+            ctrl_19.IO_double = CctOptions.GlobalNorthLatitude;
 
-            ctrl_20.IO_checked = CctOptions.TransformOptions.NoBallparkConversions;
-            ctrl_21.IO_checked = CctOptions.TransformOptions.NoDiscardIfMissing;
-            ctrl_22.IO_checked = CctOptions.TransformOptions.UsePrimaryGridNames;
-            ctrl_23.IO_checked = CctOptions.TransformOptions.UseSuperseded;
-            ctrl_24.IO_checked = CctOptions.AllowDeprecatedCRS;
-            ctrl_25.IO_checked = CctOptions.TransformOptions.StrictContains;
-            ctrl_26.IO_index   = (int) CctOptions.TransformOptions.IntermediateCrsUsage;
+            ctrl_21.IO_checked = CctOptions.TransformOptions.NoBallparkConversions;
+            ctrl_22.IO_checked = CctOptions.TransformOptions.NoDiscardIfMissing;
+            ctrl_23.IO_checked = CctOptions.TransformOptions.UsePrimaryGridNames;
+            ctrl_24.IO_checked = CctOptions.TransformOptions.UseSuperseded;
+            ctrl_25.IO_checked = CctOptions.AllowDeprecatedCRS;
+            ctrl_26.IO_checked = CctOptions.TransformOptions.StrictContains;
+            ctrl_27.IO_index   = (int) CctOptions.TransformOptions.IntermediateCrsUsage;
 
-
-            bool bOK = dialog.ShowDialog(Validate);
+            bool bOK = dialog.ShowDialog(ValidateTransformDialog);
             if (bOK == false) return;
 
-            CctOptions.UseGlobalOptions           = ctrl_02.IO_index;
+            CctOptions.UseGlobalSettings = ctrl_02.IO_index > 0 ? true : false;
 
-            CctOptions.TransformOptions.Authority = ctrl_07.IO_string;
-            CctOptions.TransformOptions.Accuracy  = ctrl_09.IO_double;
+            if (CctOptions.UseGlobalSettings)
+                MessageBox.Show(
+                    $"These global parameters will be applied to all open spreadsheets. Please be aware this may affect the outcome of earlier transforms.", 
+                    "Please note", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            
+            CctOptions.GlobalAuthority = ctrl_08.IO_string;
+            CctOptions.GlobalAccuracy  = ctrl_10.IO_double;
 
-            CctOptions.TransformOptions.Area = ctrl_16.IO_double > -1000 ? new CoordinateArea(ctrl_16.IO_double, ctrl_12.IO_double, ctrl_18.IO_double, ctrl_14.IO_double) : null;
+            // Not the quikest way to set these 4 parameters, but it ensures they area saved in the config file...
+            CctOptions.GlobalWestLongitude = ctrl_13.IO_double;
+            CctOptions.GlobalEastLongitude = ctrl_15.IO_double;
+            CctOptions.GlobalSouthLatitude = ctrl_17.IO_double;
+            CctOptions.GlobalNorthLatitude = ctrl_19.IO_double;
 
-            CctOptions.TransformOptions.NoBallparkConversions = ctrl_20.IO_checked;
-            CctOptions.TransformOptions.NoDiscardIfMissing    = ctrl_21.IO_checked;
-            CctOptions.TransformOptions.UsePrimaryGridNames   = ctrl_22.IO_checked;
-            CctOptions.TransformOptions.UseSuperseded         = ctrl_23.IO_checked;
-            CctOptions.AllowDeprecatedCRS                     = ctrl_24.IO_checked;
-            CctOptions.TransformOptions.StrictContains        = ctrl_25.IO_checked;
-            CctOptions.TransformOptions.IntermediateCrsUsage  = (IntermediateCrsUsage) ctrl_26.IO_index;
+            // just to debug
+            if (CctOptions.GlobalWestLongitude == -1000) CctOptions.TransformOptions.Area = null;
 
-        } // GlobalOptionsDialog
+            CctOptions.TransformOptions.NoBallparkConversions = ctrl_21.IO_checked;
+            CctOptions.TransformOptions.NoDiscardIfMissing    = ctrl_22.IO_checked;
+            CctOptions.TransformOptions.UsePrimaryGridNames   = ctrl_23.IO_checked;
+            CctOptions.TransformOptions.UseSuperseded         = ctrl_24.IO_checked;
+            CctOptions.AllowDeprecatedCRS                     = ctrl_25.IO_checked;
+            CctOptions.TransformOptions.StrictContains        = ctrl_26.IO_checked;
+            CctOptions.TransformOptions.IntermediateCrsUsage  = (IntermediateCrsUsage) ctrl_27.IO_index;
+
+            int optionsFlag = 0;
+            if (CctOptions.TransformOptions.NoBallparkConversions) optionsFlag += 8;
+            if (CctOptions.TransformOptions.NoDiscardIfMissing   ) optionsFlag += 16;
+            if (CctOptions.TransformOptions.UsePrimaryGridNames  ) optionsFlag += 32;
+            if (CctOptions.TransformOptions.UseSuperseded        ) optionsFlag += 64;
+            if (CctOptions.AllowDeprecatedCRS                    ) optionsFlag += 128;
+            if (CctOptions.TransformOptions.StrictContains       ) optionsFlag += 256;
+            if (CctOptions.TransformOptions.IntermediateCrsUsage == IntermediateCrsUsage.Always) optionsFlag += 512;
+            if (CctOptions.TransformOptions.IntermediateCrsUsage == IntermediateCrsUsage.Never)  optionsFlag += 1024;
+
+            Cfg.AddOrUpdateKey("GlobalParameters", optionsFlag.ToString());
+
+            // Get the correct application instance
+            Microsoft.Office.Interop.Excel.Application xlapp = (Microsoft.Office.Interop.Excel.Application)ExcelDnaUtil.Application;
+            xlapp.Calculate();
+
+        } // TransformSettingsDialog
+
+        // See also https://stackoverflow.com/questions/40574084/fastest-method-to-remove-empty-rows-and-columns-from-excel-files-using-interop/40726309#40726309
+        // And: https://groups.google.com/g/exceldna/c/cu4mRb1UolY/m/ux0y0JnjDwAJ
+        [ExcelCommand(
+            Name = "Recalculate_TopoLibFunctions",
+            Description = "Recalculates the TopoLib functions (only)",
+            HelpTopic = "TopoLib-AddIn.chm!1205")]
+        public static void Recalculate_TopoLibFunctions()
+        {
+            // See: https://groups.google.com/g/exceldna/c/cu4mRb1UolY/m/ux0y0JnjDwAJ
+
+            // Get the correct application instance
+            Microsoft.Office.Interop.Excel.Application xlapp = (Microsoft.Office.Interop.Excel.Application)ExcelDnaUtil.Application;
+
+            // Get active workbook
+            Excel.Workbook WorkBook = xlapp.ActiveWorkbook;
+            var ActiveSheet = WorkBook.ActiveSheet;
+
+            bool bArrayFormulas = false;
+            dynamic formulaCells = null;
+            Excel.Range usedRange = null;
+            
+            try
+            {
+                usedRange = ActiveSheet.UsedRange;
+                formulaCells = usedRange.SpecialCells(Excel.XlCellType.xlCellTypeFormulas, Type.Missing);
+            }
+            catch (System.Runtime.InteropServices.COMException ex)
+            {
+                if (ex.HResult != -2146827284)
+                    throw ex;
+            }
+
+            if (formulaCells != null)
+            {
+                foreach (Excel.Range range in formulaCells)
+                {
+                    dynamic cell = range;
+                       
+                    if ((bool)range.HasFormula)
+                    {
+                        bArrayFormulas = bArrayFormulas  | range.HasArray;
+
+                        string formula = range.Formula as string;
+
+                        if (!string.IsNullOrEmpty(formula))
+                        {
+                            if (formula.StartsWith("=TL."))
+                            {
+                                if(Lib.SupportsDynamicArrays())
+                                {
+                                    cell.Formula2 =  cell.Formula2;
+                                }
+                                else if (!range.HasArray)
+                                { 
+                                    cell.Formula =  cell.Formula;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if(bArrayFormulas && !Lib.SupportsDynamicArrays())
+            {
+                MessageBox.Show(
+                    "The The active sheet contains a number of Array formulas (CSE formulas) that can't be recalculated from this ribbon. " + 
+                    "Do this manually within the sheet, or force a recalculation by Shift+F9, or even Ctrl+Alt+Shift+F9", 
+                    "Please note", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+
+        } // Recalculate_TopoLibFunctions
+
+        [ExcelCommand(
+            Name = "About_TopoLib",
+            Description = "Shows a dialog with a copy right statement and a list of referenced NuGet packages",
+            HelpTopic = "TopoLib-AddIn.chm!1201")]
+        public static void AboutDialog()
+        {
+            var dialog  = new XlDialogBox()                  {                   W = 333, H = 240, Text = "About TopoLib",  };
+            var ctrl_01 = new XlDialogBox.GroupBox()         { X = 013, Y = 013, W = 307, H = 130, Text = "This library uses the following NuGet packages",  };
+            var ctrl_02 = new XlDialogBox.ListBox()          { X = 031, Y = 038, W = 270,          Text = "List_02" };
+            var ctrl_03 = new XlDialogBox.OkButton()         { X = 031, Y = 160, W = 270,          Text = "Duijndam.Dev   |   Copyright © 2020 - 2022", IO = 1, };
+            var ctrl_04 = new XlDialogBox.OkButton()         { X = 031, Y = 200, W = 100,          Text = "&OK", Default = true, };
+            var ctrl_05 = new XlDialogBox.HelpButton2()      { X = 201, Y = 200, W = 100,          Text = "&Help",  };
+
+            ctrl_02.Items.AddRange(new string[]
+            {
+                "'ExcelDna.AddIn' version='1.5.1' developmentDependency='true'",
+                "'ExcelDna.Integration' version='1.5.1'",
+                "'ExcelDna.IntelliSense' version='1.5.1'",
+                "'ExcelDna.Registration' version='1.5.1'",
+                "'ExcelDna.XmlSchemas' version='1.0.0'",
+                "'ExcelDnaDoc' version='1.5.1'",
+                "'Serilog' version='2.10.0'",
+                "'Serilog.Sinks.ExcelDnaLogDisplay' version='1.5.0'",
+                "'SharpProj' version='8.2001.106'",
+                "'SharpProj.Core' version='8.2001.106'"
+            });
+
+            dialog.Controls.Add(ctrl_01);
+            dialog.Controls.Add(ctrl_02);
+            dialog.Controls.Add(ctrl_03);
+            dialog.Controls.Add(ctrl_04);
+            dialog.Controls.Add(ctrl_05);
+
+            dialog.CallingMethod = System.Reflection.MethodBase.GetCurrentMethod(); 
+            bool bOK = dialog.ShowDialog(ValidateAboutDialog);
+            if (bOK == false) return;
+
+        } // AboutDialog
+
+        [ExcelCommand(
+            Name = "Show_Help",
+            Description = "Shows the Compiled Help file",
+            HelpTopic = "TopoLib-AddIn.chm!1200")]
+        public static void ShowHelp()
+        {
+            // get the Path of xll file;
+            string xllPath = ExcelDnaUtil.XllPath;
+            string xllDir  = System.IO.Path.GetDirectoryName(xllPath);
+
+            var CallingMethod = System.Reflection.MethodBase.GetCurrentMethod();
+            if (CallingMethod != null)
+            {   // is there an ExcelCommandAttribute attribute decorating the method where ShowDialog has been called from ?
+                ExcelCommandAttribute attr = (ExcelCommandAttribute)CallingMethod.GetCustomAttributes(typeof(ExcelCommandAttribute), true)[0];
+                if (attr != null)
+                {
+                    // get the HelpTopic string and split it in two parts ([a] file name and [b] helptopic)
+                    string[] parts = attr.HelpTopic.Split('!');
+
+                    // the complete helpfile path consists of the xll directory + first part of HelpTopic attribute string 
+                    string chmPath = System.IO.Path.Combine(xllDir, parts[0]);
+
+                    // don't bother to start at a particular help topic
+                    System.Diagnostics.Process.Start(chmPath);
+                }
+            }
+        } // ShowHelp
 
         [ExcelCommand(
             Name = "Version_Info",

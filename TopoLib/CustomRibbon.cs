@@ -58,6 +58,9 @@ namespace TopoLib
                             <button id='CacheButton'    label='Cache Settings'       imageMso='ColumnListSetting'               size='large' onAction='CacheButton_OnAction' />
                             <button id='LogLevelButton' label='Logging Settings'     imageMso='ComAddInsDialog'                 size='large' onAction='LogLevelButton_OnAction' />
                         </group>
+                        <group id='RecalcGroup'         label='Recalculate'>
+                            <button id='RecalcButton'   label='TopoLib Functions'    imageMso='RefreshWebView'                  size='large' onAction='RecalcButton_OnAction' />
+                        </group>
                         <group id='LoggingGroup'        label='Test Logging Messages'>
                             <button id='ErrorButton'    label='Log Error'            imageMso='OutlineViewClose'   onAction='ErrorButton_OnAction' />
                             <button id='DebugButton'    label='Log Debug'            imageMso='MoreControlsDialog' onAction='DebugButton_OnAction' />
@@ -174,7 +177,7 @@ namespace TopoLib
         {
             try
             {
-                _excel.Application.Run("GlobalSettings_Dialog");
+                _excel.Application.Run("TransformSettings_Dialog");
             }
             catch (Exception ex)
             {
@@ -199,6 +202,18 @@ namespace TopoLib
             try
             {
                 _excel.Application.Run("LogSettings_Dialog");
+            }
+            catch (Exception ex)
+            {
+                AddIn.ProcessUnhandledException(ex);
+            }
+        }
+
+        public void RecalcButton_OnAction(IRibbonControl control)
+        {
+            try
+            {
+                _excel.Application.Run("Recalculate_TopoLibFunctions");
             }
             catch (Exception ex)
             {
@@ -291,7 +306,7 @@ namespace TopoLib
         {
             try
             {
-                _excel.Application.Run("Resource_Dialog");
+                _excel.Application.Run("ResourceSettings_Dialog");
             }
             catch (Exception ex)
             {

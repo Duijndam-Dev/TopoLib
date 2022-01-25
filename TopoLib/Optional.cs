@@ -126,7 +126,7 @@ namespace TopoLib
             object result;
             if (Double.IsNaN(value) || Double.IsInfinity(value))
             {
-                result = ExcelError.ExcelErrorNA;
+                result = ExcelError.ExcelErrorNum;
             }
             else
             {

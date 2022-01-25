@@ -22,7 +22,7 @@ namespace TopoLib
 
         // Add to CctOptions class
 		private static bool _allowDeprecatedCRS;
-		private static bool _useGlobalOptions;
+		private static bool _useGlobalSettings;
 
         private static string _sCachePath = "c:\\users\\bart\\appdata\\local\\proj\\cache.db";
         private static bool   _bEnableCache = true;
@@ -31,8 +31,8 @@ namespace TopoLib
 		
 		static CctOptions()  
 		{
-			_transformOptions     = new CoordinateTransformOptions();
-            _projContext          = new ProjContext { LogLevel = ProjLogLevel.Debug };
+			_transformOptions     = new CoordinateTransformOptions { Authority = "EPSG" };
+            _projContext          = new ProjContext                { LogLevel = ProjLogLevel.Error};
 			_allowDeprecatedCRS   = false;
 
 			string sAppDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
@@ -46,7 +46,7 @@ namespace TopoLib
 			_dExpiryTime = 86400; 
 
 			// misc settings
-			_useGlobalOptions = false;
+			_useGlobalSettings = false;
 		}  
 
 		//  public static object AddOrUpdateKey
@@ -73,22 +73,37 @@ namespace TopoLib
 			set { _projContext =  value; }  // set method
 		}
 
-		public static int UseGlobalOptions   // property
+		public static bool UseGlobalSettings   // property
 		{
-			get { return _useGlobalOptions ? 1 : 0; }   // get method
-			set { _useGlobalOptions = (value == 1 ? true : false); }  // set method
+			get { return _useGlobalSettings; }   // get method
+			set 
+			{ 
+				_useGlobalSettings = value ; 
+				Cfg.AddOrUpdateKey("UseGlobalSettings", value  ? "true" : "false");
+			}
 		}
 
-		public static int UseNetwork   // property
+		public static bool UseNetwork   // property
 		{
-			get { return ProjContext.EnableNetworkConnections ? 1 : 0; }   // get method
-			set { ProjContext.EnableNetworkConnections = (value == 1 ? true : false); }  // set method
+			get { return _projContext.EnableNetworkConnections; }   // get method
+			set 
+			{
+				_projContext.EnableNetworkConnections             = value; 
+				Cfg.AddOrUpdateKey("UseNetworkResources", value ? "true" : "false");
+
+				// No sure this is needed; keep global and per instance network settings in sync
+				ProjContext.EnableNetworkConnectionsOnNewContexts = value;
+			}
 		}
 
 		public static string EndpointUrl   // property
 		{
-			get { return ProjContext.EndpointUrl; }   // get method
-			set { ProjContext.EndpointUrl = value; }  // set method
+			get { return _projContext.EndpointUrl; }   // get method
+			set 
+			{ 
+				_projContext.EndpointUrl = value; 
+				Cfg.AddOrUpdateKey("NetworkEndpointUrl", value);
+			}
 		}
 
 		public static bool AllowDeprecatedCRS   // property
@@ -100,25 +115,101 @@ namespace TopoLib
 		public static string CachePath   // property
 		{
 			get { return _sCachePath; }   // get method
-			set { _sCachePath = value; }  // set method
+			set
+			{ 
+				_sCachePath = value; 
+				Cfg.AddOrUpdateKey("CachePath", value);
+			}
 		}
 
 		public static bool EnableCache   // property
 		{
 			get { return _bEnableCache; }   // get method
-			set { _bEnableCache = value; }  // set method
+			set 
+			{ 
+				_bEnableCache = value; 
+				Cfg.AddOrUpdateKey("LogLevel", value ? "true" : "false");
+			}
 		}
 
 		public static int CacheSize// property
 		{
 			get { return _iCacheSize; }   // get method
-			set { _iCacheSize = value; }  // set method
+			set 
+			{
+				_iCacheSize = value;
+				Cfg.AddOrUpdateKey("CacheSize", value.ToString());
+			}
 		}
 
 		public static double CacheExpiry// property
 		{
 			get { return _dExpiryTime; }   // get method
-			set { _dExpiryTime = value; }  // set method
+			set 
+			{ 
+				_dExpiryTime = value; 
+				Cfg.AddOrUpdateKey("CacheExpiryTime", value.ToString());
+			}
+		}
+
+		public static string GlobalAuthority   // property
+		{
+			get { return _transformOptions.Authority; }   // get method
+			set 
+			{ 
+				_transformOptions.Authority = value; 
+				Cfg.AddOrUpdateKey("GlobalAuthority", value);
+			}
+		}
+
+		public static double GlobalAccuracy   // property
+		{
+			get { return _transformOptions.Accuracy ?? -1; }   // get method
+			set 
+			{ 
+				_transformOptions.Accuracy = value; 
+				Cfg.AddOrUpdateKey("GlobalAccuracy", value.ToString());
+			}
+		}
+
+		public static double GlobalWestLongitude   // property
+		{
+			get { return _transformOptions.Area != null ? _transformOptions.Area.WestLongitude: -1000; }   // get method
+			set 
+			{ 
+	            _transformOptions.Area = new CoordinateArea(value, GlobalSouthLatitude, GlobalEastLongitude, GlobalNorthLatitude);
+				Cfg.AddOrUpdateKey("GlobalWestLongitude", value.ToString());
+			}  
+		}
+
+		public static double GlobalSouthLatitude   // property
+		{
+			get { return _transformOptions.Area != null ? _transformOptions.Area.SouthLatitude : -1000; }   // get method
+			set 
+			{ 
+	            _transformOptions.Area = new CoordinateArea(GlobalWestLongitude, value, GlobalEastLongitude, GlobalNorthLatitude);
+				Cfg.AddOrUpdateKey("GlobalSouthLatitude", value.ToString());
+			}
+		}
+
+		public static double GlobalEastLongitude   // property
+		{
+			get { return _transformOptions.Area != null ? _transformOptions.Area.EastLongitude : -1000; }   // get method
+			set
+			{
+				_transformOptions.Area = new CoordinateArea(GlobalWestLongitude, GlobalSouthLatitude, value, GlobalNorthLatitude);
+				Cfg.AddOrUpdateKey("GlobalEastLongitude", value.ToString());
+			}
+		}
+
+		public static double GlobalNorthLatitude   // property
+		{
+			get { return _transformOptions.Area != null ? _transformOptions.Area.NorthLatitude : -1000; }   // get method
+			set
+			{ 
+	            _transformOptions.Area = new CoordinateArea(GlobalWestLongitude, GlobalSouthLatitude, GlobalEastLongitude, value);
+				Cfg.AddOrUpdateKey("GlobalNorthLatitude", value.ToString());
+			}
 		}
     }
 }

@@ -23,7 +23,10 @@ namespace TopoLib
         internal static ProjContext CreateContext()
         {
             // Create context with proper Logging Level
-            ProjContext pjContext = new ProjContext { LogLevel = CctOptions.ProjContext.LogLevel};
+            ProjContext pjContext = new ProjContext { LogLevel = CctOptions.ProjContext.LogLevel, EnableNetworkConnections = CctOptions.ProjContext.EnableNetworkConnections};
+
+            // Network access is defined in the ProjContext Constructor through 'EnableNetworkConnectionsOnNewContexts':
+            // if (EnableNetworkConnectionsOnNewContexts) EnableNetworkConnections = true;
 
             // Only use call-back when needed...
             if (CctOptions.ProjContext.LogLevel > 0)

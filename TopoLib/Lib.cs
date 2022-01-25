@@ -226,6 +226,25 @@ namespace TopoLib
 
         } // VersionInfo
 
+        [ExcelFunctionDoc(
+            IsVolatile = true,
+            Name = "TL.lib.Volatile",
+            Description = "Volatile pass-through function",
+            Category = "LIB - Library",
+            HelpTopic = "TopoLib-AddIn.chm!1508",
+
+            Returns = "The input parameter",
+            Remarks = "This function takes one input parameter that is passed on",
+            Example = "xxx")]
+        public static object Volatile(
+            [ExcelArgument("Volatile object", Name = "sourceCrsOrTransform")] object PassThrough)
+        {
+            //            if (ExcelDnaUtil.IsInFunctionWizard())
+            //                return ExcelError.ExcelErrorRef;
+
+            return PassThrough;
+        } // Volatile
+
     } // class Lib
 
 } // namespace TopoLib
