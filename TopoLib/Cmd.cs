@@ -27,6 +27,8 @@ using Excel = Microsoft.Office.Interop.Excel;
 // Added Bart
 using SharpProj;
 using SharpProj.Proj;
+using Microsoft.Office.Interop.Excel;
+using System.Runtime.InteropServices;
 
 namespace TopoLib
 {
@@ -655,6 +657,7 @@ namespace TopoLib
             CctOptions.GlobalEastLongitude = ctrl_15.IO_double;
             CctOptions.GlobalSouthLatitude = ctrl_17.IO_double;
             CctOptions.GlobalNorthLatitude = ctrl_19.IO_double;
+            CctOptions.VerifyTransformArea();
 
             // just to debug
             if (CctOptions.GlobalWestLongitude == -1000) CctOptions.TransformOptions.Area = null;
@@ -677,7 +680,7 @@ namespace TopoLib
             if (CctOptions.TransformOptions.IntermediateCrsUsage == IntermediateCrsUsage.Always) optionsFlag += 512;
             if (CctOptions.TransformOptions.IntermediateCrsUsage == IntermediateCrsUsage.Never)  optionsFlag += 1024;
 
-            Cfg.AddOrUpdateKey("GlobalParameters", optionsFlag.ToString());
+            CctOptions.GlobalTransformParameter = optionsFlag;
 
             // Get the correct application instance
             Microsoft.Office.Interop.Excel.Application xlapp = (Microsoft.Office.Interop.Excel.Application)ExcelDnaUtil.Application;
@@ -688,10 +691,10 @@ namespace TopoLib
         // See also https://stackoverflow.com/questions/40574084/fastest-method-to-remove-empty-rows-and-columns-from-excel-files-using-interop/40726309#40726309
         // And: https://groups.google.com/g/exceldna/c/cu4mRb1UolY/m/ux0y0JnjDwAJ
         [ExcelCommand(
-            Name = "Recalculate_TopoLibFunctions",
+            Name = "Recalculate_TopoLib_Transforms",
             Description = "Recalculates the TopoLib functions (only)",
             HelpTopic = "TopoLib-AddIn.chm!1205")]
-        public static void Recalculate_TopoLibFunctions()
+        public static void Recalculate_TopoLib_Transforms()
         {
             // See: https://groups.google.com/g/exceldna/c/cu4mRb1UolY/m/ux0y0JnjDwAJ
 
@@ -700,16 +703,67 @@ namespace TopoLib
 
             // Get active workbook
             Excel.Workbook WorkBook = xlapp.ActiveWorkbook;
-            var ActiveSheet = WorkBook.ActiveSheet;
+            dynamic ActiveSheet = WorkBook.ActiveSheet;
 
-            bool bArrayFormulas = false;
             dynamic formulaCells = null;
             Excel.Range usedRange = null;
-            
+
             try
             {
                 usedRange = ActiveSheet.UsedRange;
-                formulaCells = usedRange.SpecialCells(Excel.XlCellType.xlCellTypeFormulas, Type.Missing);
+                formulaCells = usedRange.SpecialCells(XlCellType.xlCellTypeFormulas, Type.Missing);
+            }
+            catch (COMException ex)
+            {
+                if (ex.HResult != -2146827284)
+                    throw ex;
+            }
+/*
+            bool bArrayFormulas = false;
+            int i = 0;
+            if (formulaCells != null)
+            {
+                foreach (var range in formulaCells)
+                {
+                    if (i % 10 == 0)
+                    {
+                        XlCall.Excel(XlCall.xlcMessage, true, $"Refreshed {i} TopoLib routines");
+                        
+                        bool abort = (bool)XlCall.Excel(XlCall.xlAbort, true);
+                        if (abort)
+                        {
+                            // XlCall.Excel(XlCall.xlcMessage, false);
+                            XlCall.Excel(XlCall.xlcMessage, true, $"Interupted after {i} TopoLib routines");
+                            return;
+                        }
+                    }
+
+                    range.Replace("=TL.", "=TL.", Excel.XlLookAt.xlPart, Excel.XlSearchOrder.xlByRows, true, false, false, false);
+                    i++;
+                }
+
+                // XlCall.Excel(XlCall.xlcMessage, false);
+                XlCall.Excel(XlCall.xlcMessage, true, $"Refreshed {i} TopoLib routines");
+            }
+
+*/
+
+
+            try
+            {
+                // usedRange = ActiveSheet.UsedRange;
+                
+                // do something with myRange to split usedRange in segments...
+                // Excel.Range myRange = ActiveSheet.Range.FromLTRB(1, 1, 11, 11);
+
+                // async functions don't block the UI.
+                // maybe use : https://bettersolutions.com/csharp/excel-interop/excel-dna-excelasyncutil-run.htm
+                // Some examples here : https://dotnetfiddle.net/kIg2zd https://easysavecode.com/m6JUuoan
+                // Se also: https://stackoverflow.com/questions/45199622/using-excel-region-get-range-within-a-range-gives-unexpected-behavior
+                
+                // Only update the transform functions; the crs functions aren't affected by the optional parameters, that could change in the background.
+                ExcelAsyncUtil.QueueAsMacro(() => { bool v = usedRange.Replace("=TL.cct", "=TL.cct", XlLookAt.xlPart, XlSearchOrder.xlByRows, true, false, false, false); });
+
             }
             catch (System.Runtime.InteropServices.COMException ex)
             {
@@ -717,45 +771,7 @@ namespace TopoLib
                     throw ex;
             }
 
-            if (formulaCells != null)
-            {
-                foreach (Excel.Range range in formulaCells)
-                {
-                    dynamic cell = range;
-                       
-                    if ((bool)range.HasFormula)
-                    {
-                        bArrayFormulas = bArrayFormulas  | range.HasArray;
-
-                        string formula = range.Formula as string;
-
-                        if (!string.IsNullOrEmpty(formula))
-                        {
-                            if (formula.StartsWith("=TL."))
-                            {
-                                if(Lib.SupportsDynamicArrays())
-                                {
-                                    cell.Formula2 =  cell.Formula2;
-                                }
-                                else if (!range.HasArray)
-                                { 
-                                    cell.Formula =  cell.Formula;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            
-            if(bArrayFormulas && !Lib.SupportsDynamicArrays())
-            {
-                MessageBox.Show(
-                    "The The active sheet contains a number of Array formulas (CSE formulas) that can't be recalculated from this ribbon. " + 
-                    "Do this manually within the sheet, or force a recalculation by Shift+F9, or even Ctrl+Alt+Shift+F9", 
-                    "Please note", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-
-        } // Recalculate_TopoLibFunctions
+        } // Recalculate_TopoLib_Transforms
 
         [ExcelCommand(
             Name = "About_TopoLib",
@@ -797,10 +813,10 @@ namespace TopoLib
         } // AboutDialog
 
         [ExcelCommand(
-            Name = "Show_Help",
+            Name = "Show_HelpFile",
             Description = "Shows the Compiled Help file",
             HelpTopic = "TopoLib-AddIn.chm!1200")]
-        public static void ShowHelp()
+        public static void ShowHelpFile()
         {
             // get the Path of xll file;
             string xllPath = ExcelDnaUtil.XllPath;
@@ -822,7 +838,7 @@ namespace TopoLib
                     System.Diagnostics.Process.Start(chmPath);
                 }
             }
-        } // ShowHelp
+        } // ShowHelpFile
 
         [ExcelCommand(
             Name = "Version_Info",

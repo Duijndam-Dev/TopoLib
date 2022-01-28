@@ -14,6 +14,7 @@ using ExcelDna.Integration;
 using ExcelDna.IntelliSense;
 using ExcelDna.Logging;
 using System;
+using System.Net;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -57,6 +58,12 @@ namespace TopoLib
             string sBitness = Environment.Is64BitProcess ? "64-bit" : "32-bit";
             string sExcelVersion = ExcelDnaUtil.ExcelVersion.ToString();
             _log.Information($"[TOP] TopoLib running on {sBitness} Excel, version: {sExcelVersion}");
+
+            _log.Information($"[TOP] Setting up network access");
+            // see: https://stackoverflow.com/questions/2859790/the-request-was-aborted-could-not-create-ssl-tls-secure-channel
+            ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
+
+            _log.Information($"[TOP] Installing IntelliSense server");
 
             IntelliSenseServer.Install();
         }

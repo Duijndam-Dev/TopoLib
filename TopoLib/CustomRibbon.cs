@@ -58,8 +58,8 @@ namespace TopoLib
                             <button id='CacheButton'    label='Cache Settings'       imageMso='ColumnListSetting'               size='large' onAction='CacheButton_OnAction' />
                             <button id='LogLevelButton' label='Logging Settings'     imageMso='ComAddInsDialog'                 size='large' onAction='LogLevelButton_OnAction' />
                         </group>
-                        <group id='RecalcGroup'         label='Recalculate'>
-                            <button id='RecalcButton'   label='TopoLib Functions'    imageMso='RefreshWebView'                  size='large' onAction='RecalcButton_OnAction' />
+                        <group id='RecalcGroup'         label='Refresh'>
+                            <button id='RecalcButton'   label='TopoLib Transforms'    imageMso='RefreshWebView'                  size='large' onAction='RecalcButton_OnAction' />
                         </group>
                         <group id='LoggingGroup'        label='Test Logging Messages'>
                             <button id='ErrorButton'    label='Log Error'            imageMso='OutlineViewClose'   onAction='ErrorButton_OnAction' />
@@ -102,15 +102,9 @@ namespace TopoLib
                 _excel.Workbooks.Add();
             }
 
-            // read the configuration settings when loading the Ribbon
+			// read the configuration settings when loading the Ribbon
             // At this point, all functions have been registered, and it should be safe to do so...
-            int nTmp;
-            string sLogLevel = (string)Cfg.GetKeyValue("LogLevel");
-            bool success = int.TryParse(sLogLevel, out nTmp);
-            if (success)
-            {
-                CctOptions.ProjContext.LogLevel = (SharpProj.ProjLogLevel) nTmp;
-            }
+            CctOptions.ReadConfiguration();
         }
 
         public void ErrorButton_OnAction(IRibbonControl control)
@@ -213,7 +207,7 @@ namespace TopoLib
         {
             try
             {
-                _excel.Application.Run("Recalculate_TopoLibFunctions");
+                _excel.Application.Run("Recalculate_TopoLib_Transforms");
             }
             catch (Exception ex)
             {
@@ -316,7 +310,7 @@ namespace TopoLib
 
         public void OnHelpButtonPressed(IRibbonControl control)
         {
-            _excel.Application.Run("Show_Help");
+            _excel.Application.Run("Show_HelpFile");
         }
 
         public void OnVersionButtonPressed(IRibbonControl control)

@@ -23,6 +23,7 @@ namespace TopoLib
         // Add to CctOptions class
 		private static bool _allowDeprecatedCRS;
 		private static bool _useGlobalSettings;
+		private static int _globalTransformParameter = 0;
 
         private static string _sCachePath = "c:\\users\\bart\\appdata\\local\\proj\\cache.db";
         private static bool   _bEnableCache = true;
@@ -59,6 +60,16 @@ namespace TopoLib
 				Cfg.AddOrUpdateKey("LogLevel", value.ToString());
 
 			}  // set method; update the configuration file
+		}
+
+		public static int GlobalTransformParameter// property
+		{
+			get { return _globalTransformParameter; }   // get method
+			set 
+			{
+				_globalTransformParameter = value;
+				Cfg.AddOrUpdateKey("GlobalTransformParameter", value.ToString());
+			}  
 		}
 
 		public static CoordinateTransformOptions TransformOptions   // property
@@ -128,7 +139,7 @@ namespace TopoLib
 			set 
 			{ 
 				_bEnableCache = value; 
-				Cfg.AddOrUpdateKey("LogLevel", value ? "true" : "false");
+				Cfg.AddOrUpdateKey("EnableCache", value ? "true" : "false");
 			}
 		}
 
@@ -211,5 +222,104 @@ namespace TopoLib
 				Cfg.AddOrUpdateKey("GlobalNorthLatitude", value.ToString());
 			}
 		}
+
+		public static void VerifyTransformArea()
+        {
+			// check intergity of longitude & latitude values
+			if (_transformOptions.Area != null)
+            {
+				if (_transformOptions.Area.WestLongitude < -180 || _transformOptions.Area.WestLongitude >  180 ||
+				    _transformOptions.Area.EastLongitude < -180 || _transformOptions.Area.EastLongitude >  180 ||
+					_transformOptions.Area.SouthLatitude <  -90 || _transformOptions.Area.SouthLatitude >   90 ||
+					_transformOptions.Area.NorthLatitude <  -90 || _transformOptions.Area.NorthLatitude >   90 ||
+					_transformOptions.Area.SouthLatitude > _transformOptions.Area.NorthLatitude)
+                {
+					_transformOptions.Area = null;
+					return;
+                }
+            }
+        }
+
+		public static void ReadConfiguration()
+        {
+			// Logging
+            int nTmp;
+            string sLogLevel = (string)Cfg.GetKeyValue("LogLevel");
+            bool success = int.TryParse(sLogLevel, out nTmp);
+			if (success)
+				ProjContext.LogLevel = (SharpProj.ProjLogLevel)nTmp;
+			else
+				ProjContext.LogLevel = 0;
+
+			// Network
+            ProjContext.EndpointUrl = (string)Cfg.GetKeyValue("NetworkEndpointUrl");
+            ProjContext.EnableNetworkConnections = (string)Cfg.GetKeyValue("UseNetworkResources") == "true" ? true : false;
+
+			// Cache settings
+            _sCachePath = (string)Cfg.GetKeyValue("CachePath");
+
+            string sCacheSize = (string)Cfg.GetKeyValue("CacheSize");
+            success = int.TryParse(sCacheSize, out nTmp);
+            if (success)
+				_iCacheSize = nTmp;
+			else
+				_iCacheSize = 300;
+
+			_bEnableCache = (string)Cfg.GetKeyValue("EnableCache") == "true" ? true : false;
+
+			double dTmp;
+            string sCacheExpiry = (string)Cfg.GetKeyValue("CacheExpiryTime");
+            success = double.TryParse(sCacheExpiry, out dTmp);
+            if (success)
+				_dExpiryTime = dTmp;
+			else
+				_dExpiryTime = 86400;
+
+			// Global transform settings
+            _useGlobalSettings = (string)Cfg.GetKeyValue("UseGlobalSettings") == "true" ? true : false;
+			_transformOptions.Authority = (string)Cfg.GetKeyValue("GlobalAuthority");
+
+            string sGlobalAccuracy = (string)Cfg.GetKeyValue("GlobalAccuracy");
+            success = double.TryParse(sGlobalAccuracy, out dTmp);
+            if (success)
+				_transformOptions.Accuracy = dTmp;
+			else
+				_transformOptions.Accuracy = -1;
+
+            string sGlobalWestLongitude = (string)Cfg.GetKeyValue("GlobalWestLongitude");
+            success = double.TryParse(sGlobalWestLongitude, out dTmp);
+            if (success)
+				_transformOptions.Area = new CoordinateArea(dTmp, GlobalSouthLatitude, GlobalEastLongitude, GlobalNorthLatitude);
+			else
+				_transformOptions.Area = new CoordinateArea(-1000, GlobalSouthLatitude, GlobalEastLongitude, GlobalNorthLatitude);
+
+            string sGlobalSouthLatitude = (string)Cfg.GetKeyValue("GlobalSouthLatitude");
+            success = double.TryParse(sGlobalSouthLatitude, out dTmp);
+            if (success)
+	            _transformOptions.Area = new CoordinateArea(GlobalWestLongitude, dTmp, GlobalEastLongitude, GlobalNorthLatitude);
+			else
+	            _transformOptions.Area = new CoordinateArea(GlobalWestLongitude, -1000, GlobalEastLongitude, GlobalNorthLatitude);
+
+            string sGlobalEastLongitude = (string)Cfg.GetKeyValue("GlobalEastLongitude");
+            success = double.TryParse(sGlobalEastLongitude, out dTmp);
+            if (success)
+				_transformOptions.Area = new CoordinateArea(GlobalWestLongitude, GlobalSouthLatitude, dTmp, GlobalNorthLatitude);
+			else
+				_transformOptions.Area = new CoordinateArea(GlobalWestLongitude, GlobalSouthLatitude, -1000, GlobalNorthLatitude);
+
+            string sGlobalNorthLatitude = (string)Cfg.GetKeyValue("GlobalNorthLatitude");
+            success = double.TryParse(sGlobalNorthLatitude, out dTmp);
+            if (success)
+	            _transformOptions.Area = new CoordinateArea(GlobalWestLongitude, GlobalSouthLatitude, GlobalEastLongitude, dTmp);
+			else
+	            _transformOptions.Area = new CoordinateArea(GlobalWestLongitude, GlobalSouthLatitude, GlobalEastLongitude, -1000);
+
+            string sGlobalTransformParameter = (string)Cfg.GetKeyValue("GlobalTransformParameter");
+            success = int.TryParse(sGlobalTransformParameter, out nTmp);
+			if (success)
+				_globalTransformParameter = nTmp;
+			else
+				_globalTransformParameter = 0;
+        }
     }
 }

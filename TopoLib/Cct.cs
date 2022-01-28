@@ -105,8 +105,14 @@ namespace TopoLib
             }
             else
             {
+				if (westLongitude < -180 || westLongitude >  180 || eastLongitude < -180 || eastLongitude >  180 ||
+					southLatitude <  -90 || southLatitude >   90 || northLatitude <  -90 || northLatitude >   90 ||
+                    southLatitude > northLatitude)
+					options.Area = null;
+                else 
+                    options.Area              = new CoordinateArea(westLongitude, southLatitude, eastLongitude, northLatitude);
+
                 options.Accuracy              = Accuracy;
-                options.Area                  = westLongitude > -1000 ? new CoordinateArea(westLongitude, southLatitude, eastLongitude, northLatitude) : null;
                 options.NoBallparkConversions = (nMode &    8) != 0 ? true : false;
                 options.NoDiscardIfMissing    = (nMode &   16) != 0 ? true : false;
                 options.UsePrimaryGridNames   = (nMode &   32) != 0 ? true : false;
@@ -2184,7 +2190,7 @@ namespace TopoLib
             Summary =
             "Returns the target-CRS of a coordinate transform in one of three different formats",
             Example = "xxx")]
-        public static object TarCreateCrs(
+        public static object TargetCRS(
             [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
             [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Output mode: (0); 0 = PROJ string, 1 = WKT string, 2 = JSON string. Mode is combined with 2^n flag: 8, 16, ..., 2048. See help file for more information", Name = "mode")] object oMode,
