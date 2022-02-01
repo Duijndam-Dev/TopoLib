@@ -52,7 +52,8 @@
       <HintPath>..\packages\Serilog.Sinks.ExcelDnaLogDisplay.1.5.0\lib\net472\Serilog.Sinks.ExcelDnaLogDisplay.dll</HintPath>
     </Reference>
     <Reference Include="SharpProj, Version=8.2001.106.0, Culture=neutral, PublicKeyToken=3a930e679d9a0873, processorArchitecture=x86">
-      <HintPath>..\packages\SharpProj.Core.8.2001.106\lib\net45\SharpProj.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\SharpProj\src\SharpProj\bin\Win32_Debug\SharpProj.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />

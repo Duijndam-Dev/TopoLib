@@ -2624,16 +2624,16 @@ namespace ExcelDna.XlDialogBox
     //
     internal class XlFileDialogBox : XlDialogBox
     { 
-        private XlDialogBox.GroupBox        m_grpBox;
-        private XlDialogBox.OkButton        m_update;
-        private XlDialogBox.DirectoryLabel  m_dirLbl;
-        private XlDialogBox.GroupBox        m_filSel;
-        private XlDialogBox.TextEdit        m_filNam;
-        private XlDialogBox.LinkedFilesList m_filLst;
-        private XlDialogBox.LinkedDriveList m_drvLst;
-        private XlDialogBox.OkButton        m_btnOke;
-        private XlDialogBox.CancelButton    m_btnCan;
-        private XlDialogBox.HelpButton2     m_btnHlp;
+        private readonly GroupBox m_grpBox;
+        private readonly OkButton m_update;
+        private readonly DirectoryLabel m_dirLbl;
+        private readonly GroupBox m_filSel;
+        private readonly TextEdit m_filNam;
+        private readonly LinkedFilesList m_filLst;
+        private readonly LinkedDriveList m_drvLst;
+        private readonly OkButton m_btnOke;
+        private readonly CancelButton m_btnCan;
+        private readonly HelpButton2 m_btnHlp;
 
         // constructor
         public XlFileDialogBox() 
@@ -2642,16 +2642,16 @@ namespace ExcelDna.XlDialogBox
             H = 240;
             Text = "Select File";
 
-            m_grpBox = new XlDialogBox.GroupBox()         {	 X = 013, Y = 010, W = 394, H = 040, Text = "Current directory at launch of dialog. Use ? button to refresh ",  };
-            m_update = new XlDialogBox.OkButton()         {	 X = 018, Y = 026, W = 025,          Text = "⭮",  IO = 3, };
-            m_dirLbl = new XlDialogBox.DirectoryLabel()   {	 X = 048, Y = 030, W = 357,          };
-            m_filSel = new XlDialogBox.GroupBox()         {	 X = 013, Y = 055, W = 394, H = 140, Text = "File selector. Use *.* to search for all files in a folder ",  };
-            m_filNam = new XlDialogBox.TextEdit()         {	 X = 031, Y = 073, W = 170,          IO = "*.*", };
-            m_filLst = new XlDialogBox.LinkedFilesList()  {	 X = 220, Y = 073, W = 170, H = 110, IO = 2, };
-            m_drvLst = new XlDialogBox.LinkedDriveList()  {	 X = 031, Y = 096,          H = 090, };
-            m_btnOke = new XlDialogBox.OkButton()         {	 X = 151, Y = 205, W = 075,          Text = "&OK",  };
-            m_btnCan = new XlDialogBox.CancelButton()     {	 X = 238, Y = 205, W = 075,          Text = "&Cancel",  };
-            m_btnHlp = new XlDialogBox.HelpButton2()      {	 X = 330, Y = 205, W = 075,          Text = "&Help",  IO = -1, };
+            m_grpBox = new GroupBox()         {	 X = 013, Y = 010, W = 394, H = 040, Text = "Current directory at launch of dialog. Use ? button to refresh ",  };
+            m_update = new OkButton()         {	 X = 018, Y = 026, W = 025,          Text = "⭮",  IO = 3, };
+            m_dirLbl = new DirectoryLabel()   {	 X = 048, Y = 030, W = 357,          };
+            m_filSel = new GroupBox()         {	 X = 013, Y = 055, W = 394, H = 140, Text = "File selector. Use *.* to search for all files in a folder ",  };
+            m_filNam = new TextEdit()         {	 X = 031, Y = 073, W = 170,          IO = "*.*", };
+            m_filLst = new LinkedFilesList()  {	 X = 220, Y = 073, W = 170, H = 110, IO = 2, };
+            m_drvLst = new LinkedDriveList()  {	 X = 031, Y = 096,          H = 090, };
+            m_btnOke = new OkButton()         {	 X = 151, Y = 205, W = 075,          Text = "&OK",  };
+            m_btnCan = new CancelButton()     {	 X = 238, Y = 205, W = 075,          Text = "&Cancel",  };
+            m_btnHlp = new HelpButton2()      {	 X = 330, Y = 205, W = 075,          Text = "&Help",  IO = -1, };
 
             Controls.Add(m_update);
             Controls.Add(m_dirLbl);

@@ -34,7 +34,7 @@ namespace TopoLib
 {
     public class R1C1
     {
-        private string _r1c1;
+        private readonly string _r1c1;
 
         public R1C1(string rc) { _r1c1 = rc; }
 
@@ -132,7 +132,7 @@ namespace TopoLib
         static bool Validate(int index, object[,] dialogResult, XlDialogBox.XlDialogControlCollection Controls)
         {
             // just some code to set a break point
-            int i = index;
+            // int i = index;
 
             return true; // return to dialog
         }
@@ -189,19 +189,20 @@ namespace TopoLib
         static bool ValidateCacheDialog(int index, object[,] dialogResult, XlDialogBox.XlDialogControlCollection Controls)
         {
             // just some code to set a break point
-            int i = index;
+            // int i = index;
 
             if (index == 2)
             {
-                OpenFileDialog dialog = new OpenFileDialog();
-
-                // dialog.CheckFileExists = true;  
-                // dialog.CheckPathExists = true;  
-                dialog.InitialDirectory = Path.GetDirectoryName(dialogResult[3,6].ToString());
-                dialog.FileName         = Path.GetFileName     (dialogResult[3,6].ToString());
-                dialog.Title = "Select PROJ Cache File";
-                dialog.RestoreDirectory = true;
-                dialog.Filter = "Database files (*.db)|*.db|All files (*.*)|*.*";  
+                OpenFileDialog dialog = new OpenFileDialog
+                {
+                    // dialog.CheckFileExists = true;  
+                    // dialog.CheckPathExists = true;  
+                    InitialDirectory = Path.GetDirectoryName(dialogResult[3, 6].ToString()),
+                    FileName = Path.GetFileName(dialogResult[3, 6].ToString()),
+                    Title = "Select PROJ Cache File",
+                    RestoreDirectory = true,
+                    Filter = "Database files (*.db)|*.db|All files (*.*)|*.*"
+                };
 
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
@@ -245,9 +246,8 @@ namespace TopoLib
         {
             // read the configuration settings to chose between file pickers being used.
             // At this point, all functions have been registered, and it should be safe to do so...
-            int nFolderPicker = 0;
-            string sFolderPicker = (string)Cfg.GetKeyValue("FolderPicker");
-            int.TryParse(sFolderPicker, out nFolderPicker);
+            string sFolderPicker = (string)Cfg.GetKeyValue("FolderPicker", "1");
+            int.TryParse(sFolderPicker, out int nFolderPicker);
 
             string sSelectedPath = dialogResult[2, 6].ToString();
 
@@ -259,9 +259,11 @@ namespace TopoLib
                     case 0:
                         {
                             // can't use 'using' as FolderPicker hasn't been derived from IDisposable
-                            var dlg = new FolderPicker();
-                            dlg.InputPath = sSelectedPath;
-                            dlg.Title = "Select PROJ resources folder";
+                            var dlg = new FolderPicker
+                            {
+                                InputPath = sSelectedPath,
+                                Title = "Select PROJ resources folder"
+                            };
                             if (dlg.ShowDialog(Process.GetCurrentProcess().MainWindowHandle) == true)
                             {
                                 sSelectedPath = dlg.ResultPath;
@@ -496,7 +498,7 @@ namespace TopoLib
 
             sProjLib               = ctrl_02.IO_string;
             CctOptions.EndpointUrl = ctrl_05.IO_string;
-            CctOptions.UseNetwork  = ctrl_08.IO_index > 0 ? true : false;
+            CctOptions.UseNetwork  = ctrl_08.IO_index > 0;
 
             if (sProjLib != sProjOld)
             {
@@ -642,7 +644,7 @@ namespace TopoLib
             bool bOK = dialog.ShowDialog(ValidateTransformDialog);
             if (bOK == false) return;
 
-            CctOptions.UseGlobalSettings = ctrl_02.IO_index > 0 ? true : false;
+            CctOptions.UseGlobalSettings = ctrl_02.IO_index > 0;
 
             if (CctOptions.UseGlobalSettings)
                 MessageBox.Show(

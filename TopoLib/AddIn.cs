@@ -61,7 +61,29 @@ namespace TopoLib
 
             _log.Information($"[TOP] Setting up network access");
             // see: https://stackoverflow.com/questions/2859790/the-request-was-aborted-could-not-create-ssl-tls-secure-channel
+            // the next line is essential to prevent file-open errors.
             ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
+
+            // trying to work out what working with a proxy means for .NET code.
+            // see: https://stackoverflow.com/questions/14887679/whats-the-difference-between-webrequest-defaultwebproxy-and-webrequest-getsyste
+            //
+            // the following MSDN article has a lot of information :
+            // see: https://docs.microsoft.com/en-us/archive/msdn-magazine/2005/august/take-the-burden-off-users-with-automatic-configuration-in-net
+
+            /*
+             *          GetDefaultProxy is obsolete...
+
+                        System.Net.WebProxy proxyObject = WebProxy.GetDefaultProxy();
+                        proxyObject.Credentials = CredentialCache.DefaultCredentials;
+                        proxyObject.BypassProxyOnLocal = true;
+                        GlobalProxySelection.Select = proxyObject;
+            */
+            // not sure the next line is even needed;
+            _ = WebRequest.DefaultWebProxy;
+
+            // do we need the next line ?
+            // see: https://stackoverflow.com/questions/12050415/set-default-proxy-programmatically-instead-of-using-app-config
+            WebRequest.DefaultWebProxy.Credentials = CredentialCache.DefaultNetworkCredentials;
 
             _log.Information($"[TOP] Installing IntelliSense server");
 

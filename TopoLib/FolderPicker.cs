@@ -101,9 +101,7 @@
         [DllImport("user32")]
         private static extern IntPtr GetDesktopWindow();
 
-#pragma warning disable IDE1006 // Naming Styles
         private const int ERROR_CANCELLED = unchecked((int)0x800704C7);
-#pragma warning restore IDE1006 // Naming Styles
 
         [ComImport, Guid("DC1C5A9C-E88A-4dde-A5A1-60F82A20AEF7")] // CLSID_FileOpenDialog
         private class FileOpenDialog
@@ -151,7 +149,6 @@
             [PreserveSig] int Compare();  // not fully defined
         }
 
-        #pragma warning disable CA1712 // Do not prefix enum values with type name
         private enum SIGDN : uint
         {
             SIGDN_DESKTOPABSOLUTEEDITING = 0x8004c000,
@@ -192,5 +189,4 @@
             FOS_FORCEPREVIEWPANEON = 0x40000000,
             FOS_SUPPORTSTREAMABLEITEMS = unchecked((int)0x80000000)
         }
-        #pragma warning restore CA1712 // Do not prefix enum values with type name
     }

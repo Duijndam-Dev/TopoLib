@@ -134,7 +134,8 @@ namespace TopoLib
             Returns = "the 'value' of a [key, value] pair or [key:<{key}>, not found], #VALUE in case of failure.",
             Remarks = "In case of a #VALUE error, please ensure the {key}-string is in between \"double quotes\".")]
         public static object GetKeyValue(
-            [ExcelArgument("{key} string of the requested [key, value] pair", Name = "key")] string key )
+            [ExcelArgument("{key} string of the requested [key, value] pair", Name = "key")] string key,
+            [ExcelArgument("Default 'string' value", Name = "default")] object oDefault)
         {
             try
             {
@@ -149,15 +150,15 @@ namespace TopoLib
                 if (settings[key] != null)
                 {
                     string value = settings[key].Value;
-                    configFile.Save(ConfigurationSaveMode.Modified);
-                    ConfigurationManager.RefreshSection(configFile.AppSettings.SectionInformation.Name);
                     return value;
                 }
-                else
+                else if (oDefault is null || oDefault is ExcelMissing || oDefault is ExcelEmpty || !(oDefault is string))
                 {
                     string kv = $"[key:<{key}>, not found]";
                     return kv;
                 }
+                else 
+                    return (string)oDefault;
             }
             catch (Exception ex)
             {
@@ -247,7 +248,7 @@ namespace TopoLib
 
         [ExcelFunctionDoc(
             Name = "TL.cfg.ReadKey",
-            Description = "Reads a 'value' from [key, value] pair from the TopoLib configuration file",
+            Description = "Reads a [key, value] pair from the TopoLib configuration file",
             Category = "CFG - Configuration",
             HelpTopic = "TopoLib-AddIn.chm!1104",
 
@@ -269,9 +270,6 @@ namespace TopoLib
                 if (settings[key] != null)
                 {
                     string value = settings[key].Value;
-                    configFile.Save(ConfigurationSaveMode.Modified);
-
-                    ConfigurationManager.RefreshSection(configFile.AppSettings.SectionInformation.Name);
                     string kv = $"[key:<{key}>, value:<{value}>]";
                     return kv;
                 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,12 +17,10 @@ using SharpProj.Proj;
 // When connecting to the internet through a proxy; please read the following on stackoverflow:
 // https://stackoverflow.com/questions/1938990/c-sharp-connecting-through-proxy
 
-
 // On solving a missing reference to the next package:
 // For me adding the PackageReference for MSTest.TestFramework did the trick. I didn't need to reference the TestAdapter.
 // see https://stackoverflow.com/questions/13602508/where-to-find-microsoft-visualstudio-testtools-unittesting-missing-dll
 // using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.IO;
 
 // I made a backup of my project by renaming it to TopoLibOld 
 // Then I rebuilt TopoLib from scratch starting from ExcelDna v1.1.0 in view of Virusscanner false positives with v1.5.0
@@ -1548,6 +1547,88 @@ namespace TopoLib
 
         [ExcelFunctionDoc(
             IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
+            Name = "TL.cct.Remarks",
+            Description = "Get the name of the coordinate transform",
+            Category = "CCT - Coordinate Conversion and Transformation",
+            HelpTopic = "TopoLib-AddIn.chm!1011",
+
+            Returns = "name of the coordinate transform",
+            Summary =
+            "Returns the name a coordinate transform",
+            Example = "xxx")]
+        public static object Remarks(
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
+            [ExcelArgument("Desired accuray for the transformation, or '-1000' when not used (-1000)", Name = "Accuracy")] object oAccuracy,
+            [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
+            [ExcelArgument("SouthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "SouthLatitude")] object oSouthLatitude,
+            [ExcelArgument("EastLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "EastLongitude")] object oEastLongitude,
+            [ExcelArgument("NorthLatitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "NorthLatitude")] object oNorthLatitude)
+        {
+            if (ExcelDnaUtil.IsInFunctionWizard())
+                return ExcelError.ExcelErrorRef;
+
+            // Check general input data
+            int nMode = (int)Optional.Check(oMode, 0.0);
+            bool bUsingTransform = Optional.IsNul(TargetCrs);
+            double Accuracy = Optional.Check(oAccuracy, -1000.0);
+            double westLongitude = Optional.Check(oWestLongitude, -1000.0);
+            double southLatitude = Optional.Check(oSouthLatitude, -1000.0);
+            double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
+            double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
+
+            if (nMode < 0 || nMode > 4096)
+                return ExcelError.ExcelErrorValue;
+
+            // Deal with optional parameters
+            bool bAllowDeprecatedCRS = false;
+            var options = GetCoordinateTransformOptions(nMode, Accuracy, westLongitude, southLatitude, eastLongitude, northLatitude, ref bAllowDeprecatedCRS);
+
+            // setup all disposable objects
+            ProjContext pjContext = null;
+            CoordinateReferenceSystem crsSource = null;
+            CoordinateReferenceSystem crsTarget = null;
+            CoordinateTransform transform = null;
+
+            // do the work; exceptions may occur...
+            try
+            {
+                pjContext = Crs.CreateContext();
+
+                if (bUsingTransform)
+                {
+                    transform = CreateCoordinateTransform(SourceCrs, pjContext);
+                }
+                else
+                {
+                    crsSource = Crs.CreateCrs(SourceCrs, pjContext);
+                    crsTarget = Crs.CreateCrs(TargetCrs, pjContext);
+                    transform = CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS);
+                }
+
+                // start core of function
+                return transform.Remarks;
+                // end core of function
+
+            }
+            catch (Exception ex)
+            {
+                return AddIn.ProcessException(ex);
+            }
+            finally
+            {
+                // free up resources in reverse order of allocation
+                transform?.Dispose();
+                crsSource?.Dispose();
+                crsTarget?.Dispose();
+                pjContext?.Dispose();
+            }
+        } // Remarks
+
+
+        [ExcelFunctionDoc(
+            IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
             Name = "TL.cct.RoundTrip",
             Description = "Get the error of a roundtrip of N forward/backward transforms", 
             Category = "CCT - Coordinate Conversion and Transformation",
@@ -2425,31 +2506,33 @@ namespace TopoLib
                 ChooseCoordinateTransform transforms = transform as ChooseCoordinateTransform;
                 int count = (transforms != null) ? transforms.Count : 1;
 
-                object[,] res = new object[count + 1, 12];
+                object[,] res = new object[count + 1, 14];
 
                 res[0,  0] = "Transform Identifiers";
                 res[0,  1] = "Transform Name";
                 res[0,  2] = "Accuracy [m]";
                 res[0,  3] = "Area of Use";
                 res[0,  4] = "Scope";
-                res[0,  5] = "Lat-min";
+                res[0,  5] = "Remarks";
                 res[0,  6] = "Lon-min";
-                res[0,  7] = "Lat-max";
-                res[0,  8] = "Lon-max";
-                res[0,  9] = "Nr grids";
-                res[0, 10] = "1st grid";
+                res[0,  7] = "Lon-max";
+                res[0,  8] = "Lat-min";
+                res[0,  9] = "Lat-max";
+                res[0, 10] = "Nr grids";
+                res[0, 11] = "1st grid";
+                res[0, 12] = "2nd grid";
 
                 switch(nOutput)
                 {
                     default:
                     case 0:
-                        res[0, 11] = "Transform PROJ string";
+                        res[0, 13] = "Transform PROJ string";
                         break;
                     case 1:
-                        res[0, 11] = "Transform WKT string";
+                        res[0, 13] = "Transform WKT string";
                         break;
                     case 2:
-                        res[0, 11] = "Transform JSON string";
+                        res[0, 13] = "Transform JSON string";
                         break;
                 }
 
@@ -2459,10 +2542,13 @@ namespace TopoLib
                 {
                     string ids = transform.Identifier?.ToString();
                     string scopes = transform.Scope;
+                    string remarks = transform.Remarks;
                     if (ids == null && transform is CoordinateTransformList ctl)
                     {
                         ids = string.Join(", ", ctl.Where(x => x.Identifiers != null).SelectMany(x => x.Identifiers));
-                        scopes = string.Join(", ", ctl.Select(x => x.Scope).Where(x => x != null).Distinct());
+                        scopes = string.Join("  ", ctl.Select(x => x.Scope).Where(x => x != null).Distinct());
+                        remarks = string.Join("  ", ctl.Select(x => x.Remarks).Where(x => x != null).Distinct());
+                        remarks = remarks.TrimStart();
                     }
 
                     if (transform.Accuracy is null || transform.Accuracy <= 0.0) 
@@ -2474,29 +2560,47 @@ namespace TopoLib
                         accuracy = transform.Accuracy;
                     }
 
+                    string grid1 = "N.A."; 
+                    string grid2 = "N.A."; 
+                    if (transform.GridUsages.Count > 0)
+                    {
+                        grid1  = transform.GridUsages[0].FullName;
+                        if (string.IsNullOrEmpty(grid1))
+                            grid1 = "Missing";
+                    }
+
+                    if (transform.GridUsages.Count > 1)
+                    {
+                        grid2  = transform.GridUsages[1].FullName;
+                        if (string.IsNullOrEmpty(grid2))
+                            grid2 = "Missing";
+                    }
+
                     res[1,  0] = transform.Identifiers is null ? ids : transform.Identifier.Authority;;
                     res[1,  1] = transform.Name;
                     res[1,  2] = accuracy;
                     res[1,  3] = transform.UsageArea.Name;
-                    res[1,  4] = transform.Scope is null ? scopes  : transform.Scope;
-                    res[1,  5] = transform.UsageArea.SouthLatitude;
+                    res[1,  4] = scopes;
+                    res[1,  5] = remarks;
                     res[1,  6] = transform.UsageArea.WestLongitude;
-                    res[1,  7] = transform.UsageArea.NorthLatitude;
-                    res[1,  8] = transform.UsageArea.EastLongitude;
-                    res[1,  9] = transform.GridUsages.Count;
-                    res[1, 10] = transform.GridUsages.Count > 0 ? transform.GridUsages[0].FullName : "N.A.";
+                    res[1,  7] = transform.UsageArea.EastLongitude;
+                    res[1,  8] = transform.UsageArea.SouthLatitude;
+                    res[1,  9] = transform.UsageArea.NorthLatitude;
+                    res[1, 10] = transform.GridUsages.Count;
+                    res[1, 11] = grid1;
+                    res[1, 12] = grid2;
 
                     switch(nOutput)
                     {
                         default:
                         case 0:
-                            res[1, 11] = transform.AsProjString();
+                            res[1, 13] = transform.AsProjString();
                             break;
                         case 1:
-                            res[1, 11] = transform.AsWellKnownText();
+                            res[1, 13] = transform.AsWellKnownText();
                             break;
                         case 2:
-                            res[1, 11] = transform.AsProjJson();
+                            res[1, 13] = transform.AsProjJson();
                             break;
                     }
                 }
@@ -2506,13 +2610,16 @@ namespace TopoLib
                     {
                         string ids = transforms[i].Identifier?.ToString();
                         string scopes = transforms[i].Scope;
+                        string remarks = transforms[i].Remarks;
                         if (ids == null && transforms[i] is CoordinateTransformList ctl)
                         {
                             ids = string.Join(", ", ctl.Where(x => x.Identifiers != null).SelectMany(x => x.Identifiers));
                             scopes = string.Join("  ", ctl.Select(x => x.Scope).Where(x => x != null).Distinct());
+                            remarks = string.Join("  ", ctl.Select(x => x.Remarks).Where(x => x != null).Distinct());
+                            remarks = remarks.TrimStart();
                         }
 
-                        if (transforms[i].Accuracy is null || transforms[i].Accuracy <= 0.0)
+                         if (transforms[i].Accuracy is null || transforms[i].Accuracy <= 0.0)
                         { 
                             accuracy = "Unknown"; 
                         } 
@@ -2521,38 +2628,48 @@ namespace TopoLib
                             accuracy = transforms[i].Accuracy;
                         }
 
-                        string gridName = "N.A.";
+                        string grid1 = "N.A.";
+                        string grid2 = "N.A.";
 
                         if (transforms[i].GridUsages.Count > 0)
                         {
-                            gridName  = transforms[i].GridUsages[0].FullName;
-                            if (string.IsNullOrEmpty(gridName))
-                                gridName = "Missing";
+                            grid1  = transforms[i].GridUsages[0].FullName;
+                            if (string.IsNullOrEmpty(grid1))
+                                grid1 = "Missing";
+                        }
+
+                        if (transforms[i].GridUsages.Count > 1)
+                        {
+                            grid2  = transforms[i].GridUsages[1].FullName;
+                            if (string.IsNullOrEmpty(grid2))
+                                grid2 = "Missing";
                         }
 
                         res[i + 1,  0] = transforms[i].Identifiers is null ? ids : transforms[i].Identifier.Authority;
                         res[i + 1,  1] = transforms[i].Name;
                         res[i + 1,  2] = accuracy;
                         res[i + 1,  3] = transforms[i].UsageArea.Name;
-                        res[i + 1,  4] = transforms[i].Scope is null ? scopes : transforms[i].Scope;
-                        res[i + 1,  5] = transforms[i].UsageArea.SouthLatitude;
+                        res[i + 1,  4] = scopes;
+                        res[i + 1,  5] = remarks;
                         res[i + 1,  6] = transforms[i].UsageArea.WestLongitude;
-                        res[i + 1,  7] = transforms[i].UsageArea.NorthLatitude;
-                        res[i + 1,  8] = transforms[i].UsageArea.EastLongitude;
-                        res[i + 1,  9] = transforms[i].GridUsages.Count;
-                        res[i + 1, 10] = gridName;
+                        res[i + 1,  7] = transforms[i].UsageArea.EastLongitude;
+                        res[i + 1,  8] = transforms[i].UsageArea.SouthLatitude;
+                        res[i + 1,  9] = transforms[i].UsageArea.NorthLatitude;
+                        res[i + 1, 10] = transforms[i].GridUsages.Count;
+                        res[i + 1, 11] = grid1;
+                        res[i + 1, 12] = grid2;
 
                         switch(nOutput)
                         {
                             default:
                             case 0:
-                                res[i + 1, 11] = transforms[i].AsProjString();
+                                res[i + 1, 13] = transforms[i].AsProjString();
                                 break;
                             case 1:
-                                res[i + 1, 11] = transforms[i].AsWellKnownText();
+                                res[i + 1, 13] = transforms[i].AsWellKnownText();
                                 break;
                             case 2:
-                                res[i + 1, 11] = transforms[i].AsProjJson();
+                                res[i + 1, 13] = transforms[i].AsProjJson();
                                 break;
                         }
                     }

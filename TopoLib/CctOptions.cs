@@ -243,78 +243,82 @@ namespace TopoLib
 		public static void ReadConfiguration()
         {
 			// Logging
-            int nTmp;
-            string sLogLevel = (string)Cfg.GetKeyValue("LogLevel");
-            bool success = int.TryParse(sLogLevel, out nTmp);
-			if (success)
+            string sLogLevel = (string)Cfg.GetKeyValue("LogLevel", "0");
+            bool success = int.TryParse(sLogLevel, out int nTmp);
+            if (success)
 				ProjContext.LogLevel = (SharpProj.ProjLogLevel)nTmp;
 			else
 				ProjContext.LogLevel = 0;
 
 			// Network
-            ProjContext.EndpointUrl = (string)Cfg.GetKeyValue("NetworkEndpointUrl");
-            ProjContext.EnableNetworkConnections = (string)Cfg.GetKeyValue("UseNetworkResources") == "true" ? true : false;
+            ProjContext.EndpointUrl = (string)Cfg.GetKeyValue("NetworkEndpointUrl", "https://cdn.proj.org");
+            ProjContext.EnableNetworkConnections = (string)Cfg.GetKeyValue("UseNetworkResources", "true") == "true";
 
 			// Cache settings
-            _sCachePath = (string)Cfg.GetKeyValue("CachePath");
+			string sAppDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+			sAppDataFolder = Path.Combine(sAppDataFolder, "proj");
+			sAppDataFolder = Path.Combine(sAppDataFolder, "cache.db");
 
-            string sCacheSize = (string)Cfg.GetKeyValue("CacheSize");
+            _sCachePath = (string)Cfg.GetKeyValue("CachePath", sAppDataFolder);
+
+            string sCacheSize = (string)Cfg.GetKeyValue("CacheSize", "300");
             success = int.TryParse(sCacheSize, out nTmp);
             if (success)
 				_iCacheSize = nTmp;
 			else
 				_iCacheSize = 300;
 
-			_bEnableCache = (string)Cfg.GetKeyValue("EnableCache") == "true" ? true : false;
+			_bEnableCache = (string)Cfg.GetKeyValue("EnableCache", "true") == "true";
 
-			double dTmp;
-            string sCacheExpiry = (string)Cfg.GetKeyValue("CacheExpiryTime");
-            success = double.TryParse(sCacheExpiry, out dTmp);
+            string sCacheExpiry = (string)Cfg.GetKeyValue("CacheExpiryTime", "86400");
+            success = double.TryParse(sCacheExpiry, out double dTmp);
             if (success)
 				_dExpiryTime = dTmp;
 			else
 				_dExpiryTime = 86400;
 
 			// Global transform settings
-            _useGlobalSettings = (string)Cfg.GetKeyValue("UseGlobalSettings") == "true" ? true : false;
-			_transformOptions.Authority = (string)Cfg.GetKeyValue("GlobalAuthority");
+            _useGlobalSettings = (string)Cfg.GetKeyValue("UseGlobalSettings", "true") == "true";
+			_transformOptions.Authority = (string)Cfg.GetKeyValue("GlobalAuthority", "EPSG");
 
-            string sGlobalAccuracy = (string)Cfg.GetKeyValue("GlobalAccuracy");
+            string sGlobalAccuracy = (string)Cfg.GetKeyValue("GlobalAccuracy", "-1");
             success = double.TryParse(sGlobalAccuracy, out dTmp);
             if (success)
 				_transformOptions.Accuracy = dTmp;
 			else
 				_transformOptions.Accuracy = -1;
 
-            string sGlobalWestLongitude = (string)Cfg.GetKeyValue("GlobalWestLongitude");
+            string sGlobalWestLongitude = (string)Cfg.GetKeyValue("GlobalWestLongitude", "-1000");
             success = double.TryParse(sGlobalWestLongitude, out dTmp);
             if (success)
 				_transformOptions.Area = new CoordinateArea(dTmp, GlobalSouthLatitude, GlobalEastLongitude, GlobalNorthLatitude);
 			else
 				_transformOptions.Area = new CoordinateArea(-1000, GlobalSouthLatitude, GlobalEastLongitude, GlobalNorthLatitude);
 
-            string sGlobalSouthLatitude = (string)Cfg.GetKeyValue("GlobalSouthLatitude");
+            string sGlobalSouthLatitude = (string)Cfg.GetKeyValue("GlobalSouthLatitude", "-1000");
             success = double.TryParse(sGlobalSouthLatitude, out dTmp);
             if (success)
 	            _transformOptions.Area = new CoordinateArea(GlobalWestLongitude, dTmp, GlobalEastLongitude, GlobalNorthLatitude);
 			else
 	            _transformOptions.Area = new CoordinateArea(GlobalWestLongitude, -1000, GlobalEastLongitude, GlobalNorthLatitude);
 
-            string sGlobalEastLongitude = (string)Cfg.GetKeyValue("GlobalEastLongitude");
+            string sGlobalEastLongitude = (string)Cfg.GetKeyValue("GlobalEastLongitude", "-1000");
             success = double.TryParse(sGlobalEastLongitude, out dTmp);
             if (success)
 				_transformOptions.Area = new CoordinateArea(GlobalWestLongitude, GlobalSouthLatitude, dTmp, GlobalNorthLatitude);
 			else
 				_transformOptions.Area = new CoordinateArea(GlobalWestLongitude, GlobalSouthLatitude, -1000, GlobalNorthLatitude);
 
-            string sGlobalNorthLatitude = (string)Cfg.GetKeyValue("GlobalNorthLatitude");
+            string sGlobalNorthLatitude = (string)Cfg.GetKeyValue("GlobalNorthLatitude", "-1000");
             success = double.TryParse(sGlobalNorthLatitude, out dTmp);
             if (success)
 	            _transformOptions.Area = new CoordinateArea(GlobalWestLongitude, GlobalSouthLatitude, GlobalEastLongitude, dTmp);
 			else
 	            _transformOptions.Area = new CoordinateArea(GlobalWestLongitude, GlobalSouthLatitude, GlobalEastLongitude, -1000);
 
-            string sGlobalTransformParameter = (string)Cfg.GetKeyValue("GlobalTransformParameter");
+			VerifyTransformArea();	// make the area "null" when required
+
+            string sGlobalTransformParameter = (string)Cfg.GetKeyValue("GlobalTransformParameter", "0");
             success = int.TryParse(sGlobalTransformParameter, out nTmp);
 			if (success)
 				_globalTransformParameter = nTmp;
