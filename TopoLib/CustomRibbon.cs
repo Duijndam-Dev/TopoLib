@@ -58,8 +58,8 @@ namespace TopoLib
                             <button id='CacheButton'    label='Cache Settings'       imageMso='ColumnListSetting'               size='large' onAction='CacheButton_OnAction' />
                             <button id='LogLevelButton' label='Logging Settings'     imageMso='ComAddInsDialog'                 size='large' onAction='LogLevelButton_OnAction' />
                         </group>
-                        <group id='RecalcGroup'         label='Refresh'>
-                            <button id='RecalcButton'   label='TopoLib Transforms'    imageMso='RefreshWebView'                  size='large' onAction='RecalcButton_OnAction' />
+                        <group id='RecalcGroup'         label='TopoLib Transforms'>
+                            <button id='RecalcButton'   label='Refresh Transforms'    imageMso='RefreshWebView'                  size='large' onAction='RecalcButton_OnAction' />
                         </group>
                         <group id='LoggingGroup'        label='Test Logging Messages'>
                             <button id='ErrorButton'    label='Log Error'            imageMso='OutlineViewClose'   onAction='ErrorButton_OnAction' />
@@ -75,7 +75,7 @@ namespace TopoLib
                             <toggleButton id='LogNewestFirstButton' label='Newest First' imageMso='StartOfDocument' getPressed='LogNewestFirstButton_GetPressed' onAction='LogNewestFirstButton_OnAction' />
                             </menu>
                         </group>
-                        <group id='GLgroup2' label='About'>
+                        <group id='GLgroup2' label='About TopoLib'>
                             <button id='VersionButton' label='Version Info' imageMso='ResultsPaneAccessibilityMoreInfo'     size='large' onAction='OnVersionButtonPressed' />
                             <button id='HelpButton' label='Show Help'       imageMso='TentativeAcceptInvitation' size='large' onAction='OnHelpButtonPressed' />
                             <button id='AboutButton' label='About TopoLib'  imageMso='FontDialog'                size='large' onAction='OnAboutButtonPressed' />
