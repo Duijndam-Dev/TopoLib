@@ -166,6 +166,42 @@ namespace TopoLib
             }
         }
 
+        internal static int GetKeyValue(string key, int iDefault = 0)
+        {
+            try
+            {
+                string sKeyValue = (string) GetKeyValue(key, iDefault.ToString());
+                bool success = int.TryParse(sKeyValue, out int nTmp);
+
+                if (success)
+				    return nTmp;
+			    else
+				    return int.MinValue;
+            }
+            catch (Exception)
+            {
+                throw new ArgumentException("Cannot convert <key, value> to int");
+            }
+        }
+
+        internal static double GetKeyValue(string key, double dDefault = 0)
+        {
+            try
+            {
+                string sKeyValue = (string) GetKeyValue(key, dDefault.ToString());
+                bool success = double.TryParse(sKeyValue, out double dTmp);
+
+                if (success)
+				    return dTmp;
+			    else
+				    return double.MaxValue;
+            }
+            catch (Exception)
+            {
+                throw new ArgumentException("Cannot convert <key, value> to double");
+            }
+        }
+
         [ExcelFunctionDoc(
             Name = "TL.cfg.ReadAllKeys",
             Description = "Reads all [key, value] pairs from the TopoLib configuration file",

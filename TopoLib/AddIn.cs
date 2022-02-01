@@ -61,7 +61,18 @@ namespace TopoLib
 
             _log.Information($"[TOP] Setting up network access");
             // see: https://stackoverflow.com/questions/2859790/the-request-was-aborted-could-not-create-ssl-tls-secure-channel
-            // the next line is essential to prevent file-open errors.
+            // see: https://groups.google.com/g/exceldna/c/qWZMXjDXkW8
+            // see: https://stackoverflow.com/questions/65228467/enabling-tls-1-2-without-changing-code-in-net
+            /*
+                var securityProtocol = (int)System.Net.ServicePointManager.SecurityProtocol;
+                // 0 = SystemDefault in .NET 4.7+
+                if (securityProtocol != 0)
+                {
+                    System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12;
+                }
+            */
+
+            // the next line is essential to prevent https file-open errors.
             ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
 
             // trying to work out what working with a proxy means for .NET code.
