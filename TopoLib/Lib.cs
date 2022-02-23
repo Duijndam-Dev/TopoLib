@@ -231,7 +231,7 @@ namespace TopoLib
             Name = "TL.lib.Volatile",
             Description = "Volatile pass-through function",
             Category = "LIB - Library",
-            HelpTopic = "TopoLib-AddIn.chm!1508",
+            HelpTopic = "TopoLib-AddIn.chm!1506",
 
             Returns = "The input parameter",
             Remarks = "This function takes one input parameter that is passed on",

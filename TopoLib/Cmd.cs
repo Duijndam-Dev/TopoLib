@@ -352,7 +352,7 @@ namespace TopoLib
         [ExcelCommand(
             Name = "CacheSettings_Dialog",
             Description = "Sets global transform parameters for the TopoLib AddIn",
-            HelpTopic = "TopoLib-AddIn.chm!1205")]
+            HelpTopic = "TopoLib-AddIn.chm!1200")]
         public static void CacheSetingsDialog()
         {
             var dialog  = new XlDialogBox()                  {	                   W = 360, H = 230, Text = "Proj Library Cache Settings", };
@@ -408,7 +408,7 @@ namespace TopoLib
         [ExcelCommand(
             Name = "LogSettings_Dialog",
             Description = "Sets the logging level for the TopoLib AddIn",
-            HelpTopic = "TopoLib-AddIn.chm!1203")]
+            HelpTopic = "TopoLib-AddIn.chm!1201")]
         public static void LogSettingsDialog()
         {
             var dialog  = new XlDialogBox()                  {	                   W = 320, H = 150, Text = "Logging settings",  IO = 2, };
@@ -448,7 +448,7 @@ namespace TopoLib
         [ExcelCommand(
             Name = "ResourceSettings_Dialog",
             Description = "Sets the acces for PROJ Resources",
-            HelpTopic = "TopoLib-AddIn.chm!1203")]
+            HelpTopic = "TopoLib-AddIn.chm!1202")]
         public static void ResourceSettingsDialog()
         {
             var dialog  = new XlDialogBox()                  {	                   W = 360, H = 230, Text = "Resource Settings",  };
@@ -528,7 +528,7 @@ namespace TopoLib
         [ExcelCommand(
             Name = "TransformSettings_Dialog",
             Description = "Sets global transform parameters for the TopoLib AddIn",
-            HelpTopic = "TopoLib-AddIn.chm!1205")]
+            HelpTopic = "TopoLib-AddIn.chm!1203")]
         public static void TransformSettingsDialog()
         {
             var dialog  = new XlDialogBox()                  {	                   W = 500, H = 280, Text = "Global Transform Settings",  };
@@ -694,8 +694,8 @@ namespace TopoLib
         // And: https://groups.google.com/g/exceldna/c/cu4mRb1UolY/m/ux0y0JnjDwAJ
         [ExcelCommand(
             Name = "Recalculate_TopoLib_Transforms",
-            Description = "Recalculates the TopoLib functions (only)",
-            HelpTopic = "TopoLib-AddIn.chm!1205")]
+            Description = "Recalculates the TopoLib transform functions (only TL.cct.xxx functions)",
+            HelpTopic = "TopoLib-AddIn.chm!1204")]
         public static void Recalculate_TopoLib_Transforms()
         {
             // See: https://groups.google.com/g/exceldna/c/cu4mRb1UolY/m/ux0y0JnjDwAJ
@@ -778,7 +778,7 @@ namespace TopoLib
         [ExcelCommand(
             Name = "About_TopoLib",
             Description = "Shows a dialog with a copy right statement and a list of referenced NuGet packages",
-            HelpTopic = "TopoLib-AddIn.chm!1201")]
+            HelpTopic = "TopoLib-AddIn.chm!1205")]
         public static void AboutDialog()
         {
             var dialog  = new XlDialogBox()                  {                   W = 333, H = 240, Text = "About TopoLib",  };
@@ -817,7 +817,7 @@ namespace TopoLib
         [ExcelCommand(
             Name = "Show_HelpFile",
             Description = "Shows the Compiled Help file",
-            HelpTopic = "TopoLib-AddIn.chm!1200")]
+            HelpTopic = "TopoLib-AddIn.chm!1206")]
         public static void ShowHelpFile()
         {
             // get the Path of xll file;
@@ -845,7 +845,7 @@ namespace TopoLib
         [ExcelCommand(
             Name = "Version_Info",
             Description = "Shows a dialog with information on library version and compilation date & time",
-            HelpTopic = "TopoLib-AddIn.chm!1202")]
+            HelpTopic = "TopoLib-AddIn.chm!1207")]
         public static void VersionDialog()
         {
             var dialog  = new XlDialogBox()             {                    W = 313, H = 200, Text = "Version Info"};

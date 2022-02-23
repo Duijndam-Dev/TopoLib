@@ -83,3 +83,24 @@ You should then see a dialog like the following
 
 There is an explanation of the purpose of each variable, in this example **SourceCrs** is highlighted. Clicking `Help on this function` will bring up the precompiled help file with extra information on how to use this function.
 
+#### 8	Stuff to do
+
+TO DO: Aim to get **all** identifier information from all contributing transform-steps in one go. Therefore, implement :
+
+```c#
+string TL.cct.Identifiers = string.Join(", ", transform.Identifiers);
+```
+
+Or even better :
+
+```C#
+string ids = transform.Identifier?.ToString();
+string scopes = transform.Scope;
+if (ids == null && transform is CoordinateTransformList ctl)
+{
+	ids = string.Join(", ", ctl.Where(x => x.Identifiers != null).SelectMany(x => x.Identifiers));
+    scopes = string.Join(", ", ctl.Select(x => x.Scope).Where(x => x is not null).Distinct());
+}
+```
+
+Do a similar thing for `Scope` and `Remarks`.
