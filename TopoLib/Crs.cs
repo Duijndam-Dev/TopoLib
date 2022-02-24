@@ -1440,13 +1440,13 @@ namespace TopoLib
             {
                 using (ProjContext pjContext = CreateContext())
                 {
-//                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
-                    using (var crs = CreateCrs(oCrs, pjContext))
+                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+//                    using (var crs = CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                         {
                             double distance = crs.DistanceTransform.GeoDistance(pt1, pt2);
-                            return distance;
+                            return Optional.CheckNan(distance);
                         }
                         else
                             return ExcelError.ExcelErrorValue;
@@ -1529,13 +1529,13 @@ namespace TopoLib
             {
                 using (ProjContext pjContext = CreateContext())
                 {
-//                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
-                    using (var crs = CreateCrs(oCrs, pjContext))
+                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+//                    using (var crs = CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                         {
-                            double distance = crs.DistanceTransform.GeoDistanceZ(pt1, pt2);
-                            return distance;
+                            double distanceZ = crs.DistanceTransform.GeoDistanceZ(pt1, pt2);
+                            return Optional.CheckNan(distanceZ);
                         }
                         else
                             return ExcelError.ExcelErrorValue;
