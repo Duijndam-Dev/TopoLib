@@ -51,9 +51,8 @@
     <Reference Include="Serilog.Sinks.ExcelDnaLogDisplay, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f225e9659857edbe, processorArchitecture=MSIL">
       <HintPath>..\packages\Serilog.Sinks.ExcelDnaLogDisplay.1.5.0\lib\net472\Serilog.Sinks.ExcelDnaLogDisplay.dll</HintPath>
     </Reference>
-    <Reference Include="SharpProj, Version=8.2001.106.0, Culture=neutral, PublicKeyToken=3a930e679d9a0873, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\SharpProj\src\SharpProj\bin\Win32_Debug\SharpProj.dll</HintPath>
+    <Reference Include="SharpProj, Version=8.2001.128.0, Culture=neutral, PublicKeyToken=3a930e679d9a0873, processorArchitecture=x86">
+      <HintPath>..\packages\SharpProj.Core.8.2001.128\lib\net45\SharpProj.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -133,7 +132,7 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\ExcelDna.AddIn.1.5.1\build\ExcelDna.AddIn.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ExcelDna.AddIn.1.5.1\build\ExcelDna.AddIn.targets'))" />
-    <Error Condition="!Exists('..\packages\SharpProj.8.2001.106\build\SharpProj.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SharpProj.8.2001.106\build\SharpProj.targets'))" />
+    <Error Condition="!Exists('..\packages\SharpProj.8.2001.128\build\SharpProj.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SharpProj.8.2001.128\build\SharpProj.targets'))" />
   </Target>
   <PropertyGroup>
     <PostBuildEvent>REM copy 64-bit SharpProj.dll to output folder (for ExcelDnaDoc to work)
@@ -156,5 +155,5 @@ if $(ConfigurationName)==Release  "$(SolutionDir)batch\publish.bat" $(SolutionDi
 </PostBuildEvent>
   </PropertyGroup>
   <Import Project="..\packages\ExcelDna.AddIn.1.5.1\build\ExcelDna.AddIn.targets" Condition="Exists('..\packages\ExcelDna.AddIn.1.5.1\build\ExcelDna.AddIn.targets')" />
-  <Import Project="..\packages\SharpProj.8.2001.106\build\SharpProj.targets" Condition="Exists('..\packages\SharpProj.8.2001.106\build\SharpProj.targets')" />
+  <Import Project="..\packages\SharpProj.8.2001.128\build\SharpProj.targets" Condition="Exists('..\packages\SharpProj.8.2001.128\build\SharpProj.targets')" />
 </Project>
