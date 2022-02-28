@@ -1373,67 +1373,49 @@ namespace TopoLib
         } // EllipsoidIsSemiMinorComputed
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.GeoDistance",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets distance between two points defined in a Coordinate Reference System, ignoring elevation differences",
-             HelpTopic = "TopoLib-AddIn.chm!1337",
+            Name = "TL.crs.GeoArea",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets surface area defined by multiple (at least 3) points in a polygon defined in a Coordinate Reference System",
+            HelpTopic = "TopoLib-AddIn.chm!1337",
 
-             Returns = "Distance between two points in [m]",
-             Summary = "Function that returns distance between two points defined in a Coordinate Reference System, ignoring elevation differences or #NA error if not found",
-             Example = "xxx"
+            Returns = "surface area defined by multiple (at least 3) points in a polygon [m2]",
+            Summary = "Function that returns surface area defined by multiple (at least 3) points in a polygon defined in a Coordinate Reference System, or #NA error if CRS not found",
+            Example = "xxx"
          )]
-        public static object GeoDistance(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
-            [ExcelArgument("Point1", Name = "Point1")] double[,] Point1,
-            [ExcelArgument("Point2", Name = "Point2")] double[,] Point2
+        public static object GeoArea(
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Vertical list of points in a polygon)", Name = "startPointOrPointList")] object[,] Points
             )
         {
-            int nPoint1Rows = Point1.GetLength(0);
-            int nPoint1Cols = Point1.GetLength(1);
+            int nPointRows = Points.GetLength(0);
+            int nPointCols = Points.GetLength(1);
 
-            if (nPoint1Rows != 1 )
+            if (nPointRows < 3 )
                 return ExcelError.ExcelErrorValue;
 
-            if (nPoint1Cols < 2 || nPoint1Cols > 4 )
+            if (nPointCols < 2 || nPointCols > 4 )
                 return ExcelError.ExcelErrorValue;
 
-            PPoint pt1;
-            switch (nPoint1Cols)
+            int nPoints = nPointRows;
+
+            PPoint[] points = new PPoint[nPoints];
+
+            // First, get all the points from Point1
+            for (int i = 0; i < nPoints; i++)
             {
-                default:
-                case 2:
-                    pt1 = new PPoint(Point1[0, 0], Point1[0, 1]);
-                    break;
-                case 3:
-                    pt1 = new PPoint(Point1[0, 0], Point1[0, 1], Point1[0, 2]);
-                    break;
-                case 4:
-                    pt1 = new PPoint(Point1[0, 0], Point1[0, 1], Point1[0, 2], Point1[0,3]);
-                    break;
-            }
-
-            int nPoint2Rows = Point2.GetLength(0);
-            int nPoint2Cols = Point2.GetLength(1);
-
-            if (nPoint2Rows != 1 )
-                return ExcelError.ExcelErrorValue;
-
-            if (nPoint2Cols < 2 || nPoint2Cols > 4 )
-                return ExcelError.ExcelErrorValue;
-
-            PPoint pt2;
-            switch (nPoint1Cols)
-            {
-                default:
-                case 2:
-                    pt2 = new PPoint(Point2[0, 0], Point2[0, 1]);
-                    break;
-                case 3:
-                    pt2 = new PPoint(Point2[0, 0], Point2[0, 1], Point2[0, 2]);
-                    break;
-                case 4:
-                    pt2 = new PPoint(Point2[0, 0], Point2[0, 1], Point2[0, 2], Point2[0,3]);
-                    break;
+                switch (nPointCols)
+                {
+                    default:
+                    case 2:
+                        points[i] = new PPoint((double)Points[i, 0], (double)Points[i, 1]);
+                        break;
+                    case 3:
+                        points[i] = new PPoint((double)Points[i, 0], (double)Points[i, 1], (double)Points[i, 2]);
+                        break;
+                    case 4:
+                        points[i] = new PPoint((double)Points[i, 0], (double)Points[i, 1], (double)Points[i, 2], (double)Points[i,3]);
+                        break;
+                }
             }
 
             try
@@ -1441,11 +1423,110 @@ namespace TopoLib
                 using (ProjContext pjContext = CreateContext())
                 {
                     using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
-//                    using (var crs = CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                         {
-                            double distance = crs.DistanceTransform.GeoDistance(pt1, pt2);
+                            double distance = Math.Abs(crs.DistanceTransform.GeoArea(points));
+                            return Optional.CheckNan(distance);
+                        }
+                        else
+                            return ExcelError.ExcelErrorValue;
+                    }
+                }        
+            }
+            catch (Exception ex)
+            {
+                return AddIn.ProcessException(ex);
+            }
+
+        } // GeoArea
+
+        [ExcelFunctionDoc(
+            Name = "TL.crs.GeoDistance",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets distance between two points (or between multiple points in a poly-line), defined in a Coordinate Reference System, ignoring elevation differences",
+            HelpTopic = "TopoLib-AddIn.chm!1337",
+
+            Returns = "Distance between two (or more) points in [m]",
+            Summary = "Function that returns distance between two points (or between multiple points in a poly-line), defined in a Coordinate Reference System, ignoring elevation differences or #NA error if CRS not found",
+            Example = "xxx"
+         )]
+        public static object GeoDistance(
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Start point (or vertical list of points)", Name = "startPointOrPointList")] object[,] Point1,
+            [ExcelArgument("End point (ignored when using list of points)", Name = "endPointOrNul")] object[,] Point2
+            )
+        {
+            int nPoint1Rows = Point1.GetLength(0);
+            int nPoint1Cols = Point1.GetLength(1);
+
+            int nPoint2Rows = Point2.GetLength(0);
+            int nPoint2Cols = Point2.GetLength(1);
+
+            if (nPoint1Rows < 1 )
+                return ExcelError.ExcelErrorValue;
+
+            if (nPoint1Cols < 2 || nPoint1Cols > 4 )
+                return ExcelError.ExcelErrorValue;
+
+            // Check use of nPoint2; we need it when nPoint1Rows == 1
+            if (nPoint1Rows == 1 &&  nPoint2Rows != 1 )
+                return ExcelError.ExcelErrorValue;
+
+            // Do the check on nPoint2Cols only when we need Point2
+            if (nPoint1Rows == 1 && (nPoint2Cols < 2 || nPoint2Cols > 4 ))
+                return ExcelError.ExcelErrorValue;
+
+            // Now determine number of points in (poly)line
+            int nPoints = nPoint1Rows > 1 ? nPoint1Rows : 2;
+
+            PPoint[] points = new PPoint[nPoints];
+
+            // First, get all the points from Point1
+            for (int i = 0; i < nPoint1Rows; i++)
+            {
+                switch (nPoint1Cols)
+                {
+                    default:
+                    case 2:
+                        points[i] = new PPoint((double)Point1[i, 0], (double)Point1[i, 1]);
+                        break;
+                    case 3:
+                        points[i] = new PPoint((double)Point1[i, 0], (double)Point1[i, 1], (double)Point1[i, 2]);
+                        break;
+                    case 4:
+                        points[i] = new PPoint((double)Point1[i, 0], (double)Point1[i, 1], (double)Point1[i, 2], (double)Point1[i,3]);
+                        break;
+                }
+            }
+
+            // Now get the last point from Point2 if needed
+            if (nPoints > nPoint1Rows)
+            {
+                switch (nPoint2Cols)
+                {
+                    default:
+                    case 2:
+                        points[nPoints - 1] = new PPoint((double)Point2[0, 0], (double)Point2[0, 1]);
+                        break;
+                    case 3:
+                        points[nPoints - 1] = new PPoint((double)Point2[0, 0], (double)Point2[0, 1], (double)Point2[0, 2]);
+                        break;
+                    case 4:
+                        points[nPoints - 1] = new PPoint((double)Point2[0, 0], (double)Point2[0, 1], (double)Point2[0, 2], (double)Point2[0, 3]);
+                        break;
+                }
+            }
+
+            try
+            {
+                using (ProjContext pjContext = CreateContext())
+                {
+                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    {
+                        if (crs != null)
+                        {
+                            double distance = crs.DistanceTransform.GeoDistance(points);
                             return Optional.CheckNan(distance);
                         }
                         else
@@ -1461,68 +1542,80 @@ namespace TopoLib
         } // GeoDistance
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.GeoDistanceZ",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets distance between two points defined in a Coordinate Reference System, honoring elevation differences",
-             HelpTopic = "TopoLib-AddIn.chm!1337",
+            Name = "TL.crs.GeoDistanceZ",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets distance between two points (or between multiple points in a poly-line), defined in a Coordinate Reference System, honoring elevation differences",
+            HelpTopic = "TopoLib-AddIn.chm!1337",
 
-             Returns = "Distance between two points in [m]",
-             Summary = "Function that gets distance between two points defined in a Coordinate Reference System, honoring elevation differences, or #NA error if not found",
-             Example = "xxx"
+            Returns = "Distance between two (or more) points in [m]",
+            Summary = "Function that returns distance between two points (or between multiple points in a poly-line), defined in a Coordinate Reference System, honoring elevation differences or #NA error if CRS not found",
+            Example = "xxx"
          )]
         public static object GeoDistanceZ(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
-            [ExcelArgument("Point1", Name = "Point1")] double[,] Point1,
-            [ExcelArgument("Point2", Name = "Point2")] double[,] Point2
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Start point (or vertical list of points)", Name = "startPointOrPointList")] object[,] Point1,
+            [ExcelArgument("End point (ignored when using list of points)", Name = "endPointOrNul")] object[,] Point2
             )
         {
-
             int nPoint1Rows = Point1.GetLength(0);
             int nPoint1Cols = Point1.GetLength(1);
 
-            if (nPoint1Rows != 1 )
+            int nPoint2Rows = Point2.GetLength(0);
+            int nPoint2Cols = Point2.GetLength(1);
+
+            if (nPoint1Rows < 1 )
                 return ExcelError.ExcelErrorValue;
 
             if (nPoint1Cols < 2 || nPoint1Cols > 4 )
                 return ExcelError.ExcelErrorValue;
 
-            PPoint pt1;
-            switch (nPoint1Cols)
+            // Check use of nPoint2; we need it when nPoint1Rows == 1
+            if (nPoint1Rows == 1 &&  nPoint2Rows != 1 )
+                return ExcelError.ExcelErrorValue;
+
+            // Do the check on nPoint2Cols only when we need Point2
+            if (nPoint1Rows == 1 && (nPoint2Cols < 2 || nPoint2Cols > 4 ))
+                return ExcelError.ExcelErrorValue;
+
+            // Now determine number of points in (poly)line
+            int nPoints = nPoint1Rows > 1 ? nPoint1Rows : 2;
+
+            PPoint[] points = new PPoint[nPoints];
+
+            // First, get all the points from Point1
+            for (int i = 0; i < nPoint1Rows; i++)
             {
-                default:
-                case 2:
-                    pt1 = new PPoint(Point1[0, 0], Point1[0, 1]);
-                    break;
-                case 3:
-                    pt1 = new PPoint(Point1[0, 0], Point1[0, 1], Point1[0, 2]);
-                    break;
-                case 4:
-                    pt1 = new PPoint(Point1[0, 0], Point1[0, 1], Point1[0, 2], Point1[0,3]);
-                    break;
+                switch (nPoint1Cols)
+                {
+                    default:
+                    case 2:
+                        points[i] = new PPoint((double)Point1[i, 0], (double)Point1[i, 1]);
+                        break;
+                    case 3:
+                        points[i] = new PPoint((double)Point1[i, 0], (double)Point1[i, 1], (double)Point1[i, 2]);
+                        break;
+                    case 4:
+                        points[i] = new PPoint((double)Point1[i, 0], (double)Point1[i, 1], (double)Point1[i, 2], (double)Point1[i,3]);
+                        break;
+                }
             }
 
-            int nPoint2Rows = Point2.GetLength(0);
-            int nPoint2Cols = Point2.GetLength(1);
-
-            if (nPoint2Rows != 1 )
-                return ExcelError.ExcelErrorValue;
-
-            if (nPoint2Cols < 2 || nPoint2Cols > 4 )
-                return ExcelError.ExcelErrorValue;
-
-            PPoint pt2;
-            switch (nPoint1Cols)
+            // Now get the last point from Point2 if needed
+            if (nPoints > nPoint1Rows)
             {
-                default:
-                case 2:
-                    pt2 = new PPoint(Point2[0, 0], Point2[0, 1]);
-                    break;
-                case 3:
-                    pt2 = new PPoint(Point2[0, 0], Point2[0, 1], Point2[0, 2]);
-                    break;
-                case 4:
-                    pt2 = new PPoint(Point2[0, 0], Point2[0, 1], Point2[0, 2], Point2[0,3]);
-                    break;
+                switch (nPoint2Cols)
+                {
+                    default:
+                    case 2:
+                        points[nPoints - 1] = new PPoint((double)Point2[0, 0], (double)Point2[0, 1]);
+                        break;
+                    case 3:
+                        points[nPoints - 1] = new PPoint((double)Point2[0, 0], (double)Point2[0, 1], (double)Point2[0, 2]);
+                        break;
+                    case 4:
+                        points[nPoints - 1] = new PPoint((double)Point2[0, 0], (double)Point2[0, 1], (double)Point2[0, 2], (double)Point2[0, 3]);
+                        break;
+                }
             }
 
             try
@@ -1530,12 +1623,11 @@ namespace TopoLib
                 using (ProjContext pjContext = CreateContext())
                 {
                     using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
-//                    using (var crs = CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                         {
-                            double distanceZ = crs.DistanceTransform.GeoDistanceZ(pt1, pt2);
-                            return Optional.CheckNan(distanceZ);
+                            double distance = crs.DistanceTransform.GeoDistanceZ(points);
+                            return Optional.CheckNan(distance);
                         }
                         else
                             return ExcelError.ExcelErrorValue;
