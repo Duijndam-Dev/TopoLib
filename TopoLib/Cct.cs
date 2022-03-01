@@ -388,7 +388,15 @@ namespace TopoLib
             "<ol><li>some transforms require the use of one or more grid(s). Local/network access to these grids is controlled through the TopoLib Ribbon. </li>" +
                 "<li>For all TL.cct-functions, the combined settings in the 'Mode Flag' can be overruled by global settings defined in the 'Transform Settings' Dialog. </li>" +
                 "<li>Though it is possible to define a transform using a <b>single</b> (Wkt/Json/Proj) <b>string</b>, it is much preferred to apply <b>sourceCrs</b> and <b>targetCrs</b> to define a transform. " +
-                "In that case the PROJ library automatically finds the most suitable transform.</li></ol>",
+                "In that case the PROJ library automatically finds the most suitable transform.</li></ol>" +
+                "<p>With respect to point 3 above, <a href = \"https://docs.opengeospatial.org/is/18-010r7/18-010r7.html#1\" > the <b>Scope</b> of the WKT definition </a> mentions the following : </p>" +
+                "<p>The string defines frequently needed types of coordinate reference systems and coordinate operations in a self-contained form that is easily readable by machines and by humans. " +
+                "The essence is its simplicity; as a consequence there are some constraints upon the more open content allowed in ISO 19111. " +
+                "To retain simplicity in the well-known text (WKT) description of coordinate reference systems and coordinate operations, " +
+                "the scope of this document excludes parameter grouping and pass-through coordinate operations. </p>" + 
+                "<p>The text string provides a means for humans and machines to correctly and unambiguously interpret and utilise a coordinate reference system definition with look-ups or cross references " +
+                "only to define coordinate operation mathematics. A WKT string is not suitable for the storage of definitions of coordinate reference systems or coordinate operations " +
+                "because it omits metadata about the source of the data and may omit metadata about the applicability of the information.</p>" ,
             Example = "TL.cct.ApplyForward(4326, EPSG:32632, {12.0, 55.0}, 4) returns 691875.632")]
         public static object ApplyForward(
             [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
@@ -636,7 +644,15 @@ namespace TopoLib
             "<ol><li>some transforms require the use of one or more grid(s). Local/network access to these grids is controlled through the TopoLib Ribbon. </li>" +
                 "<li>For all TL.cct-functions, the combined settings in the 'Mode Flag' can be overruled by global settings defined in the 'Transform Settings' Dialog. </li>" +
                 "<li>Though it is possible to define a transform using a <b>single</b> (Wkt/Json/Proj) <b>string</b>, it is much preferred to apply <b>sourceCrs</b> and <b>targetCrs</b> to define a transform. " +
-                "In that case the PROJ library automatically finds the most suitable transform.</li></ol>",
+                "In that case the PROJ library automatically finds the most suitable transform.</li></ol>" +
+                "<p>With respect to point 3 above, <a href = \"https://docs.opengeospatial.org/is/18-010r7/18-010r7.html#1\" > the <b>Scope</b> of the WKT definition </a> mentions the following : </p>" +
+                "<p>The string defines frequently needed types of coordinate reference systems and coordinate operations in a self-contained form that is easily readable by machines and by humans. " +
+                "The essence is its simplicity; as a consequence there are some constraints upon the more open content allowed in ISO 19111. " +
+                "To retain simplicity in the well-known text (WKT) description of coordinate reference systems and coordinate operations, " +
+                "the scope of this document excludes parameter grouping and pass-through coordinate operations. </p>" + 
+                "<p>The text string provides a means for humans and machines to correctly and unambiguously interpret and utilise a coordinate reference system definition with look-ups or cross references " +
+                "only to define coordinate operation mathematics. A WKT string is not suitable for the storage of definitions of coordinate reference systems or coordinate operations " +
+                "because it omits metadata about the source of the data and may omit metadata about the applicability of the information.</p>" ,
             Example = "TL.cct.ApplyInverse(4326, EPSG:32632, {691875.63, 6098907.83}, 4) returns 12.000")]
         public static object ApplyInverse(
             [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
@@ -3705,6 +3721,7 @@ namespace TopoLib
                 }
 
                 // start core of function
+                
                 ChooseCoordinateTransform transforms = transform as ChooseCoordinateTransform;
                 CoordinateTransformList list = transform as CoordinateTransformList;
                 int count = (transforms != null) ? transforms.Count : 1;
