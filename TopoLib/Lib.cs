@@ -148,7 +148,7 @@ namespace TopoLib
                         "</ul>" +
                         "<p>Use the function without an input parameter to get the current verbose setting</p>" +
                         "<p>Using this function to set the logging level is not recommended, as it may interfere with setting the logging level from the TopoLib Ribbon!</p>.",
-            Example = "xxx")]
+            Example = "TL.lib.LoggingLevel() returns current logging level")]
         public static object SetLoggingLevel(
              [ExcelArgument("Use no arguments to get the current setting; use one argument [0, 1, 2, 3] (0) to set the logging level", Name = "Logging")] object oLogging)
         {
@@ -233,9 +233,9 @@ namespace TopoLib
             Category = "LIB - Library",
             HelpTopic = "TopoLib-AddIn.chm!1506",
 
-            Returns = "The input parameter",
-            Remarks = "This function takes one input parameter that is passed on",
-            Example = "xxx")]
+            Returns = "The input parameter, whilst raising the 'volatile' condition for the cell containing this formula",
+            Remarks = "This function is rarely needed. It takes one input parameter that is passed on, while a (partial) recalculation is enforced",
+            Example = "t.b.c")]
         public static object Volatile(
             [ExcelArgument("Volatile object", Name = "sourceCrsOrTransform")] object PassThrough)
         {

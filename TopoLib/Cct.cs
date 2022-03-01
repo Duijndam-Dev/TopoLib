@@ -287,7 +287,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
@@ -383,9 +383,12 @@ namespace TopoLib
                     "<li> 256: Transform strictly contains Area of Interest</li>" +
                     "<li> 512: Always Allow an Intermediate CRS</li>" +
                     "<li>1024: Never Allow an Intermediate CRS</li>" +
-            "</ul></pre>" +
-            "<p>Finally, some transforms require the use of one or more grid(s). Local/network access to these grids is controlled through the TopoLib Ribbon. </p>" +
-            "<p>For all TL.cct-functions, the combined settings in the 'Mode Flag' can be overruled by global settings defined in the 'Transform Settings' Dialog. </p>",
+            "</ul></pre><br>" +
+            "<p>Finally, please note the following aspects:</p>" +
+            "<ol><li>some transforms require the use of one or more grid(s). Local/network access to these grids is controlled through the TopoLib Ribbon. </li>" +
+                "<li>For all TL.cct-functions, the combined settings in the 'Mode Flag' can be overruled by global settings defined in the 'Transform Settings' Dialog. </li>" +
+                "<li>Though it is possible to define a transform using a <b>single</b> (Wkt/Json/Proj) <b>string</b>, it is much preferred to apply <b>sourceCrs</b> and <b>targetCrs</b> to define a transform. " +
+                "In that case the PROJ library automatically finds the most suitable transform.</li></ol>",
             Example = "TL.cct.ApplyForward(4326, EPSG:32632, {12.0, 55.0}, 4) returns 691875.632")]
         public static object ApplyForward(
             [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
@@ -410,7 +413,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Check specific input parameters
@@ -618,7 +621,7 @@ namespace TopoLib
             "</ol>",
             Remarks = "<p>Internally the transform uses <a href = \"https://proj.org/development/reference/functions.html#c.proj_normalize_for_visualization\"> crs normalization</a> by the proj library for a consistent approach to (x, y, z) values." +
             "<p>The axis order of a geographic CRS shall therefore be longitude, latitude [,height], and that of a projected CRS shall be easting, northing [, height]" +
-            "<p>When using a geographic CRS, coordinates should be presented in degrees (not radians)."+
+            "<p>When using a geographic CRS, coordinates should be presented in degrees (not radians)." +
             "<p>The 'Mode' flag combines values 0 - 7 for the output mode with binary flags to reduce the number of parameters in this function. These binary flags are:" +
             "<pre><ul><li>   8: Disallow Ballpark Conversions</li>" +
                     "<li>  16: Don't Discard Transform if Grid is missing</li>" +
@@ -628,9 +631,12 @@ namespace TopoLib
                     "<li> 256: Transform strictly contains Area of Interest</li>" +
                     "<li> 512: Always Allow an Intermediate CRS</li>" +
                     "<li>1024: Never Allow an Intermediate CRS</li>" +
-            "</ul></pre>" +
-            "<p>Finally, some transforms require the use of one or more grid(s). Local/network access to these grids is controlled through the TopoLib Ribbon. </p>" +
-            "<p>For all TL.cct-functions, the combined settings in the 'Mode Flag' can be overruled by global settings defined in the 'Transform Settings' Dialog. </p>",
+            "</ul></pre><br>" +
+            "<p>Finally, please note the following aspects:</p>" +
+            "<ol><li>some transforms require the use of one or more grid(s). Local/network access to these grids is controlled through the TopoLib Ribbon. </li>" +
+                "<li>For all TL.cct-functions, the combined settings in the 'Mode Flag' can be overruled by global settings defined in the 'Transform Settings' Dialog. </li>" +
+                "<li>Though it is possible to define a transform using a <b>single</b> (Wkt/Json/Proj) <b>string</b>, it is much preferred to apply <b>sourceCrs</b> and <b>targetCrs</b> to define a transform. " +
+                "In that case the PROJ library automatically finds the most suitable transform.</li></ol>",
             Example = "TL.cct.ApplyInverse(4326, EPSG:32632, {691875.63, 6098907.83}, 4) returns 12.000")]
         public static object ApplyInverse(
             [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
@@ -655,7 +661,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Check specific input parameters
@@ -839,7 +845,7 @@ namespace TopoLib
 
             Returns = "JSON-string describing the forward coordinate transform",
             Summary = "Returns a JSON-string describing a forward coordinate transform",
-            Example = "xxx",
+            Example = "See TL.cct.CreateForward(), using option '2'",
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object AsJsonString(
@@ -864,7 +870,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
@@ -894,7 +900,15 @@ namespace TopoLib
                 }
 
                 // start core of function
-                return transform.AsProjJson();
+                ChooseCoordinateTransform transforms = transform as ChooseCoordinateTransform;
+                if (transforms is null)
+                {
+                    return transform.AsProjJson();
+                }
+                else
+                {
+                    return transforms[0].AsProjJson();
+                }
                 // end core of function
             }
             catch (Exception ex)
@@ -920,7 +934,7 @@ namespace TopoLib
 
             Returns = "PROJ-string describing the forward coordinate transform",
             Summary = "Returns a PROJ-string describing a forward coordinate transform",
-            Example = "xxx",
+            Example = "See TL.cct.CreateForward(), using option '0'",
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object AsProjString(
@@ -945,7 +959,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
@@ -975,7 +989,15 @@ namespace TopoLib
                 }
 
                 // start core of function
-                return transform.AsProjString();
+                ChooseCoordinateTransform transforms = transform as ChooseCoordinateTransform;
+                if (transforms is null)
+                {
+                    return transform.AsProjString();
+                }
+                else
+                {
+                    return transforms[0].AsProjString();
+                }
                 // end core of function
             }
             catch (Exception ex)
@@ -1001,7 +1023,7 @@ namespace TopoLib
 
             Returns = "WKT-string describing the forward coordinate transform",
             Summary = "Returns a WellKnownText-string describing a forward coordinate transform",
-            Example = "xxx",
+            Example = "See TL.cct.CreateForward(), using option '1'",
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object AsWktString(
@@ -1026,7 +1048,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
@@ -1056,7 +1078,15 @@ namespace TopoLib
                 }
 
                 // start core of function
-                return transform.AsWellKnownText();
+                ChooseCoordinateTransform transforms = transform as ChooseCoordinateTransform;
+                if (transforms is null)
+                {
+                    return transform.AsWellKnownText();
+                }
+                else
+                {
+                    return transforms[0].AsWellKnownText();
+                }
                 // end core of function
             }
             catch (Exception ex)
@@ -1082,7 +1112,7 @@ namespace TopoLib
 
             Returns = "Name of the celestial body belonging to the coordinate transform",
             Summary = "Returns the name of the celestial body belonging to the coordinate transform",
-            Example = "xxx",
+            Example = "t.b.c.",
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object CelestialBodyName(
@@ -1107,7 +1137,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
@@ -1165,7 +1195,7 @@ namespace TopoLib
             Summary = "Creates a string representation of the forward coordinate transform in one of three different formats" +
                       "<p>If there are multiplee transforms available (transform list) the first transform of the list will be used.</p>",
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag",
-            Example = "xxx")]
+            Example = "TL.cct.CreateForward(7843, 7665, 0) returns +proj=pipeline +step +proj=unitconvert +xy_in=deg +z_in=m +xy_out=rad +z_out=m +step +proj=cart +ellps=GRS80 +step +proj=helmert +x=0 +y=0 +z=0 +rx=0 +ry=0 +rz=0 +s=0 +dx=0 +dy=0 +dz=0 +drx=-0.00150379 +dry=-0.00118346 +drz=-0.00120716 +ds=0 +t_epoch=2020 +convention=coordinate_frame +step +inv +proj=cart +ellps=WGS84 +step +proj=unitconvert +xy_in=rad +z_in=m +xy_out=deg +z_out=m")]
         public static object CreateForward(
             [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
             [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
@@ -1188,7 +1218,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Check specific input data
@@ -1275,7 +1305,7 @@ namespace TopoLib
             Summary = "Creates a string representation of the inverse coordinate transform in one of three different formats" +
                       "<p>If there are multiple transforms available (transform list) the first transform of the list will be used.</p>",
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag",
-            Example = "xxx")]
+            Example = "TL.cct.Transforms.CreateInverse(2393, 3067, 0) returns +proj=pipeline +step +inv +proj=utm +zone=35 +ellps=GRS80 +step +proj=push +v_3 +step +proj=cart +ellps=GRS80 +step +inv +proj=helmert +x=-96.062 +y=-82.428 +z=-121.753 +rx=-4.801 +ry=-0.345 +rz=1.376 +s=1.496 +convention=coordinate_frame +step +inv +proj=cart +ellps=intl +step +proj=pop +v_3 +step +proj=tmerc +lat_0=0 +lon_0=27 +k=1 +x_0=3500000 +y_0=0 +ellps=intl")]
         public static object CreateInverse(
             [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
             [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
@@ -1298,7 +1328,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Check specific input data
@@ -1409,7 +1439,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
@@ -1493,7 +1523,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Check specific input data
@@ -1583,7 +1613,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Check specific input data
@@ -1673,7 +1703,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Check specific input data
@@ -1762,7 +1792,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
@@ -1845,7 +1875,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
@@ -1902,7 +1932,7 @@ namespace TopoLib
 
             Returns = "Authority of Nth Identifier",
             Summary = "Function that returns Authority of <Nth> identifiers or <index out of range> when not found",
-            Example = "xxx",
+            Example = "t.b.c.",
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object Identifiers_Authority(
@@ -1928,7 +1958,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Check specific input data
@@ -1994,7 +2024,7 @@ namespace TopoLib
 
             Returns = "Code of Nth Identifier",
             Summary = "Function that returns Code of <Nth> identifiers or <index out of range> when not found",
-            Example = "xxx",
+            Example = "t.b.c.",
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object Identifiers_Code(
@@ -2020,7 +2050,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Check specific input data
@@ -2085,7 +2115,7 @@ namespace TopoLib
 
             Returns = "Number of identifiers used in a coordinate transform",
             Summary = "Returns the number of identifiers used in a coordinate transform",
-            Example = "xxx",
+            Example = "t.b.c.",
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object Identifiers_Count(
@@ -2110,7 +2140,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
@@ -2191,7 +2221,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
@@ -2273,7 +2303,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
@@ -2354,7 +2384,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
@@ -2435,7 +2465,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
@@ -2522,7 +2552,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Check specific input data
@@ -2594,7 +2624,7 @@ namespace TopoLib
 
             Returns = "Scope of the coordinate transform, if known",
             Summary = "Returns the scope of a coordinate transform, if known",
-            Example = "xxx",
+            Example = "Mainly used in multi-step transforms; Unknown in single-step transform",
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object Scope(
@@ -2619,7 +2649,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
@@ -2701,7 +2731,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Check specific input data
@@ -2799,7 +2829,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
@@ -2884,7 +2914,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Check specific input data
@@ -2961,7 +2991,7 @@ namespace TopoLib
             Remarks = "Every step in a multi-step coordinate transform, is basically a coordinate transform on its own" +
             "<p>By making the transform string available for each step, we prevent having to implement (duplicate) all transform functionality for 'TL.cct.Steps'." +
             "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag",
-            Example = "xxx")]
+            Example = "TL.cct.Steps.CreateInverse(25832, 25833, 0, 0) returns +proj=pipeline +step +proj=axisswap +order=2,1 +step +proj=unitconvert +xy_in=deg +xy_out=rad +step +proj=utm +zone=32 +ellps=GRS80")]
         public static object Steps_CreateInverse(
             [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
             [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
@@ -2985,7 +3015,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Check specific input data
@@ -3088,7 +3118,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Check specific input data
@@ -3175,7 +3205,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Check specific input data
@@ -3261,7 +3291,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Check specific input data
@@ -3359,7 +3389,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
@@ -3418,7 +3448,7 @@ namespace TopoLib
             Returns = "String of the forward transform for transform N in a coordinate transform list",
             Summary = "Creates a string representation of the forward transform for transform N in a coordinate transform list in one of three different formats",
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag",
-            Example = "xxx")]
+            Example = "TL.cct.Transforms.CreateForward(2393, 3067) returns +proj=pipeline +step +inv +proj=tmerc +lat_0=0 +lon_0=27 +k=1 +x_0=3500000 +y_0=0 +ellps=intl +step +proj=push +v_3 +step +proj=cart +ellps=intl +step +proj=helmert +x=-96.062 +y=-82.428 +z=-121.753 +rx=-4.801 +ry=-0.345 +rz=1.376 +s=1.496 +convention=coordinate_frame +step +inv +proj=cart +ellps=GRS80 +step +proj=pop +v_3 +step +proj=utm +zone=35 +ellps=GRS80")]
         public static object Transforms_CreateForward(
             [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
             [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
@@ -3442,7 +3472,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Check specific input data
@@ -3516,7 +3546,7 @@ namespace TopoLib
             Returns = "String of the inverse transform for transform N in a coordinate transform list",
             Summary = "Creates a string representation of the inverse transform for transform N in a coordinate transform list, in one of three different formats",
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag",
-            Example = "xxx")]
+            Example = "TL.cct.Transforms.CreateInverse(2393, 3067) returns +proj=pipeline +step +inv +proj=utm +zone=35 +ellps=GRS80 +step +proj=push +v_3 +step +proj=cart +ellps=GRS80 +step +inv +proj=helmert +x=-96.062 +y=-82.428 +z=-121.753 +rx=-4.801 +ry=-0.345 +rz=1.376 +s=1.496 +convention=coordinate_frame +step +inv +proj=cart +ellps=intl +step +proj=pop +v_3 +step +proj=tmerc +lat_0=0 +lon_0=27 +k=1 +x_0=3500000 +y_0=0 +ellps=intl")]
         public static object Transforms_CreateInverse(
             [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
             [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
@@ -3540,7 +3570,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Check specific input data
@@ -3642,7 +3672,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Check specific input data
@@ -3676,6 +3706,7 @@ namespace TopoLib
 
                 // start core of function
                 ChooseCoordinateTransform transforms = transform as ChooseCoordinateTransform;
+                CoordinateTransformList list = transform as CoordinateTransformList;
                 int count = (transforms != null) ? transforms.Count : 1;
 
                 object[,] res = new object[count + 1, 14];
@@ -3898,7 +3929,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
@@ -3957,7 +3988,7 @@ namespace TopoLib
 
             Returns = "Center Point of Usage Area of the coordinate transform",
             Summary = "Returns the Center Point of the Usage Area of a coordinate transform",
-            Example = "xxx",
+            Example = "t.b.c.",
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object UsageArea_Center(
@@ -3982,7 +4013,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
@@ -4048,7 +4079,7 @@ namespace TopoLib
 
             Returns = "X-value of the Center Point of the Usage Area of the coordinate transform",
             Summary = "Returns the x-value of the Center Point of the Usage Area of a coordinate transform",
-            Example = "xxx",
+            Example = "t.b.c.",
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object UsageArea_Center_X(
@@ -4073,7 +4104,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
@@ -4134,7 +4165,7 @@ namespace TopoLib
 
             Returns = "Maximum X-value of the Usage Area of the coordinate transform",
             Summary = "Returns the maximum X-value of the Usage Area of a coordinate transform",
-            Example = "xxx",
+            Example = "t.b.c.",
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object UsageArea_MaxX(
@@ -4159,7 +4190,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
@@ -4220,7 +4251,7 @@ namespace TopoLib
 
             Returns = "Maximum Y-value of the Usage Area of the coordinate transform",
             Summary = "Returns the maximum Y-value of the Usage Area of a coordinate transform",
-            Example = "xxx",
+            Example = "t.b.c.",
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object UsageArea_MaxY(
@@ -4245,7 +4276,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
@@ -4306,7 +4337,7 @@ namespace TopoLib
 
             Returns = "Minimum X-value of the Usage Area of the coordinate transform",
             Summary = "Returns the minimum X-value of the Usage Area of a coordinate transform",
-            Example = "xxx",
+            Example = "t.b.c.",
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object UsageArea_MinX(
@@ -4331,7 +4362,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
@@ -4392,7 +4423,7 @@ namespace TopoLib
 
             Returns = "Minimum Y-value of the Usage Area of the coordinate transform",
             Summary = "Returns the minimum Y-value of the Usage Area of a coordinate transform",
-            Example = "xxx",
+            Example = "t.b.c.",
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object UsageArea_MinY(
@@ -4417,7 +4448,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
@@ -4478,7 +4509,7 @@ namespace TopoLib
 
             Returns = "Y-value of the Center Point of the Usage Area of the coordinate transform",
             Summary = "Returns the y-value of the Center Point of the Usage Area of a coordinate transform",
-            Example = "xxx",
+            Example = "t.b.c.",
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object UsageArea_Center_Y(
@@ -4503,7 +4534,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
@@ -4564,7 +4595,7 @@ namespace TopoLib
 
             Returns = "Name of the Usage Area of the coordinate transform",
             Summary = "Returns the Name of the Usage Area of a coordinate transform",
-            Example = "xxx",
+            Example = "t.b.c.",
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object UsageArea_Name(
@@ -4589,7 +4620,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
@@ -4650,7 +4681,7 @@ namespace TopoLib
 
             Returns = "West Longitude of the Usage Area of the coordinate transform",
             Summary = "Returns the West Longitude of the Usage Area of a coordinate transform",
-            Example = "xxx",
+            Example = "t.b.c.",
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object UsageArea_WestLongitude(
@@ -4675,7 +4706,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
@@ -4736,7 +4767,7 @@ namespace TopoLib
 
             Returns = "East Longitude of the Usage Area of the coordinate transform",
             Summary = "Returns the East Longitude of the Usage Area of a coordinate transform",
-            Example = "xxx",
+            Example = "t.b.c.",
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object UsageArea_EastLongitude(
@@ -4761,7 +4792,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
@@ -4822,7 +4853,7 @@ namespace TopoLib
 
             Returns = "South Latitude of the Usage Area of the coordinate transform",
             Summary = "Returns the South Latitude of the Usage Area of a coordinate transform",
-            Example = "xxx",
+            Example = "t.b.c.",
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object UsageArea_SouthLatitude(
@@ -4847,7 +4878,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters
@@ -4908,7 +4939,7 @@ namespace TopoLib
 
             Returns = "North Latitude of the Usage Area of the coordinate transform",
             Summary = "Returns the North Latitude of the Usage Area of a coordinate transform",
-            Example = "xxx",
+            Example = "t.b.c.",
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object UsageArea_NorthLatitude(
@@ -4933,7 +4964,7 @@ namespace TopoLib
             double eastLongitude = Optional.Check(oEastLongitude, -1000.0);
             double northLatitude = Optional.Check(oNorthLatitude, -1000.0);
 
-            if (nMode < 0 || nMode > 4096)
+            if (nMode < 0 || nMode > 2048)
                 return ExcelError.ExcelErrorValue;
 
             // Deal with optional parameters

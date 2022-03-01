@@ -257,7 +257,7 @@ namespace TopoLib
 
             Returns = "short name of Nth axis in a coordinate reference system",
             Summary = "Returns the short name of Nth axis in a coordinate reference system",
-            Example = "xxx")]
+            Example = "TL.crs.CoordinateSystem.Axis.Abbreviation(3857) returns X")]
         public static object Axis_Abbreviation(
             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
             [ExcelArgument("Zero based index of Axis list (0) ", Name = "Index")] object index)
@@ -301,7 +301,7 @@ namespace TopoLib
 
              Returns = "Nr of axis in a coordinate reference system",
              Summary = "Function that returns nr of axes in of Coordinate Reference System or -1 if not found",
-             Example = "xxx"
+             Example = "TL.crs.CoordinateSystem.Axis.Count(3857) returns 2"
          )]
         public static object Axis_Count(
              [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
@@ -380,7 +380,7 @@ namespace TopoLib
 
             Returns = "name of Nth axis in a coordinate reference system",
             Summary = "Returns the name of Nth axis in a coordinate system",
-            Example = "xxx")]
+            Example = "TL.crs.CoordinateSystem.Axis.Name(3875, 1) returns Northing")]
         public static object Axis_Name(
             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
             [ExcelArgument("Zero based index of Identifier list (0) ", Name = "Index")] object index)
@@ -423,7 +423,7 @@ namespace TopoLib
 
             Returns = "authority name of Nth axis in a coordinate reference system",
             Summary = "Returns the authority name of Nth axis in a coordinate reference system",
-            Example = "xxx")]
+            Example = "TL.crs.CoordinateSystem.Axis.UnitName(23095, 1) returns metre")]
         public static object Axis_UnitAuthName(
             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
             [ExcelArgument("Zero based index of Axis list (0) ", Name = "Index")] object index)
@@ -466,7 +466,7 @@ namespace TopoLib
 
             Returns = "authority name of Nth axis in a coordinate reference system",
             Summary = "Returns the authority name of Nth axis in a coordinate reference system",
-            Example = "xxx")]
+            Example = "TL.crs.CoordinateSystem.Axis.UnitCode(3857, 1) returns 9001")]
         public static object Axis_UnitCode(
             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
             [ExcelArgument("Zero based index of Axis list (0) ", Name = "Index")] object index)
@@ -509,7 +509,7 @@ namespace TopoLib
 
             Returns = "Unit Conversion Factorof Nth axis in a coordinate reference system",
             Summary = "Returns the Unit Conversion Factor of Nth axis in a coordinate reference system",
-            Example = "xxx")]
+            Example = "TL.crs.CoordinateSystem.Axis.UnitConversionFactor(3857) returns 1.00")]
         public static object Axis_UnitConversionFactor(
             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
             [ExcelArgument("Zero based index of Axis list (0) ", Name = "Index")] object index)
@@ -549,7 +549,7 @@ namespace TopoLib
 
             Returns = "unit name of Nth axis in a coordinate reference system",
             Summary = "Returns the unit name of Nth axis in a coordinate reference system",
-            Example = "xxx")]
+            Example = "TL.crs.PrimeMeridian.UnitName(357) returns degree")]
         public static object Axis_UnitName(
             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
             [ExcelArgument("Zero based index of Axis list (0) ", Name = "Index")] object index)
@@ -592,7 +592,7 @@ namespace TopoLib
 
              Returns = "The name of the appropriate celestial body",
              Summary = "Function that returns name of the appropriate celestial body for this CRS or &ltNotFound&gt if not found",
-             Example = "xxx"
+             Example = "TL.crs.CelestialBodyName(3857) returns Earth"
          )]
         public static object CelestialBodyName(
              [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
@@ -1376,11 +1376,11 @@ namespace TopoLib
             Name = "TL.crs.GeoArea",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets surface area defined by multiple (at least 3) points in a polygon defined in a Coordinate Reference System",
-            HelpTopic = "TopoLib-AddIn.chm!1337",
+            HelpTopic = "TopoLib-AddIn.chm!1331",
 
             Returns = "surface area defined by multiple (at least 3) points in a polygon [m2]",
             Summary = "Function that returns surface area defined by multiple (at least 3) points in a polygon defined in a Coordinate Reference System, or #NA error if CRS not found",
-            Example = "xxx"
+            Example = "TL.crs.GeoArea(23031, {{554073.0, 5885683.0}, {572955.0, 5886200.0}, {572415.0, 5905245.0}, {553511.0, 5904706.0}}) returns 360153022.6"
          )]
         public static object GeoArea(
             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
@@ -1445,7 +1445,7 @@ namespace TopoLib
             Name = "TL.crs.GeoDistance",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets distance between two points (or between multiple points in a poly-line), defined in a Coordinate Reference System, ignoring elevation differences",
-            HelpTopic = "TopoLib-AddIn.chm!1337",
+            HelpTopic = "TopoLib-AddIn.chm!1332",
 
             Returns = "Distance between two (or more) points in [m]",
             Summary = "Function that returns distance between two points (or between multiple points in a poly-line), defined in a Coordinate Reference System, ignoring elevation differences or #NA error if CRS not found",
@@ -1545,7 +1545,7 @@ namespace TopoLib
             Name = "TL.crs.GeoDistanceZ",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets distance between two points (or between multiple points in a poly-line), defined in a Coordinate Reference System, honoring elevation differences",
-            HelpTopic = "TopoLib-AddIn.chm!1337",
+            HelpTopic = "TopoLib-AddIn.chm!1333",
 
             Returns = "Distance between two (or more) points in [m]",
             Summary = "Function that returns distance between two points (or between multiple points in a poly-line), defined in a Coordinate Reference System, honoring elevation differences or #NA error if CRS not found",
@@ -1645,7 +1645,7 @@ namespace TopoLib
              Name = "TL.crs.Identifiers.Authority",
              Category = "CRS - Coordinate Reference System",
              Description = "Gets Authority of Identifier N",
-             HelpTopic = "TopoLib-AddIn.chm!1331",
+             HelpTopic = "TopoLib-AddIn.chm!1334",
 
              Returns = "Authority of Nth Identifier",
              Summary = "Function that returns Authority of <Nth> identifiers or <index out of range> when not found",
@@ -1690,7 +1690,7 @@ namespace TopoLib
              Name = "TL.crs.Identifiers.Code",
              Category = "CRS - Coordinate Reference System",
              Description = "Gets Code of Identifier N",
-             HelpTopic = "TopoLib-AddIn.chm!1332",
+             HelpTopic = "TopoLib-AddIn.chm!1335",
 
              Returns = "Code of Nth Identifiers",
              Summary = "Function that returns the Code of the <Nth> identifier or <index out of range> when not found",
@@ -1734,7 +1734,7 @@ namespace TopoLib
              Name = "TL.crs.Identifiers.Count",
              Category = "CRS - Coordinate Reference System",
              Description = "Gets number of Identifiers",
-             HelpTopic = "TopoLib-AddIn.chm!1333",
+             HelpTopic = "TopoLib-AddIn.chm!1336",
 
              Returns = "Number of CRS Identifiers",
              Summary = "Function that returns nr of CRS identifiers or 0 if none found",
@@ -1770,7 +1770,7 @@ namespace TopoLib
              Name = "TL.crs.IsDeprecated",
              Category = "CRS - Coordinate Reference System",
              Description = "Confirms whether when size of semi-minor axis has been calculated",
-             HelpTopic = "TopoLib-AddIn.chm!1334",
+             HelpTopic = "TopoLib-AddIn.chm!1337",
 
              Returns = "TRUE when CRS is deprecated; FALSE when not",
              Summary = "Function that confirms whether the CRS is deprecated",
@@ -1804,7 +1804,7 @@ namespace TopoLib
             Name = "TL.crs.IsEquivalentTo",
             Category = "CRS - Coordinate Reference System",
             Description = "Confirms whether two different CRSs are equivalent",
-            HelpTopic = "TopoLib-AddIn.chm!1335",
+            HelpTopic = "TopoLib-AddIn.chm!1338",
 
             Returns = "TRUE when the two different CRSs are equivalent; FALSE when not",
             Summary = "Function that checks whether two different CRSs are equivalent",
@@ -1842,7 +1842,7 @@ namespace TopoLib
             Name = "TL.crs.IsEquivalentToRelaxed",
             Category = "CRS - Coordinate Reference System",
             Description = "Confirms whether two different CRSs are equivalent with the axes in any order",
-            HelpTopic = "TopoLib-AddIn.chm!1336",
+            HelpTopic = "TopoLib-AddIn.chm!1339",
 
             Returns = "TRUE when the two different CRSs are equivalent with the axes in any order; FALSE when not",
             Summary = "Function that checks whether two different CRSs are equivalent with the axes in any order",
@@ -1880,7 +1880,7 @@ namespace TopoLib
              Name = "TL.crs.Name",
              Category = "CRS - Coordinate Reference System",
              Description = "Gets name of Coordinate Reference System",
-             HelpTopic = "TopoLib-AddIn.chm!1337",
+             HelpTopic = "TopoLib-AddIn.chm!1340",
 
              Returns = "CRS name",
              Summary = "Function that returns name of CRS or &ltNotFound&gt if not found",
@@ -1919,7 +1919,7 @@ namespace TopoLib
              Name = "TL.crs.GeodeticCRS.Name",
              Category = "CRS - Coordinate Reference System",
              Description = "Gets name of Geodetic Coordinate Reference System",
-             HelpTopic = "TopoLib-AddIn.chm!1338",
+             HelpTopic = "TopoLib-AddIn.chm!1341",
 
              Returns = "CRS name",
              Summary = "Function that returns name of Geodetic CRS or &ltNotFound&gt if not found",
@@ -1958,7 +1958,7 @@ namespace TopoLib
              Name = "TL.crs.GeodeticCRS.Type",
              Category = "CRS - Coordinate Reference System",
              Description = "Gets type of Geodetic Coordinate Reference System",
-             HelpTopic = "TopoLib-AddIn.chm!1339",
+             HelpTopic = "TopoLib-AddIn.chm!1342",
 
              Returns = "CRS name",
              Summary = "Function that returns type of Geodetic CRS or &ltNotFound&gt if not found",
@@ -1997,7 +1997,7 @@ namespace TopoLib
              Name = "TL.crs.PrimeMeridian.Name",
              Category = "CRS - Coordinate Reference System",
              Description = "Gets name of prime meridean of coordinate reference system",
-             HelpTopic = "TopoLib-AddIn.chm!1340",
+             HelpTopic = "TopoLib-AddIn.chm!1343",
 
              Returns = "Name of prime meridean of CRS",
              Summary = "Function that returns name of prime meridean of CRS or &ltNotFound&gt if not found",
@@ -2036,7 +2036,7 @@ namespace TopoLib
              Name = "TL.crs.PrimeMeridian.Longitude",
              Category = "CRS - Coordinate Reference System",
              Description = "Gets longitude of prime miridian in degrees",
-             HelpTopic = "TopoLib-AddIn.chm!1341",
+             HelpTopic = "TopoLib-AddIn.chm!1344",
 
              Returns = "Longitude of prime miridian in degrees",
              Summary = "Function that returns longitude of prime miridian in degrees or -1 if not found",
@@ -2072,7 +2072,7 @@ namespace TopoLib
              Name = "TL.crs.PrimeMeridian.UnitConversionFactor",
              Category = "CRS - Coordinate Reference System",
              Description = "Gets unit conversion factor of prime miridian in degrees",
-             HelpTopic = "TopoLib-AddIn.chm!1342",
+             HelpTopic = "TopoLib-AddIn.chm!1345",
 
              Returns = "Unit conversion factor of prime meridian ",
              Summary = "Function that returns unit conversion factor of prime meridian or -1 if not found",
@@ -2108,7 +2108,7 @@ namespace TopoLib
              Name = "TL.crs.PrimeMeridian.UnitName",
              Category = "CRS - Coordinate Reference System",
              Description = "Gets name of prime meridean of coordinate reference system",
-             HelpTopic = "TopoLib-AddIn.chm!1343",
+             HelpTopic = "TopoLib-AddIn.chm!1346",
 
              Returns = "Name of prime meridean of CRS",
              Summary = "Function that returns name of prime meridean of CRS or &ltNotFound&gt if not found",
@@ -2147,7 +2147,7 @@ namespace TopoLib
              Name = "TL.crs.Scope",
              Category = "CRS - Coordinate Reference System",
              Description = "Gets scope of Coordinate Reference System",
-             HelpTopic = "TopoLib-AddIn.chm!1344",
+             HelpTopic = "TopoLib-AddIn.chm!1347",
 
              Returns = "CRS Scope",
              Summary = "Function that returns scope of CRS or &ltNotFound&gt if not found",
@@ -2186,7 +2186,7 @@ namespace TopoLib
              Name = "TL.crs.Type",
              Category = "CRS - Coordinate Reference System",
              Description = "Gets type of coordinate reference system",
-             HelpTopic = "TopoLib-AddIn.chm!1345",
+             HelpTopic = "TopoLib-AddIn.chm!1348",
 
              Returns = "Ttype of coordinate reference system",
              Summary = "Function that returns type of coordinate reference system",
@@ -2225,7 +2225,7 @@ namespace TopoLib
              Name = "TL.crs.UsageArea.Center",
              Category = "CRS - Coordinate Reference System",
              Description = "Gets center point of CRS usage area",
-             HelpTopic = "TopoLib-AddIn.chm!1346",
+             HelpTopic = "TopoLib-AddIn.chm!1349",
 
              Returns = "Center point of CRS usage area",
              Summary = "Function that returns center point of CRS Usage Area in two adjacent cells",
@@ -2265,7 +2265,7 @@ namespace TopoLib
              Name = "TL.crs.UsageArea.Center.HasValues",
              Category = "CRS - Coordinate Reference System",
              Description = "Confirms whether the center point in the usage area has values",
-             HelpTopic = "TopoLib-AddIn.chm!1347",
+             HelpTopic = "TopoLib-AddIn.chm!1350",
 
              Returns = "TRUE when the center point in the usage area has values; FALSE when not",
              Summary = "Function that confirms whether the center point in the usage area has values",
@@ -2299,7 +2299,7 @@ namespace TopoLib
              Name = "TL.crs.UsageArea.Center.X",
              Category = "CRS - Coordinate Reference System",
              Description = "Gets x-value of center point of CRS usage area",
-             HelpTopic = "TopoLib-AddIn.chm!1348",
+             HelpTopic = "TopoLib-AddIn.chm!1351",
 
              Returns = "X-value of center point of CRS usage area",
              Summary = "Function that returns x-value of center point of CRS Usage Area",
@@ -2333,7 +2333,7 @@ namespace TopoLib
              Name = "TL.crs.UsageArea.Center.Y",
              Category = "CRS - Coordinate Reference System",
              Description = "Gets y-value of center point of CRS usage area",
-             HelpTopic = "TopoLib-AddIn.chm!1349",
+             HelpTopic = "TopoLib-AddIn.chm!1352",
 
              Returns = "Y-value of center point of CRS usage area",
              Summary = "Function that returns y-value of center point of CRS Usage Area",
@@ -2367,7 +2367,7 @@ namespace TopoLib
              Name = "TL.crs.UsageArea.MaxX",
              Category = "CRS - Coordinate Reference System",
              Description = "Gets maximum X-value of CRS usage area",
-             HelpTopic = "TopoLib-AddIn.chm!1350",
+             HelpTopic = "TopoLib-AddIn.chm!1353",
 
              Returns = "Maximum X-value of CRS usage area",
              Summary = "Function that returns maximum X-value of CRS Usage Area",
@@ -2400,7 +2400,7 @@ namespace TopoLib
              Name = "TL.crs.UsageArea.MaxY",
              Category = "CRS - Coordinate Reference System",
              Description = "Gets maximum Y-value of CRS usage area",
-             HelpTopic = "TopoLib-AddIn.chm!1351",
+             HelpTopic = "TopoLib-AddIn.chm!1354",
 
              Returns = "Maximum Y-value of CRS usage area",
              Summary = "Function that returns maximum Y-value of CRS Usage Area",
@@ -2433,7 +2433,7 @@ namespace TopoLib
              Name = "TL.crs.UsageArea.MinX",
              Category = "CRS - Coordinate Reference System",
              Description = "Gets minimum X-value of CRS usage area",
-             HelpTopic = "TopoLib-AddIn.chm!1352",
+             HelpTopic = "TopoLib-AddIn.chm!1355",
 
              Returns = "Minimum X-value of CRS usage area",
              Summary = "Function that returns minimum X-value of CRS Usage Area",
@@ -2466,7 +2466,7 @@ namespace TopoLib
              Name = "TL.crs.UsageArea.MinY",
              Category = "CRS - Coordinate Reference System",
              Description = "Gets minimum Y-value of CRS usage area",
-             HelpTopic = "TopoLib-AddIn.chm!1353",
+             HelpTopic = "TopoLib-AddIn.chm!1356",
 
              Returns = "Minimum Y-value of CRS usage area",
              Summary = "Function that returns minimum Y-value of CRS Usage Area",
@@ -2499,7 +2499,7 @@ namespace TopoLib
              Name = "TL.crs.UsageArea.Name",
              Category = "CRS - Coordinate Reference System",
              Description = "Gets name of CRS usage area",
-             HelpTopic = "TopoLib-AddIn.chm!1354",
+             HelpTopic = "TopoLib-AddIn.chm!1357",
 
              Returns = "Name of CRS usage area",
              Summary = "Function that returns name of usage area or &ltNotFound&gt if not found",
@@ -2538,7 +2538,7 @@ namespace TopoLib
              Name = "TL.crs.UsageArea.WestLongitude",
              Category = "CRS - Coordinate Reference System",
              Description = "Gets the west longitude of CRS usage area",
-             HelpTopic = "TopoLib-AddIn.chm!1355",
+             HelpTopic = "TopoLib-AddIn.chm!1358",
 
              Returns = "West longitude of CRS usage area",
              Summary = "Function that returns west longitude of usage area or &ltNotFound&gt if not found",
@@ -2574,7 +2574,7 @@ namespace TopoLib
              Name = "TL.crs.UsageArea.EastLongitude",
              Category = "CRS - Coordinate Reference System",
              Description = "Gets east longitude of CRS usage area",
-             HelpTopic = "TopoLib-AddIn.chm!1356",
+             HelpTopic = "TopoLib-AddIn.chm!1359",
 
              Returns = "East longitude of CRS usage area",
              Summary = "Function that returns east longitude of usage area or &ltNotFound&gt if not found",
@@ -2610,7 +2610,7 @@ namespace TopoLib
              Name = "TL.crs.UsageArea.SouthLatitude",
              Category = "CRS - Coordinate Reference System",
              Description = "Gets south latitude of CRS usage area",
-             HelpTopic = "TopoLib-AddIn.chm!1357",
+             HelpTopic = "TopoLib-AddIn.chm!1360",
 
              Returns = "South latitude of CRS usage area",
              Summary = "Function that returns south latitude of usage area or &ltNotFound&gt if not found",
@@ -2646,7 +2646,7 @@ namespace TopoLib
              Name = "TL.crs.UsageArea.NorthLatitude",
              Category = "CRS - Coordinate Reference System",
              Description = "Gets north latitude of CRS usage area",
-             HelpTopic = "TopoLib-AddIn.chm!1358",
+             HelpTopic = "TopoLib-AddIn.chm!1361",
 
              Returns = "South latitude of CRS usage area",
              Summary = "Function that returns north latitude of usage area or &ltNotFound&gt if not found",

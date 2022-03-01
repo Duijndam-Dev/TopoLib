@@ -136,13 +136,13 @@
   </Target>
   <PropertyGroup>
     <PostBuildEvent>REM copy 64-bit SharpProj.dll to output folder (for ExcelDnaDoc to work)
-if $(ConfigurationName)==Release  copy /Y "D:\Source\VS19\TopoLib\packages\SharpProj.Core.8.2001.106\runtimes\win-x64\lib\net45\SharpProj.dll" "$(TargetDir)"
+if $(ConfigurationName)==Release  copy /Y "D:\Source\VS19\TopoLib\packages\SharpProj.Core.8.2001.128\runtimes\win-x64\lib\net45\SharpProj.dll" "$(TargetDir)"
 
 REM run ExcelDnaDoc
 if $(ConfigurationName)==Release  "D:\Source\VS19\TopoLib\packages\ExcelDnaDoc.1.5.1\tools\ExcelDnaDoc.exe" "$(TargetDir)TopoLib-AddIn.dna" /X
 
 REM copy 32-bit SharpProj.dll back to output folder (running 32-bit Excel)
-if $(ConfigurationName)==Release  copy /Y "D:\Source\VS19\TopoLib\packages\SharpProj.Core.8.2001.106\runtimes\win-x86\lib\net45\SharpProj.dll" "$(TargetDir)"
+if $(ConfigurationName)==Release  copy /Y "D:\Source\VS19\TopoLib\packages\SharpProj.Core.8.2001.128\runtimes\win-x86\lib\net45\SharpProj.dll" "$(TargetDir)"
 
 REM cleanup RazorEngine files in temp folder. 
 REM See https://superuser.com/questions/764348/using-wildcards-with-the-rmdir-or-rd-command
