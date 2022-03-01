@@ -3761,51 +3761,58 @@ namespace TopoLib
                 if (count == 1)
                 {
                     string ids = transform.Identifier?.ToString();
-                    string scopes = transform.Scope;
-                    string remarks = transform.Remarks;
+                    string scopes = Optional.CheckUnknown(transform.Scope);
+                    string remarks = Optional.CheckUnknown(transform.Remarks, "None");
                     if (ids == null && transform is CoordinateTransformList ctl)
                     {
                         ids = string.Join(", ", ctl.Where(x => x.Identifiers != null).SelectMany(x => x.Identifiers));
                         scopes = string.Join("  ", ctl.Select(x => x.Scope).Where(x => x != null).Distinct());
                         remarks = string.Join("  ", ctl.Select(x => x.Remarks).Where(x => x != null).Distinct());
-                        remarks = remarks.TrimStart();
+
+                        ids     = Optional.CheckUnknown(ids.TrimStart(' ', ','));
+                        scopes  = Optional.CheckUnknown(scopes.TrimStart(' ', ','));
+                        remarks = Optional.CheckUnknown(remarks.TrimStart(' ', ','), "None");
                     }
 
-                    if (transform.Accuracy is null || transform.Accuracy <= 0.0) 
-                    { 
-                        accuracy = "Unknown"; 
-                    } 
-                    else
-                    {
-                        accuracy = transform.Accuracy;
-                    }
+                    accuracy = Optional.CheckUnknown(transform.Accuracy);
 
                     string grid1 = "N.A."; 
                     string grid2 = "N.A."; 
                     if (transform.GridUsages.Count > 0)
                     {
                         grid1  = transform.GridUsages[0].FullName;
-                        if (string.IsNullOrEmpty(grid1))
-                            grid1 = "Missing";
+                        Optional.CheckUnknown(grid1, "Missing");
                     }
 
                     if (transform.GridUsages.Count > 1)
                     {
                         grid2  = transform.GridUsages[1].FullName;
-                        if (string.IsNullOrEmpty(grid2))
-                            grid2 = "Missing";
+                        Optional.CheckUnknown(grid2, "Missing");
                     }
 
                     res[1,  0] = transform.Identifiers is null ? ids : transform.Identifier.Authority;;
                     res[1,  1] = transform.Name;
                     res[1,  2] = accuracy;
-                    res[1,  3] = transform.UsageArea.Name;
                     res[1,  4] = scopes;
                     res[1,  5] = remarks;
-                    res[1,  6] = transform.UsageArea.WestLongitude;
-                    res[1,  7] = transform.UsageArea.EastLongitude;
-                    res[1,  8] = transform.UsageArea.SouthLatitude;
-                    res[1,  9] = transform.UsageArea.NorthLatitude;
+
+                    if (transform.UsageArea != null)
+                    {
+                        res[1,  3] = transform.UsageArea.Name;
+                        res[1,  6] = transform.UsageArea.WestLongitude;
+                        res[1,  7] = transform.UsageArea.EastLongitude;
+                        res[1,  8] = transform.UsageArea.SouthLatitude;
+                        res[1,  9] = transform.UsageArea.NorthLatitude;
+                    }
+                    else
+                    {
+                        res[1, 3] = "Unknown";
+                        res[1,  6] = -1000;
+                        res[1,  7] = -1000;
+                        res[1,  8] = -1000;
+                        res[1,  9] = -1000;
+                    }
+
                     res[1, 10] = transform.GridUsages.Count;
                     res[1, 11] = grid1;
                     res[1, 12] = grid2;
@@ -3829,24 +3836,20 @@ namespace TopoLib
                     for (int i = 0; i < count; i++)
                     {
                         string ids = transforms[i].Identifier?.ToString();
-                        string scopes = transforms[i].Scope;
-                        string remarks = transforms[i].Remarks;
+                        string scopes = Optional.CheckUnknown(transforms[i].Scope);
+                        string remarks = Optional.CheckUnknown(transforms[i].Remarks, "None");
                         if (ids == null && transforms[i] is CoordinateTransformList ctl)
                         {
                             ids = string.Join(", ", ctl.Where(x => x.Identifiers != null).SelectMany(x => x.Identifiers));
                             scopes = string.Join("  ", ctl.Select(x => x.Scope).Where(x => x != null).Distinct());
                             remarks = string.Join("  ", ctl.Select(x => x.Remarks).Where(x => x != null).Distinct());
-                            remarks = remarks.TrimStart();
+
+                            ids     = Optional.CheckUnknown(ids.TrimStart(' ', ','));
+                            scopes  = Optional.CheckUnknown(scopes.TrimStart(' ', ','));
+                            remarks = Optional.CheckUnknown(remarks.TrimStart(' ', ','), "None");
                         }
 
-                         if (transforms[i].Accuracy is null || transforms[i].Accuracy <= 0.0)
-                        { 
-                            accuracy = "Unknown"; 
-                        } 
-                        else 
-                        { 
-                            accuracy = transforms[i].Accuracy;
-                        }
+                        accuracy = Optional.CheckUnknown(transforms[i].Accuracy);
 
                         string grid1 = "N.A.";
                         string grid2 = "N.A.";
@@ -3854,27 +3857,37 @@ namespace TopoLib
                         if (transforms[i].GridUsages.Count > 0)
                         {
                             grid1  = transforms[i].GridUsages[0].FullName;
-                            if (string.IsNullOrEmpty(grid1))
-                                grid1 = "Missing";
+                            Optional.CheckUnknown(grid1, "Missing");
                         }
 
                         if (transforms[i].GridUsages.Count > 1)
                         {
                             grid2  = transforms[i].GridUsages[1].FullName;
-                            if (string.IsNullOrEmpty(grid2))
-                                grid2 = "Missing";
+                            Optional.CheckUnknown(grid2, "Missing");
                         }
 
                         res[i + 1,  0] = transforms[i].Identifiers is null ? ids : transforms[i].Identifier.Authority;
                         res[i + 1,  1] = transforms[i].Name;
                         res[i + 1,  2] = accuracy;
-                        res[i + 1,  3] = transforms[i].UsageArea.Name;
                         res[i + 1,  4] = scopes;
                         res[i + 1,  5] = remarks;
-                        res[i + 1,  6] = transforms[i].UsageArea.WestLongitude;
-                        res[i + 1,  7] = transforms[i].UsageArea.EastLongitude;
-                        res[i + 1,  8] = transforms[i].UsageArea.SouthLatitude;
-                        res[i + 1,  9] = transforms[i].UsageArea.NorthLatitude;
+                        if (transforms[i].UsageArea != null)
+                        {
+                            res[i + 1,  3] = transforms[i].UsageArea.Name;
+                            res[i + 1,  6] = transforms[i].UsageArea.WestLongitude;
+                            res[i + 1,  7] = transforms[i].UsageArea.EastLongitude;
+                            res[i + 1,  8] = transforms[i].UsageArea.SouthLatitude;
+                            res[i + 1,  9] = transforms[i].UsageArea.NorthLatitude;
+                        }
+                        else
+                        {
+                            res[1, 3] = "Unknown";
+                            res[1,  6] = -1000;
+                            res[1,  7] = -1000;
+                            res[1,  8] = -1000;
+                            res[1,  9] = -1000;
+                        }
+
                         res[i + 1, 10] = transforms[i].GridUsages.Count;
                         res[i + 1, 11] = grid1;
                         res[i + 1, 12] = grid2;

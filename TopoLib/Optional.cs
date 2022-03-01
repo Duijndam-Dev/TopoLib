@@ -135,6 +135,34 @@ namespace TopoLib
             return result;
         }
 
+        internal static object CheckUnknown(double? value, string message = "Unknown")
+        {
+            object result;
+            if (value is null || (value < 0))
+            {
+                result = message;
+            }
+            else
+            {
+                result = value;
+            }
+            return result;
+        }
+
+        internal static string CheckUnknown(string value, string message = "Unknown")
+        {
+            string result;
+            if (string.IsNullOrEmpty(value) || string.IsNullOrWhiteSpace(value) )
+            {
+                result = message;
+            }
+            else
+            {
+                result = value;
+            }
+            return result;
+        }
+
     } // class Optional
 #pragma warning restore IDE0038 // Use pattern matching
 
