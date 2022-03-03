@@ -123,7 +123,7 @@ namespace TopoLib
         [ExcelFunctionDoc(
             IsVolatile = true,
             Name = "TL.env.GetEnvironmentVariableValue",
-            Description = "reads a [key, value] pair in the environment settings",
+            Description = "Gets the value from a  [key, value] pair in the environment settings",
             Category = "ENV - Environment",
             HelpTopic = "TopoLib-AddIn.chm!1402",
 

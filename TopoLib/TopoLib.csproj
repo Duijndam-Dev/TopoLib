@@ -74,8 +74,10 @@
     <Compile Include="AddIn.cs" />
     <Compile Include="Crs.cs" />
     <Compile Include="CustomRibbon.cs" />
+    <Compile Include="Deg.cs" />
     <Compile Include="Env.cs" />
     <Compile Include="FolderPicker.cs" />
+    <Compile Include="Gps.cs" />
     <Compile Include="Lib.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="Optional.cs" />

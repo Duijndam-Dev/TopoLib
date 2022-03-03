@@ -97,7 +97,7 @@ namespace TopoLib
 
         [ExcelFunctionDoc(
             Name = "TL.lib.InstallationPath",
-            Description = "Returns the path where library is installed",
+            Description = "Returns the path where the library is installed",
             Category = "LIB - Library",
             HelpTopic = "TopoLib-AddIn.chm!1502",
 

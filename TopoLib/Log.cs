@@ -34,7 +34,7 @@ namespace TopoLib
 
         [ExcelFunctionDoc(
             Name = "TL.log.Verbose",
-            Description = "Writes a `Verbose` message to the LogDisplay via Serilog",
+            Description = "Writes a `Verbose` message to the LogDisplay",
             Category = "LOG - Logging",
             HelpTopic = "TopoLib-AddIn.chm!1600",
 
@@ -48,7 +48,7 @@ namespace TopoLib
 
         [ExcelFunctionDoc(
             Name = "TL.log.Debug",
-            Description = "Writes a `Debug` message to the LogDisplay via Serilog",
+            Description = "Writes a `Debug` message to the LogDisplay",
             Category = "LOG - Logging",
             HelpTopic = "TopoLib-AddIn.chm!1601",
 
@@ -92,7 +92,7 @@ namespace TopoLib
 */
         [ExcelFunctionDoc(
             Name = "TL.log.Error",
-            Description = "Writes an `Error` message to the LogDisplay via Serilog",
+            Description = "Writes an `Error` message to the LogDisplay",
             Category = "LOG - Logging",
             HelpTopic = "TopoLib-AddIn.chm!1604",
 
