@@ -8,14 +8,17 @@ using System.Threading.Tasks;
 using ExcelDna.Integration;
 using ExcelDna.Documentation;
 
-// This class is intended to deal with angles in various forms and shapes (digital minutes DMS, etc)
+// This class is intended to deal with angles in various forms and shapes (DD, DMM, DMS, etc)
 // Routines are loosely based on the GitHub DotSpatial project. See :
 // https://github.com/DotSpatial/DotSpatial/blob/master/Source/DotSpatial.Positioning/Angle.cs
 // https://stackoverflow.com/questions/38151856/how-to-convert-a-location-in-degrees-minutes-seconds-represented-as-a-string-to
 // http://spiff.rit.edu/tass/bait.old/convert.c
 // https://docs.microsoft.com/en-us/office/troubleshoot/excel/convert-degrees-minutes-seconds-angles
 // https://stackoverflow.com/questions/5786025/decimal-degrees-to-degrees-minutes-and-seconds-in-javascript
-
+// https://flyandwire.com/2020/08/10/back-to-basics-latitude-and-longitude-dms-dd-ddm/
+// https://www.maptools.com/tutorials/lat_lon/formats
+// https://en.wikipedia.org/wiki/Decimal_degrees
+// https://gsp.humboldt.edu/olm/Lessons/GIS/01%20SphericalCoordinates/Reporting_Geographic_Coordinates.html
 
 
 namespace TopoLib
@@ -24,25 +27,33 @@ namespace TopoLib
     {
         internal const int    MaximumPrecisionDigits = 12;
         internal const double PI = 3.1415926535897932384626433832795;
+        internal const string doubleDot = "Only the right most part can be a fractional number";
 
         private static int Hours(double degrees)
         {
-            return (int)Math.Truncate(degrees);
+            int i = (int)Math.Truncate(degrees);
+            return i;
         }
 
         private static int Minutes(double degrees)
         {
-            return Convert.ToInt32(Math.Abs(Math.Truncate(Math.Round((degrees - Hours(degrees)) * 60.0, MaximumPrecisionDigits - 1))));
+            // return Convert.ToInt32(Math.Abs(Math.Truncate(Math.Round((degrees - Hours(degrees)) * 60.0, MaximumPrecisionDigits - 1))));
+            int i = (int)Math.Abs(Math.Truncate((degrees - Hours(degrees)) * 60.0));
+            return i;
         }
 
         private static double DecimalMinutes(double degrees)
         {
-            return Math.Round((Math.Abs(degrees - Math.Truncate(degrees)) * 60.0), MaximumPrecisionDigits - 2);
+            // return Math.Round((Math.Abs(degrees - Math.Truncate(degrees)) * 60.0), MaximumPrecisionDigits - 2);
+            double d = Math.Abs(degrees - Math.Truncate(degrees)) * 60.0;
+            return d;
         }
 
         private static double Seconds(double degrees)
         {
-            return Math.Round((Math.Abs(degrees - Hours(degrees)) * 60.0 - Minutes(degrees)) * 60.0, MaximumPrecisionDigits - 4);
+            // return Math.Round((Math.Abs(degrees - Hours(degrees)) * 60.0 - Minutes(degrees)) * 60.0, MaximumPrecisionDigits - 4);
+            double d = (Math.Abs(degrees - Hours(degrees)) * 60.0 - Minutes(degrees)) * 60.0;
+            return d;
         }
 
         private static double ToDecimalDegrees(int hours, int minutes, double seconds)
@@ -66,30 +77,40 @@ namespace TopoLib
         }
 
         [ExcelFunctionDoc(
-            Name = "TL.deg.AsDmsString",
+            Name = "TL.deg.AsString",
             Category = "DEG - Angle related",
-            Description = "Writes an angle (defined in decimal degrees) as a Degree-Minute-Seconds string",
+            Description = "Writes an angle (defined in decimal degrees) as a Degree-Minute-Seconds or Decimal-Degrees string",
             HelpTopic = "TopoLib-AddIn.chm!1700",
 
             Returns = "DMS-string",
-            Summary = "Function that writes an angle (defined in degrees) as a Degree-Minute-Seconds string",
+            Summary = "Function that writes an angle (defined in degrees) as a Degree-Minute-Seconds or Decimal-Degrees string",
             Example = "xxx",
             Remarks ="<p>This method returns the angle in a specific string format. If no value for the format is specified, a default format of {<b>h&deg;mm'ss.ss\"</b>} is used. " +
             "Any string output by this method can be converted back into an decimal-degrees angle using the <a href = \"TL.deg.FromDmsString.htm\"> <b>TL.deg.FromDmsString()</b> </a>method. </p>" +
             "<p>The {<b>h&deg;</b>} code represents hours along with a degree symbol (Alt+0176 on the keypad), {<b>mm'</b>} represents minutes and {<b>ss.ss\"</b>} represents seconds using two decimals.</p>" +
-            "<p>For a string in decimal degrees use {<b>d.ddddddd&deg;</b>}. This will return a string value with 7 decimals.</p>"
+            "<p>For a string in decimal degrees use {<b>d.ddddd&deg;</b>}. This will return a string value with 5 decimals (~ 1m accuracy).</p>" +
+            "<p>Optionally the sign of the angle can be replace by an appended/prepended direction (NS, EW).</p>"
          )]
-        public static object AsDmsString(
+        public static object AsString(
             [ExcelArgument("Angle (in decimal degrees)", Name = "angle")] double angle,
-            [ExcelArgument("Optional format string (h°mm'ss.ss\")", Name = "format")] object oFormat)
+            [ExcelArgument("Optional direction indicator (0). 0 = sign, 1 = E/W appended, 2 = N/S appended, 3 = E/W prepended, 4 = N/S prepended", Name = "direction")] object oDirection,
+            [ExcelArgument("Optional format string (dd°mm'ss.ss\"), where ° is Alt+0176 on the keypad", Name = "format")] object oFormat
+            )
         {
-            string format = Optional.Check(oFormat, "h°mm'ss.ss\"");
-            // double angle  = Optional.Check(oAngle, 0.0);
+            int direction = (int)Optional.Check(oDirection, 0);
+            direction = Math.Min(Math.Max(direction, 0), 4);
+
+            string format = Optional.Check(oFormat, "dd°mm'ss.ss\"");
+            bool negative = false;
+
+            // Use the absolute angle value, when decorating instead of using a negative sign
+            if (angle < 0 && direction > 0)
+            {
+                angle = Math.Abs(angle);
+                negative = true;
+            }
 
             CultureInfo culture = CultureInfo.CurrentCulture;
-
-            if (string.IsNullOrEmpty(format))
-                format = "G";
 
             string subFormat;
             string newFormat;
@@ -97,29 +118,25 @@ namespace TopoLib
 
             try
             {
-                // Use the default if "g" is passed
-                if (String.Compare(format, "g", StringComparison.OrdinalIgnoreCase) == 0)
-                    format = "d.dddd°";
-
-                // Replace the "d" with "h" since degrees is the same as hours
-                format = format.ToUpper(CultureInfo.InvariantCulture).Replace("D", "H");
+                // Replace the "h" with "d" since degrees is the same as hours
+                format = format.ToUpper(CultureInfo.InvariantCulture).Replace("H", "D");
 
                 // Only one decimal is allowed
                 if (format.IndexOf(culture.NumberFormat.NumberDecimalSeparator, StringComparison.Ordinal) !=
                     format.LastIndexOf(culture.NumberFormat.NumberDecimalSeparator, StringComparison.Ordinal))
-                    throw new ArgumentException("OnlyRightmostIsDecimal");
+                    throw new ArgumentException("Only one fractional number is allowed in the string representation");
 
-                // Is there an hours specifier?
-                int startChar = format.IndexOf("H");
+                // Is there a degrees/hours specifier ° ?
+                int startChar = format.IndexOf("D");
                 int endChar;
                 if (startChar > -1)
                 {
-                    // Yes. Look for subsequent H characters or a period
-                    endChar = format.LastIndexOf("H");
+                    // Yes. Look for subsequent D characters or a period
+                    endChar = format.LastIndexOf("D");
                     // Extract the sub-string
                     subFormat = format.Substring(startChar, endChar - startChar + 1);
                     // Convert to a numberic-formattable string
-                    newFormat = subFormat.Replace("H", "0");
+                    newFormat = subFormat.Replace("D", "0");
                     // Replace the hours
                     if (newFormat.IndexOf(culture.NumberFormat.NumberDecimalSeparator) > -1)
                     {
@@ -131,22 +148,23 @@ namespace TopoLib
                         format = format.Replace(subFormat, Hours(angle).ToString(newFormat, culture));
                     }
                 }
-                // Is there an hours specifier°
+                
+                // Is there a minutes specifier ' ?
                 startChar = format.IndexOf("M");
                 if (startChar > -1)
                 {
-                    // Yes. Look for subsequent H characters or a period
+                    // Yes. Look for subsequent M characters or a period
                     endChar = format.LastIndexOf("M");
                     // Extract the sub-string
                     subFormat = format.Substring(startChar, endChar - startChar + 1);
                     // Convert to a numberic-formattable string
                     newFormat = subFormat.Replace("M", "0");
-                    // Replace the hours
+                    // Replace the minutes
                     if (newFormat.IndexOf(culture.NumberFormat.NumberDecimalSeparator) > -1)
                     {
                         if (isDecimalHandled)
                         {
-                            throw new ArgumentException("OnlyRightmostIsDecimal");
+                            throw new ArgumentException(doubleDot, "format");
                         }
                         isDecimalHandled = true;
                         format = format.Replace(subFormat, DecimalMinutes(angle).ToString(newFormat, culture));
@@ -156,22 +174,23 @@ namespace TopoLib
                         format = format.Replace(subFormat, Minutes(angle).ToString(newFormat, culture));
                     }
                 }
-                // Is there an hours specifier°
+
+                // Is there a seconds specifier " ?
                 startChar = format.IndexOf("S");
                 if (startChar > -1)
                 {
-                    // Yes. Look for subsequent H characters or a period
+                    // Yes. Look for subsequent S characters or a period
                     endChar = format.LastIndexOf("S");
                     // Extract the sub-string
                     subFormat = format.Substring(startChar, endChar - startChar + 1);
                     // Convert to a numberic-formattable string
                     newFormat = subFormat.Replace("S", "0");
-                    // Replace the hours
+                    // Replace the seconds
                     if (newFormat.IndexOf(culture.NumberFormat.NumberDecimalSeparator) > -1)
                     {
                         if (isDecimalHandled)
                         {
-                            throw new ArgumentException("OnlyRightmostIsDecimal");
+                            throw new ArgumentException(doubleDot, "format");
                         }
                         format = format.Replace(subFormat, Seconds(angle).ToString(newFormat, culture));
                     }
@@ -180,10 +199,28 @@ namespace TopoLib
                         format = format.Replace(subFormat, Seconds(angle).ToString(newFormat, culture));
                     }
                 }
-                // If nothing then return zero
+
+                // If nothing in string, then return zero
                 if (String.Compare(format, "°", true, culture) == 0)
-                    return "0°";
-                return format;
+                {
+                    format = "0°";
+                }
+
+                switch (direction)
+                {
+                    default:
+                        throw new ArgumentException("Wrong direction value");
+                    case 0:
+                        return format;
+                    case 1:
+                        return negative ? format + "W" : format + "E";
+                    case 2:
+                        return negative ? format + "S" : format + "N";
+                    case 3:
+                        return negative ? "W" + format : "E" + format;
+                    case 4:
+                        return negative ? "S" + format : "N" + format;
+                }
             }
             catch (Exception ex)
             {
@@ -193,23 +230,22 @@ namespace TopoLib
         } // AsDmsString
 
         [ExcelFunctionDoc(
-            Name = "TL.deg.FromDmsString",
+            Name = "TL.deg.FromString",
             Category = "DEG - Angle related",
-            Description = "Reads an angle in DegreesMinutesSeconds or DecimalDegrees from a string",
+            Description = "Reads an angle in DegreesMinutesSeconds, DegreesDecimalMinutes or DecimalDegrees from a string",
             HelpTopic = "TopoLib-AddIn.chm!1701",
 
             Returns = "Angle (in decimal degrees)",
             Summary = "Function that returns an angle (in decimal degrees) from a string description ",
             Example = "xxx"
          )]
-        public static object FromDmsString(
-            [ExcelArgument("string using DegreesMinutesSeconds or DecimalDegrees format", Name = "DmsString")] string dmsAngle
+        public static object FromString(
+            [ExcelArgument("string using DegreesMinutesSeconds, DegreesDecimalMinutes or DecimalDegrees format", Name = "angleString")] string dmsAngle
             )
         {
             // Is the value null or empty?
             if (string.IsNullOrEmpty(dmsAngle))
             {
-                // Yes. Return zero
                 return 0.0;
             }
 
@@ -217,12 +253,18 @@ namespace TopoLib
             CultureInfo culture = CultureInfo.CurrentCulture;
 
             double angle = 0;
+            double polarity = 1;;
 
-            // Yes. First, clean up the strings
+            // First, clean up the strings
             try
             {
+                // check if we are dealing with negative numbers, expressed by a S/W symbol
+                if (dmsAngle.IndexOf("W") > -1 || dmsAngle.IndexOf("S") > -1)
+                    polarity = -1;
+
                 // Clean up the string
                 StringBuilder newValue = new StringBuilder(dmsAngle);
+                newValue.Replace("E", " ").Replace("W", " ").Replace("S",  " ").Replace("N",  " ");
                 newValue.Replace("°", " ").Replace("'", " ").Replace("\"", " ").Replace("  ", " ");
 
                 // Now split the values into an array
@@ -233,12 +275,13 @@ namespace TopoLib
                 {
                     case 0:
                         // Return a blank Angle
-                        return 0.0;
+                        return angle;
+
                     case 1: // Decimal degrees
                         // Is it empty?
                         if (String.IsNullOrWhiteSpace(values[0]))
                         {
-                            return 0.0;
+                            return angle;
                         }
 
                         // Look at the number of digits, this might be HHHMMSS format.
@@ -248,42 +291,47 @@ namespace TopoLib
                                 int.Parse(values[0].Substring(0, 3), culture),
                                 int.Parse(values[0].Substring(3, 2), culture),
                                 double.Parse(values[0].Substring(5, 2), culture));
-                            return angle;
+                            return angle * polarity;
                         }
+
                         if (values[0].Length == 8 && values[0][0] == '-' && values[0].IndexOf(culture.NumberFormat.NumberDecimalSeparator, StringComparison.CurrentCulture) == -1)
                         {
                             angle = ToDecimalDegrees(
                                 int.Parse(values[0].Substring(0, 4), culture),
                                 int.Parse(values[0].Substring(4, 2), culture),
                                 double.Parse(values[0].Substring(6, 2), culture));
-                            return angle;
+                            return angle * polarity ;
                         }
+
                         angle = double.Parse(values[0], culture);
-                        return angle;
+                        return angle * polarity;
+
                     case 2: // Hours and decimal minutes
                         // If this is a fractional value, remember that it is
                         if (values[0].IndexOf(culture.NumberFormat.NumberDecimalSeparator, StringComparison.Ordinal) != -1)
                         {
-                            throw new ArgumentException("OnlyRightmostIsDecimal", "value");
+                            throw new ArgumentException(doubleDot, "angleString");
                         }
 
                         // Set decimal degrees
                         angle = ToDecimalDegrees(
                             int.Parse(values[0], culture),
                             float.Parse(values[1], culture));
-                        return angle;
+                        return angle * polarity;
+
                     default: // Hours, minutes and seconds  (most likely)
                         // If this is a fractional value, remember that it is
                         if (values[0].IndexOf(culture.NumberFormat.NumberDecimalSeparator) != -1 || values[0].IndexOf(culture.NumberFormat.NumberDecimalSeparator) != -1)
                         {
-                            throw new ArgumentException("OnlyRightmostIsDecimal", "value");
+                            throw new ArgumentException(doubleDot, "angleString");
                         }
 
                         // Set decimal degrees
-                        angle = ToDecimalDegrees(int.Parse(values[0], culture),
+                        angle = ToDecimalDegrees(
+                            int.Parse(values[0], culture),
                             int.Parse(values[1], culture),
                             double.Parse(values[2], culture));
-                        return angle;
+                        return angle * polarity;
                 }
             }
             catch (Exception ex)

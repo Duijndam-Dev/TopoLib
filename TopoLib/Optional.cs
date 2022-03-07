@@ -121,6 +121,54 @@ namespace TopoLib
             }
         } // IsNull
 
+        internal static bool IsEmpty(object arg)
+        {
+            if (arg is null || arg is ExcelMissing || arg is ExcelEmpty || arg is ExcelError)
+                return true;
+
+            if ((arg is string))
+            {
+                string sArg = (string)arg;
+                sArg = sArg.TrimStart('\'');
+                if (string.IsNullOrEmpty(sArg))
+                    return true;
+            }
+            return false;
+        } // IsEmpty
+
+        internal static string GetString(object arg)
+        {
+            if ((arg is string))
+            {
+                string sArg = (string)arg;
+                sArg = sArg.TrimStart(' ');
+                if (string.IsNullOrEmpty(sArg))
+                    return "";
+                else
+                    return sArg;
+            }
+            else
+            {
+                return "";
+            }
+        } // GetString
+
+        internal static double GetDouble(object arg)
+        {
+            if (arg is null || arg is string || arg is bool || arg is ExcelMissing || arg is ExcelEmpty || arg is ExcelError)
+                return Double.NaN;
+
+            if ((arg is double))
+            {
+                return (double)arg;
+            }
+            else
+            {
+                return Double.PositiveInfinity;
+            }
+        } // GetDouble
+
+
         internal static object CheckNan(double value)
         {
             object result;

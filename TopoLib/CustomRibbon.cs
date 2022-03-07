@@ -52,6 +52,10 @@ namespace TopoLib
                   <ribbon>
                     <tabs>
                       <tab id='TopoLibTap' label='TopoLib'>
+                        <group id='xmlGroup'            label='XML File Export'>
+                            <button id='gpxButton'      label='GPX file'             imageMso='XmlExport'                       size='large' onAction='GpxButton_OnAction' />
+                            <button id='kmlButton'      label='KML file'             imageMso='XmlExport'                       size='large' onAction='KmlButton_OnAction' />
+                        </group>
                         <group id='SettingGroup'        label='TopoLib Settings'>
                             <button id='Proj_LibButton' label='Resource Settings'    imageMso='SiteColumnActionsColumnSettings' size='large' onAction='Proj_LibButton_OnAction' />
                             <button id='OptionsButton'  label='Transform Settings'   imageMso='ColumnActionsColumnSettings'     size='large' onAction='OptionsButton_OnAction' />
@@ -59,7 +63,7 @@ namespace TopoLib
                             <button id='LogLevelButton' label='Logging Settings'     imageMso='ComAddInsDialog'                 size='large' onAction='LogLevelButton_OnAction' />
                         </group>
                         <group id='RecalcGroup'         label='TopoLib Transforms'>
-                            <button id='RecalcButton'   label='Refresh Transforms'    imageMso='RefreshWebView'                  size='large' onAction='RecalcButton_OnAction' />
+                            <button id='RecalcButton'   label='Refresh Transforms'    imageMso='RefreshWebView'                 size='large' onAction='RecalcButton_OnAction' />
                         </group>
                         <group id='LoggingGroup'        label='Test Logging Messages'>
                             <button id='ErrorButton'    label='Log Error'            imageMso='OutlineViewClose'   onAction='ErrorButton_OnAction' />
@@ -208,6 +212,30 @@ namespace TopoLib
             try
             {
                 _excel.Application.Run("Recalculate_TopoLib_Transforms");
+            }
+            catch (Exception ex)
+            {
+                AddIn.ProcessUnhandledException(ex);
+            }
+        }
+
+        public void GpxButton_OnAction(IRibbonControl control)
+        {
+            try
+            {
+//                _excel.Application.Run("Recalculate_TopoLib_Transforms");
+            }
+            catch (Exception ex)
+            {
+                AddIn.ProcessUnhandledException(ex);
+            }
+        }
+
+        public void KmlButton_OnAction(IRibbonControl control)
+        {
+            try
+            {
+  //              _excel.Application.Run("Recalculate_TopoLib_Transforms");
             }
             catch (Exception ex)
             {
