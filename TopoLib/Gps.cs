@@ -78,6 +78,7 @@ namespace TopoLib
             "</ol>" +
             "<p>Any number of blank lines in the point list only serves to indicate the start of of a new track segment and these empty lines will be skipped in the XML-file.</p>" +
             "<p>Each track segment shall only have (at most) one header line. The header line needs to have the track segment name in the first column;subsequent header lines are ignored.</p>" +
+            "<p>If no header line is present (but only blank seperation lines), a basic header will be created based upon the track segment number.</p>" +
             "<p>See <a href = \"https://en.wikipedia.org/wiki/GPS_Exchange_Format\"> Wikipedia</a> for a brief explanation of the GPX-file format.</p>"
          )]
         public static object AsGpxTracks(
@@ -129,6 +130,7 @@ namespace TopoLib
 
             // parse the input rows
             int nTrackSegment = 1;
+            bool haveHeader = false;
             string lon = "";
             string lat = "";
             string ele = "";
@@ -150,6 +152,7 @@ namespace TopoLib
                     else
                     {
                         // we have to insert a header row for a new track.
+                        haveHeader = true;
 
                         // do we have a name in the 1st column ?
                         string name = Optional.GetString(oPoints[i, 0]);
@@ -188,6 +191,18 @@ namespace TopoLib
                 }
                 else if (rowType[i] == 3) // data row
                 {
+                    // do we have a leading header ?
+
+                    if (!haveHeader)
+                    {
+                        // we have to insert a header row
+                        haveHeader = true;
+
+                        string name = string.Format("segment {0}", nTrackSegment.ToString());
+                        name = $"<name>{name}</name>";
+                        gpxOut += ($"<trk>{name}<trkseg>\n");
+                    }
+
                     // do we have a longitude in the 1st column ?
                     double longitude = Optional.GetDouble(oPoints[i, 0]);
                     if (Double.IsNaN(longitude)) throw new ArgumentException($"Longitude input error on row: {i}");
@@ -247,6 +262,7 @@ namespace TopoLib
                         // We are at the last row of a track;
                         gpxOut += ($"</trkseg></trk>\n");
                         nTrackSegment++;
+                        haveHeader = false;
                     }
                 }
             }
@@ -282,6 +298,7 @@ namespace TopoLib
             "</ol>" +
             "<p>Any number of blank lines in the point list only serves to indicate the start of of a new track segment and these empty lines will be skipped in the XML-file.</p>" +
             "<p>Each track segment shall only have (at most) one header line. The header line needs to have the track segment name in the first column;subsequent header lines are ignored.</p>" +
+            "<p>If no header line is present (but only blank seperation lines), a basic header will be created based upon the track segment number.</p>" +
             "<p>See <a href = \"https://developers.google.com/kml/documentation/kmlreference\"> google.com</a> for a brief explanation of the Keyhole Markup Language (KML) file format.</p>"
          )]
         public static object AsKmlTracks(
@@ -333,6 +350,7 @@ namespace TopoLib
 
             // parse the input rows
             int nTrackSegment = 1;
+            bool haveHeader = false;
             
             string lon, lat, ele;
 
@@ -352,6 +370,7 @@ namespace TopoLib
                     else
                     {
                         // we have to insert a header row for a new track.
+                        haveHeader = true;
 
                         // do we have a name in the 1st column ?
                         string name = Optional.GetString(oPoints[i, 0]);
@@ -365,6 +384,16 @@ namespace TopoLib
                 }
                 else if (rowType[i] == 3) // data row
                 {
+                    if (!haveHeader)
+                    {
+                        // we have to insert a header row
+                        haveHeader = true;
+
+                        string name = string.Format("segment {0}", nTrackSegment.ToString());
+                        name = $"<name>{name}</name>";
+                        kmlOut += ($"<Placemark><name>{name}</name><styleUrl>#track001</styleUrl><MultiGeometry><LineString><coordinates>");
+                    }
+
                     // do we have a longitude in the 1st column ?
                     double longitude = Optional.GetDouble(oPoints[i, 0]);
                     if (Double.IsNaN(longitude)) throw new ArgumentException($"Longitude input error on row: {i}");
@@ -399,6 +428,7 @@ namespace TopoLib
                         // We are at the last row of a track;
                         kmlOut += ($" </coordinates></LineString></MultiGeometry></Placemark>\n");
                         nTrackSegment++;
+                        haveHeader = false;
                     }
                 }
             }
