@@ -123,6 +123,7 @@ namespace TopoLib
 
         internal static bool IsEmpty(object arg)
         {
+            object tmp = arg;
             if (arg is null || arg is ExcelMissing || arg is ExcelEmpty || arg is ExcelError)
                 return true;
 

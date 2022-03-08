@@ -223,7 +223,7 @@ namespace TopoLib
         {
             try
             {
-//                _excel.Application.Run("Recalculate_TopoLib_Transforms");
+                _excel.Application.Run("Dialog_Export_GPX_data");
             }
             catch (Exception ex)
             {
@@ -235,7 +235,7 @@ namespace TopoLib
         {
             try
             {
-  //              _excel.Application.Run("Recalculate_TopoLib_Transforms");
+                _excel.Application.Run("Dialog_Export_KML_data");
             }
             catch (Exception ex)
             {
