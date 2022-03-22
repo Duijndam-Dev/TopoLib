@@ -118,8 +118,24 @@ namespace TopoLib
     public static class Cmd
     {
         // used in the dialogs to export gpx & kml data
-        static string gpxRange;
-        static string kmlRange;
+        static string gpxRange = "";
+        static string kmlRange = "";
+
+        static string SourceCrsRange = "";
+        static string TargetCrsRange = "";
+
+        static string SourceAuthority = "EPSG";
+        static string TargetAuthority = "EPSG";
+
+        static string FileName = "";
+        static string FolderName = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+        static int FilterIndex = 1;
+
+        static int SourceCode = 4326;
+        static int TargetCode = 4326;
+
+        static int ExportDataType = 0;
+        static int DataInputFrom = 0;
 
         /// <summary>
         /// This is a dummy validation routine
@@ -356,9 +372,9 @@ namespace TopoLib
         // See also https://stackoverflow.com/questions/40574084/fastest-method-to-remove-empty-rows-and-columns-from-excel-files-using-interop/40726309#40726309
         // And: https://groups.google.com/g/exceldna/c/cu4mRb1UolY/m/ux0y0JnjDwAJ
         [ExcelCommand(
-            Name = "Recalculate_TopoLib_Transforms",
+            Name = "Command_Recalculate_Transforms",
             Description = "Recalculates the TopoLib transform functions (only TL.cct.xxx functions)",
-            HelpTopic = "TopoLib-AddIn.chm!1204")]
+            HelpTopic = "TopoLib-AddIn.chm!1201")]
         public static void Command_RecalculateTransforms()
         {
             // See: https://groups.google.com/g/exceldna/c/cu4mRb1UolY/m/ux0y0JnjDwAJ
@@ -440,9 +456,9 @@ namespace TopoLib
 
 
         [ExcelCommand(
-            Name = "Show_HelpFile",
+            Name = "Command_Show_HelpFile",
             Description = "Shows the Compiled Help file",
-            HelpTopic = "TopoLib-AddIn.chm!1206")]
+            HelpTopic = "TopoLib-AddIn.chm!1202")]
         public static void Command_ShowHelpFile()
         {
             // get the Path of xll file;
@@ -468,10 +484,10 @@ namespace TopoLib
         } // ShowHelpFile
 
         [ExcelCommand(
-            Name = "About_TopoLib",
+            Name = "Dialog_About_TopoLib",
             Description = "Shows a dialog with a copy right statement and a list of referenced NuGet packages",
-            HelpTopic = "TopoLib-AddIn.chm!1205")]
-        public static void Dialog_AboutTopoLib()
+            HelpTopic = "TopoLib-AddIn.chm!1203")]
+        public static void Dialog_About_TopoLib()
         {
             var dialog  = new XlDialogBox()                  {                   W = 333, H = 240, Text = "About TopoLib",  };
             var ctrl_01 = new XlDialogBox.GroupBox()         { X = 013, Y = 013, W = 307, H = 130, Text = "This library uses the following NuGet packages",  };
@@ -504,13 +520,13 @@ namespace TopoLib
             bool bOK = dialog.ShowDialog(ValidateAboutDialog);
             if (bOK == false) return;
 
-        } // AboutDialog
+        } // Dialog_About_TopoLib
 
         [ExcelCommand(
-            Name = "CacheSettings_Dialog",
+            Name = "Dialog_Cache_Settings",
             Description = "Sets global transform parameters for the TopoLib AddIn",
-            HelpTopic = "TopoLib-AddIn.chm!1200")]
-        public static void Dialog_CacheSettings()
+            HelpTopic = "TopoLib-AddIn.chm!1204")]
+        public static void Dialog_Cache_Settings()
         {
             var dialog  = new XlDialogBox()                  {	                   W = 360, H = 230, Text = "Proj Library Cache Settings", };
             var ctrl_01 = new XlDialogBox.Label()            {	 X = 020, Y = 010,                   Text = "&Cache Path && File Name",  };
@@ -542,6 +558,7 @@ namespace TopoLib
             dialog.Controls.Add(ctrl_12);
             dialog.Controls.Add(ctrl_13);
             dialog.Controls.Add(ctrl_14);
+
             dialog.CallingMethod = System.Reflection.MethodBase.GetCurrentMethod(); 
             dialog.DialogScaling = 125.0;  // Use this if the dialog was designed using a display with 120 DPI
 
@@ -560,20 +577,20 @@ namespace TopoLib
 
             CctOptions.ProjContext.SetGridCache(CctOptions.EnableCache, CctOptions.CachePath, CctOptions.CacheSize, (int) CctOptions.CacheExpiry);
 
-        } // CacheSettingsDialog
+        } // Dialog_Cache_Settings
 
 
         [ExcelCommand(
             Name = "Dialog_Export_GPX_data",
             Description = "Dialog to export GPX-data to a file on disk",
-            HelpTopic = "TopoLib-AddIn.chm!1201")]
+            HelpTopic = "TopoLib-AddIn.chm!1205")]
         public static void Dialog_Export_GPX_data()
         {
             var dialog  = new XlDialogBox()                  {	                   W = 345, H = 180, Text = "GPX File Export",  IO = 5, };
             var ctrl_01 = new XlDialogBox.Label()            {	 X = 020, Y = 010,                   Text = "Select the required range of (Long, Lat, [ele, [time]]) values.",  };
             var ctrl_02 = new XlDialogBox.Label()            {	 X = 020, Y = 025,                   Text = "Note: The list of data points must contain 2 - 4 columns.",  };
             var ctrl_03 = new XlDialogBox.Label()            {	 X = 020, Y = 040,                   Text = "Note: Please include header rows if these are available.",  };
-            var ctrl_04 = new XlDialogBox.GroupBox()         {	 X = 020, Y = 075, W = 190, H = 055, Text = "EPSG:4326 (long, lat) format",  };
+            var ctrl_04 = new XlDialogBox.GroupBox()         {	 X = 020, Y = 075, W = 190, H = 055, Text = "EPSG:4326 (long lat [ele]) order",  };
             var ctrl_05 = new XlDialogBox.RefEdit()          {	 X = 030, Y = 095, W = 160,          };
             var ctrl_06 = new XlDialogBox.OkButton()         {	 X = 020, Y = 145, W = 080,          Text = "&Save", Default = true, };
             var ctrl_07 = new XlDialogBox.CancelButton()     {	 X = 130, Y = 145, W = 080,          Text = "&Cancel",  };
@@ -587,6 +604,7 @@ namespace TopoLib
             dialog.Controls.Add(ctrl_06);
             dialog.Controls.Add(ctrl_07);
             dialog.Controls.Add(ctrl_08);
+
             dialog.CallingMethod = System.Reflection.MethodBase.GetCurrentMethod(); 
             dialog.DialogScaling = 125.0;  // Use this if the dialog was designed using a display with 120 DPI
 
@@ -649,227 +667,25 @@ Show:       bool bOK = dialog.ShowDialog(Validate);
                 {
                     File.WriteAllText(saveFileDialog1.FileName, gpxOut);
                 }
-
             }
-            catch
+            catch (Exception ex)
             {
-                throw new Exception("Error saving GPX file");
+                System.Windows.Forms.MessageBox.Show(ex.Message, "Unexpected Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                AddIn.ProcessException(ex);
             }
-
-/*            
-            // It would be logical to call : "returnString = Gps.AsGpxTracks(cells)" from here.
-            // But in ExcelInterop the arrays are 1-based and not 0-based, leading to memory accces errors.;
-
-            // define the row types based on row content
-            int[] rowType = new int[nInputRows];
-            int lastRow = 0;
-
-            int n = 1;
-            for (int i = 0; i < nInputRows; i++)
-            {
-                if (Optional.IsEmpty(oPoints[i + 1, 1]) == true)
-                {
-                    rowType[i] = 1; // empty
-                    lastRow = 1;
-                }
-                else if (oPoints[i + 1, 1] is double && oPoints[i + 1, 2] is double)
-
-                {
-                    rowType[i] = 3; // data
-                    lastRow = 3;
-                }
-                else
-                {
-                    if (lastRow == 2)
-                    {
-                        rowType[i] = 1; // empty (we already have a header)
-                    }
-                    else
-                    {
-                        rowType[i] = 2; // header
-                        lastRow = 2;
-                    }
-                }
-
-                n++;
-            }
-
-            // a stringbuilder is more efficient; but it gave rise to empty line issues on output.
-            string gpxOut = Gps.gpxHeader; 
-
-            // parse the input rows
-            int nTrackSegment = 1;
-            bool haveHeader = false;
-            string lon = "";
-            string lat = "";
-            string ele = "";
-            string nam = "";
-
-            for (int i = 0; i < nInputRows; i++)
-            {
-                if (rowType[i] == 1) // empty row
-                {
-                    continue;
-                }
-                else if (rowType[i] == 2) // header row
-                {
-                    if (i > 0 && rowType[i - 1] == 2)
-                    {
-                        // only use first header row; ignore the rest
-                        continue;
-                    }
-                    else
-                    {
-                        // we have to insert a header row for a new track.
-                        haveHeader = true;
-
-                        // do we have a name in the 1st column ?
-                        string name = Optional.GetString(oPoints[i + 1, 1]);
-                        if (!string.IsNullOrEmpty(name))
-                            name = $"<name>{name}</name>";
-
-                        // do we have a comment in the 2nd column ?
-                        string comment = Optional.GetString(oPoints[i + 1, 2]);
-                        if (!string.IsNullOrEmpty(comment))
-                            comment = $"<cmt>{comment}</cmt>";
-
-                        // do we have a description in the 3rd column ?
-                        string description = "";
-
-                        if (nInputCols > 2)
-                        {
-                            description = Optional.GetString(oPoints[i + 1, 3]);
-                            if (!string.IsNullOrEmpty(description))
-                                description = $"<desc>{description }</desc>";
-                        }
-
-                        // do we have a type in the 4th column ?
-                        string type = "";
-
-                        if (nInputCols > 3)
-                        {
-                            type = Optional.GetString(oPoints[i + 1, 4]);
-                            if (!string.IsNullOrEmpty(type))
-                                type = $"<type >{type }</type >";
-                        }
-
-                        // Add header row and start of track segment
-                        gpxOut += ($"<trk>{name}{comment}{description}{type}<trkseg>\n");
-                    }
-
-                }
-                else if (rowType[i] == 3) // data row
-                {
-                    // do we have a leading header ?
-
-                    if (!haveHeader)
-                    {
-                        // we have to insert a header row
-                        haveHeader = true;
-
-                        string name = string.Format("segment {0}", nTrackSegment.ToString());
-                        name = $"<name>{name}</name>";
-                        gpxOut += ($"<trk>{name}<trkseg>\n");
-                    }
-
-                    // do we have a longitude in the 1st column ?
-                    double longitude = Optional.GetDouble(oPoints[i + 1, 1]);
-                    if (Double.IsNaN(longitude)) throw new ArgumentException($"Longitude input error on row: {i}");
-
-                    lon = string.Format("{0:0.00000000}", longitude);
-
-                    // do we have a latitude in the 2nd column ?
-                    double latitude = Optional.GetDouble(oPoints[i + 1, 2]);
-                    if (Double.IsNaN(latitude)) throw new ArgumentException($"latitude input error on row: {i}");
-
-                    lat = string.Format("{0:0.00000000}", latitude);
-
-                    // do we have a elevation in the 3rd column ?
-
-                    if (nInputCols > 2)
-                    {
-                        double elevation = Optional.GetDouble(oPoints[i + 1, 3]);
-                        if (!Double.IsNaN(elevation))
-                        {
-                            // it's NOT blank; so must be a number
-                            if (Double.IsInfinity(elevation)) throw new ArgumentException($"elevation input error on row: {i}");
-
-                            ele = string.Format("<ele>{0:0.0}</ele>", elevation);
-                        }
-                    }
-
-                    // do we have a point name or time in the 4th column ?
-                    double time;
-                    if (nInputCols > 3)
-                    {
-                        time = Optional.GetDouble(oPoints[i + 1, 4]);
-                        if(double.IsNaN(time))
-                        {
-                            // it must be a string...
-                            nam = Optional.GetString(oPoints[i + 1, 4]);
-                            if (!string.IsNullOrEmpty(nam))
-                                nam = $"<name>{nam}</name>";
-                        }
-                        else
-                        {
-                            // it should be time; check it's ok.
-                            if (!double.IsInfinity(time))
-                            {
-                                // now get time from a double value in Excel
-                                // FromOADate(time).ToString("s") is simplified to FromOADate(time):s
-                                nam = $"<time>{DateTime.FromOADate(time):s}</time>";
-                            }
-                        }
-                    }
-
-                    // Add lat/long values, as well as elevation & point name if available
-                    gpxOut += ($"<trkpt lat=\"{lat}\" lon=\"{lon}\">{ele}{nam}</trkpt>\n");
-
-                    // if the next line does not contain numbers; we need to close the track
-                    if (i == nInputRows - 1 || (i < nInputRows - 1 && rowType[i + 1] != 3))
-                    {
-                        // We are at the last row of a track;
-                        gpxOut += ($"</trkseg></trk>\n");
-                        nTrackSegment++;
-                        haveHeader = false;
-                    }
-                }
-            }
-
-            // final line to add
-            gpxOut += Gps.gpxFooter;
-            // Now we are ready to write the string to a file.
-            // public static void WriteAllText (string path, string? contents);
-
-            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
-
-            saveFileDialog1.AddExtension = true;
-            saveFileDialog1.ValidateNames = true;
-            saveFileDialog1.RestoreDirectory = true;
-
-            saveFileDialog1.DefaultExt = "gpx";  
-            saveFileDialog1.Filter = "GPX files (*.gpx)|*.gpx|All files (*.*)|*.*";
-            saveFileDialog1.Title = "Save a GPX File";
-            saveFileDialog1.ShowDialog();
-
-            if(saveFileDialog1.FileName != "")
-            {
-                File.WriteAllText(saveFileDialog1.FileName, gpxOut);
-            }
-*/
         } // Dialog_Export_GPX_data
 
         [ExcelCommand(
             Name = "Dialog_Export_KML_data",
-            Description = "Dialog to export GPX-data to a file on disk",
-            HelpTopic = "TopoLib-AddIn.chm!1201")]
+            Description = "Dialog to export a Coordinate Reference System or a Coordinate Transform to a file on disk in text format",
+            HelpTopic = "TopoLib-AddIn.chm!1222")]
         public static void Dialog_Export_KML_data()
         {
             var dialog  = new XlDialogBox()                  {	                   W = 345, H = 180, Text = "KML File Export",  IO = 5, };
             var ctrl_01 = new XlDialogBox.Label()            {	 X = 020, Y = 010,                   Text = "Select the required range of (Long, Lat, [ele]) values.",  };
             var ctrl_02 = new XlDialogBox.Label()            {	 X = 020, Y = 025,                   Text = "Note: The list of data points must contain 2 - 3 columns.",  };
             var ctrl_03 = new XlDialogBox.Label()            {	 X = 020, Y = 040,                   Text = "Note: Please include header rows if these are available.",  };
-            var ctrl_04 = new XlDialogBox.GroupBox()         {	 X = 020, Y = 075, W = 190, H = 055, Text = "EPSG:4326 (long, lat) format",  };
+            var ctrl_04 = new XlDialogBox.GroupBox()         {	 X = 020, Y = 075, W = 190, H = 055, Text = "EPSG:4326 (long lat [ele]) order",  };
             var ctrl_05 = new XlDialogBox.RefEdit()          {	 X = 030, Y = 095, W = 160,          };
             var ctrl_06 = new XlDialogBox.OkButton()         {	 X = 020, Y = 145, W = 080,          Text = "&Save", Default = true, };
             var ctrl_07 = new XlDialogBox.CancelButton()     {	 X = 130, Y = 145, W = 080,          Text = "&Cancel",  };
@@ -883,6 +699,7 @@ Show:       bool bOK = dialog.ShowDialog(Validate);
             dialog.Controls.Add(ctrl_06);
             dialog.Controls.Add(ctrl_07);
             dialog.Controls.Add(ctrl_08);
+
             dialog.CallingMethod = System.Reflection.MethodBase.GetCurrentMethod(); 
             dialog.DialogScaling = 125.0;  // Use this if the dialog was designed using a display with 120 DPI
 
@@ -947,21 +764,482 @@ Show:       bool bOK = dialog.ShowDialog(Validate);
                 }
 
             }
-            catch
+            catch (Exception ex)
             {
-                throw new Exception("Error saving KML file");
+                System.Windows.Forms.MessageBox.Show(ex.Message, "Unexpected Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                AddIn.ProcessException(ex);
             }
 
-        } // Dialog_Export_KML_data
-
-
-
+        } // Dialog_Export_Wizard
 
         [ExcelCommand(
-            Name = "LogSettings_Dialog",
+            Name = "Dialog_Export_Wizard",
+            Description = "Dialog to export a CRS- or CCT definition to a file on disk",
+            HelpTopic = "TopoLib-AddIn.chm!1206")]
+        public static void Dialog_Export_Wizard()
+        {
+            var dialog1  = new XlDialogBox()                  {	                   W = 360, H = 230, Text = "CRS & CCT String export [1]",  };
+            var ctrl_01 = new XlDialogBox.Label()            {	 X = 020, Y = 016,                   Text = "Select Data Type and Data Source",  };
+            var ctrl_02 = new XlDialogBox.GroupBox()         {	 X = 020, Y = 040, W = 300, H = 065, Text = "Export Data Type",  };
+            var ctrl_03 = new XlDialogBox.RadioButtonGroup() {	                                     IO = 1, };
+            var ctrl_04 = new XlDialogBox.RadioButton()      {	          Y = 057, W = 280,          Text = "CRS - Coordinate &Reference System",  };
+            var ctrl_05 = new XlDialogBox.RadioButton()      {	          Y = 077, W = 280,          Text = "CCT - Coordinate Conversion and &Transform", };
+            var ctrl_06 = new XlDialogBox.GroupBox()         {	 X = 020, Y = 110, W = 300, H = 065, Text = "Data input from",  };
+            var ctrl_07 = new XlDialogBox.RadioButtonGroup() {	                                     IO = 1, };
+            var ctrl_08 = new XlDialogBox.RadioButton()      {	          Y = 127,                   Text = "&PROJ Database Query",  };
+            var ctrl_09 = new XlDialogBox.RadioButton()      {	          Y = 147,                   Text = "Spreadsheet &Cell reference(s)",  };
+            var ctrl_10 = new XlDialogBox.OkButton()         {	 X = 020, Y = 190, W = 075,          Text = "< &Back",  Enable = false, };
+            var ctrl_11 = new XlDialogBox.OkButton()         {	 X = 107, Y = 190, W = 075,          Text = "&Next >",  };
+            var ctrl_12 = new XlDialogBox.CancelButton()     {	 X = 240, Y = 190, W = 075,          Text = "&Cancel",  };
+
+            dialog1.Controls.Add(ctrl_01);
+            dialog1.Controls.Add(ctrl_02);
+            dialog1.Controls.Add(ctrl_03);
+            dialog1.Controls.Add(ctrl_04);
+            dialog1.Controls.Add(ctrl_05);
+            dialog1.Controls.Add(ctrl_06);
+            dialog1.Controls.Add(ctrl_07);
+            dialog1.Controls.Add(ctrl_08);
+            dialog1.Controls.Add(ctrl_09);
+            dialog1.Controls.Add(ctrl_10);
+            dialog1.Controls.Add(ctrl_11);
+            dialog1.Controls.Add(ctrl_12);
+
+            dialog1.CallingMethod = System.Reflection.MethodBase.GetCurrentMethod(); 
+            dialog1.DialogScaling = 125.0;  // Use this if the dialog was designed using a display with 120 DPI
+
+Page1:      ctrl_03.IO_index = ExportDataType;
+            ctrl_07.IO_index = DataInputFrom;
+
+            bool bOK = dialog1.ShowDialog(Validate);
+            if (bOK == false) return;
+
+            ExportDataType = ctrl_03.IO_index;
+            DataInputFrom  = ctrl_07.IO_index;
+
+
+            var dialog2 = new XlDialogBox()                  {	                   W = 360, H = 230, Text = "CRS & CCT String export [2]",  };
+            var ctrl_13 = new XlDialogBox.Label()            {	 X = 020, Y = 016,                   Text = "Select Source and Target CRS",  };
+            var ctrl_14 = new XlDialogBox.GroupBox()         {	 X = 020, Y = 040, W = 300, H = 055, Text = "Source CRS",  };
+
+            var ctrl_15 = new XlDialogBox.RefEdit()          {	 X = 030, Y = 060, W = 160,          };
+
+            var ctrl_16 = new XlDialogBox.TextEdit()         {	 X = 030, Y = 060, W = 070,          };
+            var ctrl_17 = new XlDialogBox.Label()            {	 X = 105, Y = 060, W = 020,          Text = " : "};
+            var ctrl_18 = new XlDialogBox.IntegerEdit()      {	 X = 120, Y = 060, W = 070,          };
+
+            var ctrl_19 = new XlDialogBox.GroupBox()         {	 X = 020, Y = 110, W = 300, H = 055, Text = "Target CRS",  };
+
+            var ctrl_20 = new XlDialogBox.RefEdit()          {	 X = 030, Y = 130, W = 160,          };
+
+            var ctrl_21 = new XlDialogBox.TextEdit()         {	 X = 030, Y = 130, W = 070,          };
+            var ctrl_22 = new XlDialogBox.Label()            {	 X = 105, Y = 130, W = 020,          Text = " :",  };
+            var ctrl_23 = new XlDialogBox.IntegerEdit()      {	 X = 120, Y = 130, W = 070,          };
+
+            var ctrl_24 = new XlDialogBox.OkButton()         {	 X = 020, Y = 190, W = 075,          Text = "< &Back",  };
+            var ctrl_25 = new XlDialogBox.OkButton()         {	 X = 107, Y = 190, W = 075,          Text = "Save &As",  };
+            var ctrl_26 = new XlDialogBox.CancelButton()     {	 X = 240, Y = 190, W = 075,          Text = "&Cancel",  };
+
+            dialog2.Controls.Add(ctrl_13);
+            dialog2.Controls.Add(ctrl_14);
+            dialog2.Controls.Add(ctrl_15);
+            dialog2.Controls.Add(ctrl_16);
+            dialog2.Controls.Add(ctrl_17);
+            dialog2.Controls.Add(ctrl_18);
+            dialog2.Controls.Add(ctrl_19);
+            dialog2.Controls.Add(ctrl_20);
+            dialog2.Controls.Add(ctrl_21);
+            dialog2.Controls.Add(ctrl_22);
+            dialog2.Controls.Add(ctrl_23);
+            dialog2.Controls.Add(ctrl_24);
+            dialog2.Controls.Add(ctrl_25);
+            dialog2.Controls.Add(ctrl_26);
+            dialog2.CallingMethod = System.Reflection.MethodBase.GetCurrentMethod(); 
+            dialog2.DialogScaling = 125.0;  // Use this if the dialog was designed using a display with 120 DPI
+
+Page2:      if (ExportDataType == 0)
+            {
+                // CRS; adjust text & disable second part of dialog
+                ctrl_13.Text = "Select Coordinate Reference System";
+
+                ctrl_19.Visible = false;
+                ctrl_20.Visible = false;
+                ctrl_21.Visible = false;
+                ctrl_22.Visible = false;
+                ctrl_23.Visible = false;
+            }
+
+            if (DataInputFrom == 0)
+            {
+                // Database query; no references used
+                ctrl_15.Visible   = false;
+                ctrl_20.Visible   = false;
+
+                ctrl_16.IO_string = SourceAuthority;
+                ctrl_18.IO_int    = SourceCode;
+
+                ctrl_21.IO_string = TargetAuthority;
+                ctrl_23.IO_int    = TargetCode;
+            }
+            else
+            {
+                // Reference query; database not used
+                ctrl_15.IO_string = SourceCrsRange;
+                ctrl_20.IO_string = TargetCrsRange;
+
+                ctrl_16.Visible = false;
+                ctrl_17.Visible = false;
+                ctrl_18.Visible = false;
+
+                ctrl_21.Visible = false;
+                ctrl_22.Visible = false;
+                ctrl_23.Visible = false;
+            }
+            
+            bOK = dialog2.ShowDialog(Validate);
+            if (bOK == false) return;
+
+            if (dialog2.IO_index == 12) goto Page1; // Back button was pressed
+
+            if (DataInputFrom == 0)  // DB
+            {
+                // Database query; no references used
+                SourceAuthority = ctrl_16.IO_string.Trim(' ', ':');;
+                SourceCode      = ctrl_18.IO_int;
+
+                FileName = SourceAuthority + "(" + SourceCode.ToString() + ")";
+
+                if (ExportDataType == 1) // CCT
+                {
+                    // CCT; use second part of dialog
+                    TargetAuthority = ctrl_21.IO_string.Trim(' ', ':'); ;
+                    TargetCode      = ctrl_23.IO_int;
+
+                    FileName += "_to_" + TargetAuthority + "(" + TargetCode.ToString() + ")";
+                }
+            }
+            else
+            {
+                // Reference query; database not used
+                SourceCrsRange = ctrl_15.IO_string;
+                TargetCrsRange = ctrl_20.IO_string;
+
+                R1C1 SourceCrsR1C1 = new R1C1(SourceCrsRange);
+                int nSourceCrsRows = SourceCrsR1C1.Rows();
+                int nSourceCrsCols = SourceCrsR1C1.Cols();
+
+                if (nSourceCrsRows != 1)
+                {
+                    System.Windows.Forms.MessageBox.Show("The source-CRS reference should contain one row", "Range Error");
+                    goto Page2;
+                }
+
+                if ((nSourceCrsCols < 1) || (nSourceCrsCols > 2))
+                {
+                    System.Windows.Forms.MessageBox.Show("The source-CRS reference should consist of 1 or 2 columns", "Range Error");
+                    goto Page2;
+                }
+
+                if (ExportDataType == 1)
+                {
+                    // CCT; use second part of dialog
+                    R1C1 TargetCrsR1C1 = new R1C1(TargetCrsRange);
+                    int nTargetCrsRows = TargetCrsR1C1.Rows();
+                    int nTargetCrsCols = TargetCrsR1C1.Cols();
+
+                    if (nTargetCrsRows != 1)
+                    {
+                        System.Windows.Forms.MessageBox.Show("The target-CRS reference should contain one row", "Range Error");
+                        goto Page2;
+                    }
+
+                    if ((nTargetCrsCols < 1) || (nTargetCrsCols > 2))
+                    {
+                        System.Windows.Forms.MessageBox.Show("The source-CRS reference should consist of 1 or 2 columns", "Range Error");
+                        goto Page2;
+                    }
+                }
+            }
+
+            object[,] SourceCells = null;
+            object[,] TargetCells = null;
+    
+            try
+            {
+                // check the input
+
+                if (DataInputFrom == 0)
+                {
+                    // Database query; no references used
+                }
+                else
+                {
+                    // Reference query; database not used; need to get hold of Excel
+                    Excel.Application xlApp = (Excel.Application)ExcelDnaUtil.Application;
+                    Workbook xlWb = xlApp.ActiveWorkbook;
+                    if (xlWb == null) return;
+
+                    Worksheet xlWs = xlApp.ActiveWorkbook.ActiveSheet;
+                    if (xlWs == null) return;
+
+                    // Bit of a repeat, to keep things simple
+                    R1C1 SourceCrsR1C1 = new R1C1(SourceCrsRange);
+                    int nSourceCrsRows = SourceCrsR1C1.Rows();
+                    int nSourceCrsCols = SourceCrsR1C1.Cols();
+
+                    // now get the contents of the first reference from Excel
+                    Range cell1 = xlWs.Cells[SourceCrsR1C1.Top(), SourceCrsR1C1.Left()];
+                    Range cell2 = xlWs.Cells[SourceCrsR1C1.Top() + nSourceCrsRows - 1, SourceCrsR1C1.Left() + nSourceCrsCols - 1];
+
+                    var v1 = cell1.Value2;  // string ?
+                    var v2 = cell2.Value2;  // double ?
+
+                    SourceCells = new object[nSourceCrsRows, nSourceCrsCols];
+                    SourceCells[0, 0] = cell1.Value2;
+                    if (nSourceCrsCols > 1)
+                        SourceCells[0, 1] = cell2.Value2;
+
+                    SourceAuthority = nSourceCrsCols == 2 ? Convert.ChangeType(v1, TypeCode.String) : "EPSG";
+                    FileName = SourceAuthority + "(" + Convert.ChangeType(v2, TypeCode.String) + ")";
+
+                    if (ExportDataType == 1) // CCT
+                    {
+                        // CCT; use second part of dialog
+                        R1C1 TargetCrsR1C1 = new R1C1(TargetCrsRange);
+                        int nTargetCrsRows = TargetCrsR1C1.Rows();
+                        int nTargetCrsCols = TargetCrsR1C1.Cols();
+
+                        // now get the contents of the second reference from Excel
+                        Range cell3 = xlWs.Cells[TargetCrsR1C1.Top(), TargetCrsR1C1.Left()];
+                        Range cell4 = xlWs.Cells[TargetCrsR1C1.Top() + nTargetCrsRows - 1, TargetCrsR1C1.Left() + nTargetCrsCols - 1];
+
+                        var v3 = cell3.Value2;  // string ?
+                        var v4 = cell4.Value2;  // double ?
+
+                        TargetCells = new object[nTargetCrsRows, nTargetCrsCols];
+                        TargetCells[0, 0] = cell3.Value2;
+                        if (nTargetCrsCols > 1)
+                            TargetCells[0, 1] = cell4.Value2;
+
+                        TargetAuthority = nTargetCrsCols == 2 ? Convert.ChangeType(v3, TypeCode.String) : "EPSG";
+                        FileName += "_to_" + TargetAuthority + "(" + Convert.ChangeType(v4, TypeCode.String) + ")";
+                    }
+                }
+
+                SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+
+                saveFileDialog1.AddExtension = true;
+                saveFileDialog1.ValidateNames = true;
+                saveFileDialog1.RestoreDirectory = true;
+                saveFileDialog1.FileName = FileName;
+                saveFileDialog1.InitialDirectory = FolderName;
+                saveFileDialog1.FilterIndex = FilterIndex;
+                saveFileDialog1.DefaultExt = "wkt.txt";
+                saveFileDialog1.Filter =
+                    "PROJ Files (*.proj)|*.proj|" +
+                    "WKT files  (*.wkt)|*.wkt|" +
+                    "JSON files (*.json)|*.json";
+                saveFileDialog1.Title = "Select File Name and (\"Save As\") File Type";
+                saveFileDialog1.ShowDialog();
+
+                if(saveFileDialog1.FileName != "")
+                {
+                    FolderName  = saveFileDialog1.InitialDirectory;
+                    FilterIndex = saveFileDialog1.FilterIndex;
+
+                    // now it is time to export the data
+
+                    string FileContents = "";
+
+                    if(ExportDataType == 0)
+                    {
+                        // we have to export a CRS
+                        if (DataInputFrom == 0)
+                        {
+                            // Database query; no references used
+                            // Grab it from SourceAuthority & SourceCode
+                            using (ProjContext pjContext = Crs.CreateContext())
+                            {
+                                using (var crs = CoordinateReferenceSystem.CreateFromDatabase(SourceAuthority, SourceCode, pjContext).WithAxisNormalized())
+                                {
+                                    switch(saveFileDialog1.FilterIndex)
+                                    {
+                                    case 1 :
+                                        FileContents = crs.AsProjString(new ProjStringOptions { MultiLine = true, WriteApproxFlag = true });
+                                        break;
+
+                                    case 2 :
+                                        FileContents = crs.AsWellKnownText();
+                                        break;
+
+                                    case 3 :
+                                        FileContents = crs.AsProjJson();
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // Grab it from first reference
+                            using (ProjContext pjContext = Crs.CreateContext())
+                            {
+                                using (var crs = Crs.CreateCrs(SourceCells, pjContext).WithAxisNormalized())
+
+                                {
+                                    switch(saveFileDialog1.FilterIndex)
+                                    {
+                                    case 1 :
+                                        FileContents = crs.AsProjString(new ProjStringOptions { MultiLine = true, WriteApproxFlag = true });
+                                        break;
+
+                                    case 2 :
+                                        FileContents = crs.AsWellKnownText();
+                                        break;
+
+                                    case 3 :
+                                        FileContents = crs.AsProjJson();
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // we have to export a CCT
+                        if (DataInputFrom == 0)
+                        {
+                            // Database query; no references used
+                            // Grab it from SourceAuthority & SourceCode
+                            using (ProjContext pjContext = Crs.CreateContext())
+                            {
+                                using (var crsSource = CoordinateReferenceSystem.CreateFromDatabase(SourceAuthority, SourceCode, pjContext))
+                                using (var crsTarget = CoordinateReferenceSystem.CreateFromDatabase(TargetAuthority, TargetCode, pjContext))
+                                {
+                                    // Deal with optional parameters
+                                    bool bAllowDeprecatedCRS = false;
+                                    var options = Cct.GetCoordinateTransformOptions(0, -1, -1000, -1000, -1000, -1000, ref bAllowDeprecatedCRS);
+
+                                    using(var transform = Cct.CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS))
+                                    {
+                                        // check if the transform is a choosecoordinatetransform!
+                                        ChooseCoordinateTransform transforms = transform as ChooseCoordinateTransform;
+                                        if (transforms is null)
+                                        {
+                                            switch(saveFileDialog1.FilterIndex)
+                                            {
+                                            case 1 :
+                                                FileContents = transform.AsProjString();
+                                                break;
+
+                                            case 2 :
+                                                FileContents = transform.AsWellKnownText();
+                                                break;
+
+                                            case 3 :
+                                                FileContents = transform.AsProjJson();
+                                                break;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            switch(saveFileDialog1.FilterIndex)
+                                            {
+                                            case 1 :
+                                                FileContents = transforms[0].AsProjString();
+                                                break;
+
+                                            case 2 :
+                                                FileContents = transforms[0].AsWellKnownText();
+                                                break;
+
+                                            case 3 :
+                                                FileContents = transforms[0].AsProjJson();
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // Grab it from first reference
+                            using (ProjContext pjContext = Crs.CreateContext())
+                            {
+                                using (var crsSource = Crs.CreateCrs(SourceCells, pjContext, false))
+                                using (var crsTarget = Crs.CreateCrs(TargetCells, pjContext, false))
+                                {
+                                    // Deal with optional parameters
+                                    bool bAllowDeprecatedCRS = true;
+                                    var options = Cct.GetCoordinateTransformOptions(0, -1, -1000, -1000, -1000, -1000, ref bAllowDeprecatedCRS);
+
+                                    using(var transform = Cct.CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS))
+                                    {
+                                        // check if the transform is a choosecoordinatetransform!
+                                        ChooseCoordinateTransform transforms = transform as ChooseCoordinateTransform;
+                                        if (transforms is null)
+                                        {
+                                            switch(saveFileDialog1.FilterIndex)
+                                            {
+                                            case 1 :
+                                                FileContents = transform.AsProjString();
+                                                break;
+
+                                            case 2 :
+                                                FileContents = transform.AsWellKnownText();
+                                                break;
+
+                                            case 3 :
+                                                FileContents = transform.AsProjJson();
+                                                break;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            switch(saveFileDialog1.FilterIndex)
+                                            {
+                                            case 1 :
+                                                FileContents = transforms[0].AsProjString();
+                                                break;
+
+                                            case 2 :
+                                                FileContents = transforms[0].AsWellKnownText();
+                                                break;
+
+                                            case 3 :
+                                                FileContents = transforms[0].AsProjJson();
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    if (String.IsNullOrWhiteSpace(FileContents))
+                    {
+                        throw new Exception("file contents empty");
+                    }
+
+                    File.WriteAllText(saveFileDialog1.FileName, FileContents);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.Forms.MessageBox.Show(ex.Message, "Unexpected Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                AddIn.ProcessException(ex);
+            }
+
+        } // Dialog_Export_Wizard
+
+        [ExcelCommand(
+            Name = "Dialog_Log_Settings",
             Description = "Sets the logging level for the TopoLib AddIn",
-            HelpTopic = "TopoLib-AddIn.chm!1201")]
-        public static void Dialog_LogSettings()
+            HelpTopic = "TopoLib-AddIn.chm!1207")]
+        public static void Dialog_Log_Settings()
         {
             var dialog  = new XlDialogBox()                  {	                   W = 320, H = 150, Text = "Logging settings",  IO = 2, };
             var ctrl_01 = new XlDialogBox.Label()            {	 X = 020, Y = 010,                   Text = "Select the required logging level in the option list below",  };
@@ -998,10 +1276,10 @@ Show:       bool bOK = dialog.ShowDialog(Validate);
         } // LogSettingsDialog
 
         [ExcelCommand(
-            Name = "ResourceSettings_Dialog",
+            Name = "Dialog_Resource_Settings",
             Description = "Sets the acces for PROJ Resources",
-            HelpTopic = "TopoLib-AddIn.chm!1202")]
-        public static void Dialog_ResourceSettings()
+            HelpTopic = "TopoLib-AddIn.chm!1208")]
+        public static void Dialog_Resource_Settings()
         {
             var dialog  = new XlDialogBox()                  {	                   W = 360, H = 230, Text = "Resource Settings",  };
             var ctrl_01 = new XlDialogBox.Label()            {	 X = 020, Y = 010,                   Text = "&PROJ_LIB Environment Variable",  };
@@ -1075,13 +1353,13 @@ Show:       bool bOK = dialog.ShowDialog(Validate);
             Microsoft.Office.Interop.Excel.Application xlapp = (Microsoft.Office.Interop.Excel.Application)ExcelDnaUtil.Application;
             xlapp.Calculate();
 
-        } // ResourceSettingsDialog
+        } // Dialog_Resource_Settings
 
         [ExcelCommand(
-            Name = "TransformSettings_Dialog",
+            Name = "Dialog_Transform_Settings",
             Description = "Sets global transform parameters for the TopoLib AddIn",
-            HelpTopic = "TopoLib-AddIn.chm!1203")]
-        public static void Dialog_TransformSettings()
+            HelpTopic = "TopoLib-AddIn.chm!1209")]
+        public static void Dialog_Transform_Settings()
         {
             var dialog  = new XlDialogBox()                  {	                   W = 500, H = 280, Text = "Global Transform Settings",  };
             var ctrl_01 = new XlDialogBox.GroupBox()         {	 X = 020, Y = 020, W = 195, H = 070, Text = "Use Transform Parameters from",  };
@@ -1243,9 +1521,9 @@ Show:       bool bOK = dialog.ShowDialog(Validate);
         } // TransformSettingsDialog
 
         [ExcelCommand(
-            Name = "Version_Info",
+            Name = "Dialog_TopoLib_Version",
             Description = "Shows a dialog with information on library version and compilation date & time",
-            HelpTopic = "TopoLib-AddIn.chm!1207")]
+            HelpTopic = "TopoLib-AddIn.chm!1210")]
         public static void Dialog_TopoLibVersion()
         {
             var dialog  = new XlDialogBox()             {                    W = 313, H = 200, Text = "Version Info"};
@@ -1279,9 +1557,6 @@ Show:       bool bOK = dialog.ShowDialog(Validate);
             if (bOK == false) return;
 
         } // VersionDialog
-
-
     }
-
 }
 

@@ -1119,6 +1119,7 @@ namespace TopoLib
             }
         } // AsWktString
 
+/*
         [ExcelFunctionDoc(
             IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
             Name = "TL.cct.CelestialBodyName",
@@ -1199,7 +1200,7 @@ namespace TopoLib
                 pjContext?.Dispose();
             }
         } // CelestialBodyName
-
+*/
         [ExcelFunctionDoc(
             IsThreadSafe = true, // this should speed things up, and should be fine, as the ProjContext is created locally in the function....
             Name = "TL.cct.CreateForward",

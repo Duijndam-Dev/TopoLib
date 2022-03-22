@@ -47,14 +47,21 @@ namespace TopoLib
             _log = Serilog.Log.ForContext<CustomRibbon>();
             _log.Information("[TOP] Loading ribbon {ribbonId} via GetCustomUI", ribbonId);
 
+/*                          <separator id='Sep1' />
+                            <button id='projButton'      label='PROJ file'             imageMso='XmlExport'                       onAction='GpxButton_OnAction' />
+                            <button id='wktButton'       label='WKT file'              imageMso='XmlExport'                       onAction='KmlButton_OnAction' />
+                            <button id='jsonButton'      label='JSON file'             imageMso='XmlExport'                       onAction='KmlButton_OnAction' />
+*/
+
             string ribbonXml =
                 @"<customUI xmlns='http://schemas.microsoft.com/office/2006/01/customui' onLoad='OnLoad'>
                   <ribbon>
                     <tabs>
                       <tab id='TopoLibTap' label='TopoLib'>
-                        <group id='xmlGroup'            label='XML File Export'>
+                        <group id='xmlGroup'            label='Export functions'>
                             <button id='gpxButton'      label='GPX file'             imageMso='XmlExport'                       size='large' onAction='GpxButton_OnAction' />
                             <button id='kmlButton'      label='KML file'             imageMso='XmlExport'                       size='large' onAction='KmlButton_OnAction' />
+                            <button id='wizButton'      label='CRS or Transform'     imageMso='ControlWizards'                  size='large' onAction='WizButton_OnAction' />
                         </group>
                         <group id='SettingGroup'        label='TopoLib Settings'>
                             <button id='Proj_LibButton' label='Resource Settings'    imageMso='SiteColumnActionsColumnSettings' size='large' onAction='Proj_LibButton_OnAction' />
@@ -175,7 +182,7 @@ namespace TopoLib
         {
             try
             {
-                _excel.Application.Run("TransformSettings_Dialog");
+                _excel.Application.Run("Dialog_Transform_Settings");
             }
             catch (Exception ex)
             {
@@ -187,7 +194,7 @@ namespace TopoLib
         {
             try
             {
-                _excel.Application.Run("CacheSettings_Dialog");
+                _excel.Application.Run("Dialog_Cache_Settings");
             }
             catch (Exception ex)
             {
@@ -199,7 +206,7 @@ namespace TopoLib
         {
             try
             {
-                _excel.Application.Run("LogSettings_Dialog");
+                _excel.Application.Run("Dialog_Log_Settings");
             }
             catch (Exception ex)
             {
@@ -211,7 +218,7 @@ namespace TopoLib
         {
             try
             {
-                _excel.Application.Run("Recalculate_TopoLib_Transforms");
+                _excel.Application.Run("Command_Recalculate_Transforms");
             }
             catch (Exception ex)
             {
@@ -236,6 +243,18 @@ namespace TopoLib
             try
             {
                 _excel.Application.Run("Dialog_Export_KML_data");
+            }
+            catch (Exception ex)
+            {
+                AddIn.ProcessUnhandledException(ex);
+            }
+        }
+
+        public void WizButton_OnAction(IRibbonControl control)
+        {
+            try
+            {
+                _excel.Application.Run("Dialog_Export_Wizard");
             }
             catch (Exception ex)
             {
@@ -338,17 +357,17 @@ namespace TopoLib
 
         public void OnHelpButtonPressed(IRibbonControl control)
         {
-            _excel.Application.Run("Show_HelpFile");
+            _excel.Application.Run("Command_Show_HelpFile");
         }
 
         public void OnVersionButtonPressed(IRibbonControl control)
         {
-            _excel.Application.Run("Version_Info");
+            _excel.Application.Run("Dialog_TopoLib_Version");
         }
 
         public void OnAboutButtonPressed(IRibbonControl control)
         {
-            _excel.Application.Run("About_TopoLib");
+            _excel.Application.Run("Dialog_About_TopoLib");
         }
         
     }

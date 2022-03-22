@@ -22,11 +22,8 @@ namespace TopoLib
     {
         internal static ProjContext CreateContext()
         {
-            // Create context with proper Logging Level
+            // Create context with proper Logging Level; Network access is defined in the ProjContext Constructor through 'EnableNetworkConnectionsOnNewContexts'
             ProjContext pjContext = new ProjContext { LogLevel = CctOptions.ProjContext.LogLevel, EnableNetworkConnections = CctOptions.ProjContext.EnableNetworkConnections};
-
-            // Network access is defined in the ProjContext Constructor through 'EnableNetworkConnectionsOnNewContexts':
-            // if (EnableNetworkConnectionsOnNewContexts) EnableNetworkConnections = true;
 
             // Only use call-back when needed...
             if (CctOptions.ProjContext.LogLevel > 0)
@@ -35,10 +32,11 @@ namespace TopoLib
             return pjContext;
         }
 
-        internal static CoordinateReferenceSystem CreateCrs(in object[,] oCrs, in ProjContext pjContext)
+        internal static CoordinateReferenceSystem CreateCrs(in object[,] oCrs, in ProjContext pjContext, bool ExcelInterop = false)
         {
             int nCrsRows = oCrs.GetLength(0);
             int nCrsCols = oCrs.GetLength(1);
+            int nOffset  = ExcelInterop ? 1 : 0;
 
             // max two adjacent CRS cells on the same row
             if (nCrsRows != 1 || nCrsCols > 2 ) 
@@ -47,22 +45,30 @@ namespace TopoLib
             int nCrs;
             string sCrs;
 
-            // We have only one cell; it can be aa Wkt string, a JSON string, a PROJ string or a textual description
+            // We have only one cell; it can be a number, a Wkt string, a JSON string, a PROJ string or a textual description
             if (nCrsCols == 1)
             {
                 // we have one cell describing the crs.
-                if (oCrs[0,0] is double)
+                if (oCrs[0 + nOffset,0 + nOffset] is double)
                 {
                     // First cast to double, then to int, to deal with Excel datatypes
-                    nCrs = (int)(double)oCrs[0, 0];   
+                    nCrs = (int)(double)oCrs[0 + nOffset, 0 + nOffset];   
 
                     // we have an EPSG number from a single input parameter:
                     return CoordinateReferenceSystem.CreateFromEpsg(nCrs, pjContext);
                 }
-                else if (oCrs[0,0] is string)
+                else if (oCrs[0 + nOffset, 0 + nOffset] is int)
+                {
+                    // Cast to int, input is coming from Excel Dialog Integer Input Control
+                    nCrs = (int)oCrs[0 + nOffset, 0 + nOffset];   
+
+                    // we have an EPSG number from a single input parameter:
+                    return CoordinateReferenceSystem.CreateFromEpsg(nCrs, pjContext);
+                }
+                else if (oCrs[0 + nOffset, 0 + nOffset] is string)
                 {
                     // cast to string, to deal with Excel datatypes
-                    sCrs = (string)oCrs[0,0];
+                    sCrs = (string)oCrs[0 + nOffset, 0 + nOffset];
 
                     bool success = int.TryParse(sCrs, out nCrs);
                     if (success)
@@ -101,20 +107,24 @@ namespace TopoLib
             {
                 // we have two adjacent CRS cells; first an Authortity string of some sorts and a second input parameter (number):
 
-                sCrs = (string)oCrs[0,0];   // the authority string
+                sCrs = (string)oCrs[0 + nOffset, 0 + nOffset];   // the authority string
 
                 // try to get the crs number; if not succesful throw an exception
 
-                if (oCrs[0, 1] is double)
+                if (oCrs[0 + nOffset, 1 + nOffset] is double)
                 {
                     // First cast to double, then to int, to deal with Excel datatypes
-                    nCrs = (int)(double)oCrs[0, 1];
-
+                    nCrs = (int)(double)oCrs[0 + nOffset, 1 + nOffset];
                 }
-                else if (oCrs[0, 1] is string)
+                else if (oCrs[0 + nOffset, 1 + nOffset] is int)
+                {
+                    // Cast to int, input is coming from Excel Dialog Integer Input Control
+                    nCrs = (int)oCrs[0 + nOffset, 1 + nOffset];
+                }
+                else if (oCrs[0 + nOffset, 1 + nOffset] is string)
                 {
                     // cast to string, to deal with Excel datatypes
-                    string sTmp = (string)oCrs[0, 1];
+                    string sTmp = (string)oCrs[0 + nOffset, 1 + nOffset];
 
                     bool success = int.TryParse(sTmp, out nCrs);
                     if (!success) 
@@ -995,6 +1005,45 @@ namespace TopoLib
             }
 
         } // CoordinateSystem_CoordinateSystemType
+
+        [ExcelFunctionDoc(
+             Name = "TL.crs.CoordinateSystem.Context",
+             Category = "CRS - Coordinate Reference System",
+             Description = "Gets type of Coordinate System",
+             HelpTopic = "TopoLib-AddIn.chm!1378",
+
+             Returns = "Context of coordinate system",
+             Summary = "Function that returns contextof Coordinate System or &ltNotFound&gt if not found",
+             Example = "xxx"
+         )]
+        public static object CoordinateSystem_Context(
+             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            )
+        {
+            try
+            {
+                string context="";
+
+                using (ProjContext pjContext = CreateContext())
+                {
+                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    {
+                        if (crs != null)
+                            context= crs.CoordinateSystem.Context.ToString();
+
+                        if (String.IsNullOrWhiteSpace(context))
+                            context = "<NotFound>";
+
+                        return context;
+                    }
+                }        
+            }
+            catch (Exception ex)
+            {
+                return AddIn.ProcessException(ex);
+            }
+
+        } // CoordinateSystem_Context
 
         [ExcelFunctionDoc(
              Name = "TL.crs.CoordinateSystem.Name",
@@ -2142,6 +2191,45 @@ namespace TopoLib
             }
 
         } // PrimeMeridian_UnitName
+
+        [ExcelFunctionDoc(
+             Name = "TL.crs.Remarks",
+             Category = "CRS - Coordinate Reference System",
+             Description = "Gets scope of Coordinate Reference System",
+             HelpTopic = "TopoLib-AddIn.chm!1377",
+
+             Returns = "CRS Remarks",
+             Summary = "Function that returns remarks on a CRS or &ltNotFound&gt if not found",
+             Example = "xxx"
+         )]
+        public static object Remarks(
+             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            )
+        {
+            try
+            {
+                string remarks ="";
+
+                using (ProjContext pjContext = CreateContext())
+                {
+                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    {
+                        if (crs != null)
+                            remarks = crs.Remarks;
+
+                        if (String.IsNullOrWhiteSpace(remarks))
+                            remarks= "<NotFound>";
+
+                        return remarks;
+                    }
+                }        
+            }
+            catch (Exception ex)
+            {
+                return AddIn.ProcessException(ex);
+            }
+
+        } // Remarks
 
         [ExcelFunctionDoc(
              Name = "TL.crs.Scope",
