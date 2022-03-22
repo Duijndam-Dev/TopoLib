@@ -47,41 +47,35 @@ namespace TopoLib
             _log = Serilog.Log.ForContext<CustomRibbon>();
             _log.Information("[TOP] Loading ribbon {ribbonId} via GetCustomUI", ribbonId);
 
-/*                          <separator id='Sep1' />
-                            <button id='projButton'      label='PROJ file'             imageMso='XmlExport'                       onAction='GpxButton_OnAction' />
-                            <button id='wktButton'       label='WKT file'              imageMso='XmlExport'                       onAction='KmlButton_OnAction' />
-                            <button id='jsonButton'      label='JSON file'             imageMso='XmlExport'                       onAction='KmlButton_OnAction' />
-*/
-
             string ribbonXml =
                 @"<customUI xmlns='http://schemas.microsoft.com/office/2006/01/customui' onLoad='OnLoad'>
                   <ribbon>
                     <tabs>
                       <tab id='TopoLibTap' label='TopoLib'>
                         <group id='xmlGroup'            label='Export functions'>
-                            <button id='gpxButton'      label='GPX file'             imageMso='XmlExport'                       size='large' onAction='GpxButton_OnAction' />
-                            <button id='kmlButton'      label='KML file'             imageMso='XmlExport'                       size='large' onAction='KmlButton_OnAction' />
-                            <button id='wizButton'      label='CRS or Transform'     imageMso='ControlWizards'                  size='large' onAction='WizButton_OnAction' />
+                            <button id='gpxButton'      label='GPX file'             imageMso='XmlExport'                       size='large' onAction='ExportGpxButton_OnAction' />
+                            <button id='kmlButton'      label='KML file'             imageMso='XmlExport'                       size='large' onAction='ExportKmlButton_OnAction' />
+                            <button id='wizButton'      label='CRS or Transform'     imageMso='ControlWizards'                  size='large' onAction='ExportWizButton_OnAction' />
                         </group>
                         <group id='SettingGroup'        label='TopoLib Settings'>
-                            <button id='Proj_LibButton' label='Resource Settings'    imageMso='SiteColumnActionsColumnSettings' size='large' onAction='Proj_LibButton_OnAction' />
-                            <button id='OptionsButton'  label='Transform Settings'   imageMso='ColumnActionsColumnSettings'     size='large' onAction='OptionsButton_OnAction' />
-                            <button id='CacheButton'    label='Cache Settings'       imageMso='ColumnListSetting'               size='large' onAction='CacheButton_OnAction' />
-                            <button id='LogLevelButton' label='Logging Settings'     imageMso='ComAddInsDialog'                 size='large' onAction='LogLevelButton_OnAction' />
+                            <button id='Proj_LibButton' label='Resource Settings'    imageMso='SiteColumnActionsColumnSettings' size='large' onAction='DialogResourceSettings_OnAction' />
+                            <button id='OptionsButton'  label='Transform Settings'   imageMso='ColumnActionsColumnSettings'     size='large' onAction='DialogOptionsButton_OnAction' />
+                            <button id='CacheButton'    label='Cache Settings'       imageMso='ColumnListSetting'               size='large' onAction='DialogCacheButton_OnAction' />
+                            <button id='LogLevelButton' label='Logging Settings'     imageMso='ComAddInsDialog'                 size='large' onAction='DialogLogLevelButton_OnAction' />
                         </group>
                         <group id='RecalcGroup'         label='TopoLib Transforms'>
                             <button id='RecalcButton'   label='Refresh Transforms'    imageMso='RefreshWebView'                 size='large' onAction='RecalcButton_OnAction' />
                         </group>
                         <group id='LoggingGroup'        label='Test Logging Messages'>
-                            <button id='ErrorButton'    label='Log Error'            imageMso='OutlineViewClose'   onAction='ErrorButton_OnAction' />
-                            <button id='DebugButton'    label='Log Debug'            imageMso='MoreControlsDialog' onAction='DebugButton_OnAction' />
-                            <button id='VerboseButton'  label='Log Verbose'          imageMso='Callout'            onAction='VerboseButton_OnAction' />
+                            <button id='ErrorButton'    label='Log Error'            imageMso='OutlineViewClose'   onAction='LogErrorButton_OnAction' />
+                            <button id='DebugButton'    label='Log Debug'            imageMso='MoreControlsDialog' onAction='LogDebugButton_OnAction' />
+                            <button id='VerboseButton'  label='Log Verbose'          imageMso='Callout'            onAction='LogVerboseButton_OnAction' />
                         </group>
                         <group id='LogDisplayGroup' label='Log Handling'>
-                            <button id='ViewLogDisplayButton' label='View Log'       imageMso='FileDocumentInspect' size='large' onAction='ViewLogDisplayButton_OnAction' />
-                            <button id='ClearLogButton' label='Clear Log'            imageMso='Clear'               size='large' onAction='ClearLogDisplayButton_OnAction' />
+                            <button id='ViewLogDisplayButton' label='View Log'       imageMso='FileDocumentInspect' size='large' onAction='LogViewDisplayButton_OnAction' />
+                            <button id='ClearLogButton' label='Clear Log'            imageMso='Clear'               size='large' onAction='LogClearDisplayButton_OnAction' />
                             <separator id='DisplayOrderSeparator' />
-                            <menu id='DisplayOrderMenu' label='Display Order' getImage='DisplayOrderMenu_GetImage'  size='large'>
+                            <menu id='DisplayOrderMenu' label='Display Order' getImage='LogOrderMenu_GetImage'      size='large'>
                             <toggleButton id='LogNewestLastButton' label='Newest Last' imageMso='EndOfDocument' getPressed='LogNewestLastButton_GetPressed' onAction='LogNewestLastButton_OnAction' />
                             <toggleButton id='LogNewestFirstButton' label='Newest First' imageMso='StartOfDocument' getPressed='LogNewestFirstButton_GetPressed' onAction='LogNewestFirstButton_OnAction' />
                             </menu>
@@ -118,67 +112,7 @@ namespace TopoLib
             CctOptions.ReadConfiguration();
         }
 
-        public void ErrorButton_OnAction(IRibbonControl control)
-        {
-            try
-            {
-                _log.Error("[TOP] This is an **Error** message");
-            }
-            catch (Exception ex)
-            {
-                AddIn.ProcessUnhandledException(ex);
-            }
-        }
-
-        public void DebugButton_OnAction(IRibbonControl control)
-        {
-            try
-            {
-                _log.Debug("[TOP] This is a **Debug** message");
-            }
-            catch (Exception ex)
-            {
-                AddIn.ProcessUnhandledException(ex);
-            }
-        }
-
-        public void VerboseButton_OnAction(IRibbonControl control)
-        {
-            try
-            {
-                _log.Verbose("[TOP] This is a **Verbose** message");
-            }
-            catch (Exception ex)
-            {
-                AddIn.ProcessUnhandledException(ex);
-            }
-        }
-
-        public void ViewLogDisplayButton_OnAction(IRibbonControl control)
-        {
-            try
-            {
-                LogDisplay.Show();
-            }
-            catch (Exception ex)
-            {
-                AddIn.ProcessUnhandledException(ex);
-            }
-        }
-
-        public void ClearLogDisplayButton_OnAction(IRibbonControl control)
-        {
-            try
-            {
-                LogDisplay.Clear();
-            }
-            catch (Exception ex)
-            {
-                AddIn.ProcessUnhandledException(ex);
-            }
-        }
-
-        public void OptionsButton_OnAction(IRibbonControl control)
+        public void DialogOptionsButton_OnAction(IRibbonControl control)
         {
             try
             {
@@ -190,7 +124,7 @@ namespace TopoLib
             }
         }
 
-        public void CacheButton_OnAction(IRibbonControl control)
+        public void DialogCacheButton_OnAction(IRibbonControl control)
         {
             try
             {
@@ -202,11 +136,59 @@ namespace TopoLib
             }
         }
 
-        public void LogLevelButton_OnAction(IRibbonControl control)
+        public void DialogLogLevelButton_OnAction(IRibbonControl control)
         {
             try
             {
                 _excel.Application.Run("Dialog_Log_Settings");
+            }
+            catch (Exception ex)
+            {
+                AddIn.ProcessUnhandledException(ex);
+            }
+        }
+
+        public void DialogResourceSettings_OnAction(IRibbonControl control)
+        {
+            try
+            {
+                _excel.Application.Run("Dialog_Resource_Settings");
+            }
+            catch (Exception ex)
+            {
+                AddIn.ProcessUnhandledException(ex);
+            }
+        }
+
+        public void ExportGpxButton_OnAction(IRibbonControl control)
+        {
+            try
+            {
+                _excel.Application.Run("Dialog_Export_GPX_data");
+            }
+            catch (Exception ex)
+            {
+                AddIn.ProcessUnhandledException(ex);
+            }
+        }
+
+        public void ExportKmlButton_OnAction(IRibbonControl control)
+        {
+            try
+            {
+                _excel.Application.Run("Dialog_Export_KML_data");
+            }
+            catch (Exception ex)
+            {
+                AddIn.ProcessUnhandledException(ex);
+            }
+        }
+
+        public void ExportWizButton_OnAction(IRibbonControl control)
+        {
+            try
+            {
+                _excel.Application.Run("Dialog_Export_Wizard");
             }
             catch (Exception ex)
             {
@@ -226,43 +208,7 @@ namespace TopoLib
             }
         }
 
-        public void GpxButton_OnAction(IRibbonControl control)
-        {
-            try
-            {
-                _excel.Application.Run("Dialog_Export_GPX_data");
-            }
-            catch (Exception ex)
-            {
-                AddIn.ProcessUnhandledException(ex);
-            }
-        }
-
-        public void KmlButton_OnAction(IRibbonControl control)
-        {
-            try
-            {
-                _excel.Application.Run("Dialog_Export_KML_data");
-            }
-            catch (Exception ex)
-            {
-                AddIn.ProcessUnhandledException(ex);
-            }
-        }
-
-        public void WizButton_OnAction(IRibbonControl control)
-        {
-            try
-            {
-                _excel.Application.Run("Dialog_Export_Wizard");
-            }
-            catch (Exception ex)
-            {
-                AddIn.ProcessUnhandledException(ex);
-            }
-        }
-
-        public string DisplayOrderMenu_GetImage(IRibbonControl control)
+        public string LogOrderMenu_GetImage(IRibbonControl control)
         {
             try
             {
@@ -282,6 +228,66 @@ namespace TopoLib
             {
                 AddIn.ProcessUnhandledException(ex);
                 return null;
+            }
+        }
+
+        public void LogViewDisplayButton_OnAction(IRibbonControl control)
+        {
+            try
+            {
+                LogDisplay.Show();
+            }
+            catch (Exception ex)
+            {
+                AddIn.ProcessUnhandledException(ex);
+            }
+        }
+
+        public void LogClearDisplayButton_OnAction(IRibbonControl control)
+        {
+            try
+            {
+                LogDisplay.Clear();
+            }
+            catch (Exception ex)
+            {
+                AddIn.ProcessUnhandledException(ex);
+            }
+        }
+
+        public void LogErrorButton_OnAction(IRibbonControl control)
+        {
+            try
+            {
+                _log.Error("[TOP] This is an **Error** message");
+            }
+            catch (Exception ex)
+            {
+                AddIn.ProcessUnhandledException(ex);
+            }
+        }
+
+        public void LogDebugButton_OnAction(IRibbonControl control)
+        {
+            try
+            {
+                _log.Debug("[TOP] This is a **Debug** message");
+            }
+            catch (Exception ex)
+            {
+                AddIn.ProcessUnhandledException(ex);
+            }
+        }
+
+        public void LogVerboseButton_OnAction(IRibbonControl control)
+        {
+            try
+            {
+                _log.Verbose("[TOP] This is a **Verbose** message");
+            }
+            catch (Exception ex)
+            {
+                AddIn.ProcessUnhandledException(ex);
             }
         }
 
@@ -336,18 +342,6 @@ namespace TopoLib
                 _thisRibbon.InvalidateControl("DisplayOrderMenu");
                 _thisRibbon.InvalidateControl("LogNewestFirstButton");
                 _thisRibbon.InvalidateControl("LogNewestLastButton");
-            }
-            catch (Exception ex)
-            {
-                AddIn.ProcessUnhandledException(ex);
-            }
-        }
-
-        public void Proj_LibButton_OnAction(IRibbonControl control)
-        {
-            try
-            {
-                _excel.Application.Run("ResourceSettings_Dialog");
             }
             catch (Exception ex)
             {

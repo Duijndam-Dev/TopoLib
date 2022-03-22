@@ -1277,7 +1277,7 @@ Page2:      if (ExportDataType == 0)
 
         [ExcelCommand(
             Name = "Dialog_Resource_Settings",
-            Description = "Sets the acces for PROJ Resources",
+            Description = "Sets the acces method for PROJ Resources",
             HelpTopic = "TopoLib-AddIn.chm!1208")]
         public static void Dialog_Resource_Settings()
         {
