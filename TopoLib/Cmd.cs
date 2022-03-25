@@ -131,6 +131,9 @@ namespace TopoLib
         static string FolderName = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
         static int FilterIndex = 1;
 
+        static int SourceAuthIndex = 0; // "EPSG";
+        static int TargetAuthIndex = 0; // "EPSG";
+
         static int SourceCode = 4326;
         static int TargetCode = 4326;
 
@@ -788,9 +791,9 @@ Show:       bool bOK = dialog.ShowDialog(Validate);
             var ctrl_07 = new XlDialogBox.RadioButtonGroup() {	                                     IO = 1, };
             var ctrl_08 = new XlDialogBox.RadioButton()      {	          Y = 127,                   Text = "&PROJ Database Query",  };
             var ctrl_09 = new XlDialogBox.RadioButton()      {	          Y = 147,                   Text = "Spreadsheet &Cell reference(s)",  };
-            var ctrl_10 = new XlDialogBox.OkButton()         {	 X = 020, Y = 190, W = 075,          Text = "< &Back",  Enable = false, };
-            var ctrl_11 = new XlDialogBox.OkButton()         {	 X = 107, Y = 190, W = 075,          Text = "&Next >",  };
-            var ctrl_12 = new XlDialogBox.CancelButton()     {	 X = 240, Y = 190, W = 075,          Text = "&Cancel",  };
+            var ctrl_10 = new XlDialogBox.OkButton()         {	 X = 030, Y = 190, W = 075,          Text = "< &Back",  Enable = false, };
+            var ctrl_11 = new XlDialogBox.OkButton()         {	 X = 125, Y = 190, W = 075,          Text = "&Next >",  };
+            var ctrl_12 = new XlDialogBox.CancelButton()     {	 X = 245, Y = 190, W = 075,          Text = "&Cancel",  };
 
             dialog1.Controls.Add(ctrl_01);
             dialog1.Controls.Add(ctrl_02);
@@ -819,26 +822,41 @@ Page1:      ctrl_03.IO_index = ExportDataType;
 
 
             var dialog2 = new XlDialogBox()                  {	                   W = 360, H = 230, Text = "CRS & CCT String export [2]",  };
+
             var ctrl_13 = new XlDialogBox.Label()            {	 X = 020, Y = 016,                   Text = "Select Source and Target CRS",  };
             var ctrl_14 = new XlDialogBox.GroupBox()         {	 X = 020, Y = 040, W = 300, H = 055, Text = "Source CRS",  };
 
-            var ctrl_15 = new XlDialogBox.RefEdit()          {	 X = 030, Y = 060, W = 160,          };
+            var ctrl_15 = new XlDialogBox.RefEdit()          {	 X = 030, Y = 060, W = 170,          };
 
-            var ctrl_16 = new XlDialogBox.TextEdit()         {	 X = 030, Y = 060, W = 070,          };
-            var ctrl_17 = new XlDialogBox.Label()            {	 X = 105, Y = 060, W = 020,          Text = " : "};
-            var ctrl_18 = new XlDialogBox.IntegerEdit()      {	 X = 120, Y = 060, W = 070,          };
+            var ctrl_16 = new XlDialogBox.DropdownList()     {	 X = 030, Y = 060, W = 080,          Text = "List_16", IO = 1, };
+            var ctrl_17 = new XlDialogBox.Label()            {	 X = 115, Y = 060, W = 020,          Text = " : ",  };
+            var ctrl_18 = new XlDialogBox.DoubleEdit()      {	 X = 130, Y = 060, W = 070,          IO = 4326};
 
             var ctrl_19 = new XlDialogBox.GroupBox()         {	 X = 020, Y = 110, W = 300, H = 055, Text = "Target CRS",  };
 
-            var ctrl_20 = new XlDialogBox.RefEdit()          {	 X = 030, Y = 130, W = 160,          };
+            var ctrl_20 = new XlDialogBox.RefEdit()          {	 X = 030, Y = 130, W = 170,          };
 
-            var ctrl_21 = new XlDialogBox.TextEdit()         {	 X = 030, Y = 130, W = 070,          };
-            var ctrl_22 = new XlDialogBox.Label()            {	 X = 105, Y = 130, W = 020,          Text = " :",  };
-            var ctrl_23 = new XlDialogBox.IntegerEdit()      {	 X = 120, Y = 130, W = 070,          };
+            var ctrl_21 = new XlDialogBox.DropdownList()     {	 X = 030, Y = 130, W = 080,          Text = "List_21", IO = 1,};
+            var ctrl_22 = new XlDialogBox.Label()            {	 X = 115, Y = 130, W = 020,          Text = " :",  };
+            var ctrl_23 = new XlDialogBox.DoubleEdit()      {	 X = 130, Y = 130, W = 070,          IO = 4326, };
 
-            var ctrl_24 = new XlDialogBox.OkButton()         {	 X = 020, Y = 190, W = 075,          Text = "< &Back",  };
-            var ctrl_25 = new XlDialogBox.OkButton()         {	 X = 107, Y = 190, W = 075,          Text = "Save &As",  };
-            var ctrl_26 = new XlDialogBox.CancelButton()     {	 X = 240, Y = 190, W = 075,          Text = "&Cancel",  };
+            var ctrl_24 = new XlDialogBox.OkButton()         {	 X = 030, Y = 190, W = 075,          Text = "< &Back",  };
+            var ctrl_25 = new XlDialogBox.OkButton()         {	 X = 125, Y = 190, W = 075,          Text = "Save &As",  };
+            var ctrl_26 = new XlDialogBox.CancelButton()     {	 X = 245, Y = 190, W = 075,          Text = "&Cancel",  };
+
+            string[] Authorities = new string[]
+            {
+                "EPSG",
+                "ESRI",
+                "IAU_2015",
+                "IGNF",
+                "NKG",
+                "OGC",
+                "PROJ"
+            };
+
+            ctrl_16.Items.AddRange(Authorities);
+            ctrl_21.Items.AddRange(Authorities);
 
             dialog2.Controls.Add(ctrl_13);
             dialog2.Controls.Add(ctrl_14);
@@ -854,6 +872,7 @@ Page1:      ctrl_03.IO_index = ExportDataType;
             dialog2.Controls.Add(ctrl_24);
             dialog2.Controls.Add(ctrl_25);
             dialog2.Controls.Add(ctrl_26);
+
             dialog2.CallingMethod = System.Reflection.MethodBase.GetCurrentMethod(); 
             dialog2.DialogScaling = 125.0;  // Use this if the dialog was designed using a display with 120 DPI
 
@@ -875,11 +894,11 @@ Page2:      if (ExportDataType == 0)
                 ctrl_15.Visible   = false;
                 ctrl_20.Visible   = false;
 
-                ctrl_16.IO_string = SourceAuthority;
-                ctrl_18.IO_int    = SourceCode;
+                ctrl_16.IO_index  = SourceAuthIndex;
+                ctrl_18.IO_double = SourceCode;
 
-                ctrl_21.IO_string = TargetAuthority;
-                ctrl_23.IO_int    = TargetCode;
+                ctrl_21.IO_index  = TargetAuthIndex;
+                ctrl_23.IO_double = TargetCode;
             }
             else
             {
@@ -904,16 +923,21 @@ Page2:      if (ExportDataType == 0)
             if (DataInputFrom == 0)  // DB
             {
                 // Database query; no references used
-                SourceAuthority = ctrl_16.IO_string.Trim(' ', ':');;
-                SourceCode      = ctrl_18.IO_int;
+
+                SourceAuthIndex = ctrl_16.IO_index;
+                SourceAuthority = Authorities[SourceAuthIndex];
+
+                SourceCode      = (int) ctrl_18.IO_double;
 
                 FileName = SourceAuthority + "(" + SourceCode.ToString() + ")";
 
                 if (ExportDataType == 1) // CCT
                 {
                     // CCT; use second part of dialog
-                    TargetAuthority = ctrl_21.IO_string.Trim(' ', ':'); ;
-                    TargetCode      = ctrl_23.IO_int;
+                    TargetAuthIndex = ctrl_21.IO_index;
+                    TargetAuthority = Authorities[TargetAuthIndex ];
+
+                    TargetCode      = (int) ctrl_23.IO_double;
 
                     FileName += "_to_" + TargetAuthority + "(" + TargetCode.ToString() + ")";
                 }
@@ -1118,8 +1142,10 @@ Page2:      if (ExportDataType == 0)
                                 using (var crsTarget = CoordinateReferenceSystem.CreateFromDatabase(TargetAuthority, TargetCode, pjContext))
                                 {
                                     // Deal with optional parameters
-                                    bool bAllowDeprecatedCRS = false;
-                                    var options = Cct.GetCoordinateTransformOptions(0, -1, -1000, -1000, -1000, -1000, ref bAllowDeprecatedCRS);
+                                    bool bAllowDeprecatedCRS = true;
+
+                                    // setting mode-flag to 128 preserves allowing to use a deprecated CRS; but it can still be overruled in global settings.
+                                    var options = Cct.GetCoordinateTransformOptions(128, -1, -1000, -1000, -1000, -1000, ref bAllowDeprecatedCRS);
 
                                     using(var transform = Cct.CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS))
                                     {
@@ -1173,7 +1199,9 @@ Page2:      if (ExportDataType == 0)
                                 {
                                     // Deal with optional parameters
                                     bool bAllowDeprecatedCRS = true;
-                                    var options = Cct.GetCoordinateTransformOptions(0, -1, -1000, -1000, -1000, -1000, ref bAllowDeprecatedCRS);
+
+                                    // setting mode-flag to 128 preserves allowing to use a deprecated CRS; but it can still be overruled in global settings.
+                                    var options = Cct.GetCoordinateTransformOptions(128, -1, -1000, -1000, -1000, -1000, ref bAllowDeprecatedCRS);
 
                                     using(var transform = Cct.CreateCoordinateTransform(crsSource, crsTarget, options, pjContext, bAllowDeprecatedCRS))
                                     {

@@ -1,0 +1,38 @@
+ReadOnlyCollection<GeoidModelInfo^>^ CoordinateReferenceSystemInfo::GetGeoidModels()
+{
+    if (!_geoidModels)
+    {
+        std::string auth = utf8_string(Authority);
+        std::string code = utf8_string(Code);
+        PROJ_STRING_LIST geoid_list = proj_get_geoid_models_from_database(_ctx, auth.c_str(), code.c_str(), nullptr);
+
+        if (!geoid_list)
+            throw _ctx->ConstructException("GetGeoidModels");
+
+        array<String^>^ geoids = ProjObject::FromStringList(geoid_list);
+        proj_string_list_destroy(geoid_list);
+
+        List<GeoidModelInfo^>^ gmi = gcnew List<GeoidModelInfo^>(geoids->Length);
+
+        for each (auto s in geoids)
+            gmi->Add(gcnew GeoidModelInfo(Authority, s));
+
+        _geoidModels = gmi->AsReadOnly();
+    }
+
+    return _geoidModels;
+}
+
+
+PROJ_STRING_LIST proj_get_authorities_from_database (PJ_CONTEXT * ctx )
+
+Return the list of authoriti es used in the database.
+The returned list is NULL terminated and must be freed with proj_string_list_destroy()
+.
+Parameters:
+ctx
+– PROJ context, or NULL for default context
+Returns:
+a NULL terminated list of NUL-terminated strings that must be freed with
+proj_string_list_destroy()
+, or NULL in case of error.
