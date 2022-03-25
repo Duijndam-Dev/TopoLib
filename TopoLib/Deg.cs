@@ -227,7 +227,7 @@ namespace TopoLib
                 return AddIn.ProcessException(ex);
             }
 
-        } // AsDmsString
+        } // AsString
 
         [ExcelFunctionDoc(
             Name = "TL.deg.FromString",
