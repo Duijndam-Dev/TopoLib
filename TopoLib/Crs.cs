@@ -153,19 +153,23 @@ namespace TopoLib
 
             Returns = "A JSON-string",
             Summary = "Function that describes a Coordinate Reference System as a JSON-string",
-            Example = "Not implemented; requires long JSON-string as output text"
-        )]
+            Example = "Not implemented; requires long JSON-string as output text",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object AsJsonString(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 string CrsString ="";
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         CrsString = crs.AsProjJson();
 
@@ -191,19 +195,23 @@ namespace TopoLib
 
             Returns = "A PROJ-string",
             Summary = "Function that describes a Coordinate Reference System as a PROJ-string",
-            Example = "TL.crs.AsProjString(2027) returns +proj=utm +zone=15 +ellps=clrk66 +units=m +no_defs +type=crs"
-        )]
+            Example = "TL.crs.AsProjString(2027) returns +proj=utm +zone=15 +ellps=clrk66 +units=m +no_defs +type=crs",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object AsProjString(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 string CrsString ="";
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using ( var crs = CreateCrs(oCrs, pjContext))
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         CrsString = crs.AsProjString();
 
@@ -229,19 +237,23 @@ namespace TopoLib
 
             Returns = "A WellKnownText-string",
             Summary = "Function that describes a Coordinate Reference System as a Well Known Text string",
-            Example = "Not implemented; requires long WKT-string as output text"
-        )]
+            Example = "Not implemented; requires long WKT-string as output text",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object AsWktString(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 string CrsString ="";
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         CrsString = crs.AsWellKnownText();
 
@@ -267,15 +279,20 @@ namespace TopoLib
 
             Returns = "short name of Nth axis in a coordinate reference system",
             Summary = "Returns the short name of Nth axis in a coordinate reference system",
-            Example = "TL.crs.CoordinateSystem.Axis.Abbreviation(3857) returns X")]
+            Example = "TL.crs.CoordinateSystem.Axis.Abbreviation(3857) returns X",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object Axis_Abbreviation(
-            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
-            [ExcelArgument("Zero based index of Axis list (0) ", Name = "Index")] object index)
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Zero based index of Axis list (0) ", Name = "Index")] object index,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
+            )
         {
             if (ExcelDnaUtil.IsInFunctionWizard())
                 return ExcelError.ExcelErrorRef;
 
             int nIndex  = (int)Optional.Check(index , 0.0);
+            bool bNorm  = Optional.Check(normalized, true);
             string name ="";
 
             // do the work
@@ -283,7 +300,7 @@ namespace TopoLib
             {
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             name = crs.Axis[nIndex].Abbreviation;
@@ -302,28 +319,31 @@ namespace TopoLib
 
         } // Axis_Abbreviation
 
-
         [ExcelFunctionDoc(
-             Name = "TL.crs.Axis.Count",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets type of Coordinate System",
-             HelpTopic = "TopoLib-AddIn.chm!1304",
+            Name = "TL.crs.Axis.Count",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets type of Coordinate System",
+            HelpTopic = "TopoLib-AddIn.chm!1304",
 
-             Returns = "Nr of axis in a coordinate reference system",
-             Summary = "Function that returns nr of axes in of Coordinate Reference System or -1 if not found",
-             Example = "TL.crs.CoordinateSystem.Axis.Count(3857) returns 2"
-         )]
+            Returns = "Nr of axis in a coordinate reference system",
+            Summary = "Function that returns nr of axes in of Coordinate Reference System or -1 if not found",
+            Example = "TL.crs.CoordinateSystem.Axis.Count(3857) returns 2",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object Axis_Count(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 int nAxes = -1;
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (CoordinateReferenceSystem crs = CreateCrs(oCrs, pjContext))
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             nAxes = crs.Axis.Count;
@@ -347,15 +367,19 @@ namespace TopoLib
 
             Returns = "Direction of Nth axis in a coordinate reference system",
             Summary = "Returns the direction of Nth axis in a coordinate reference system",
-            Example = "TL.crs.CoordinateSystem.Axis.Direction(3857, 1) returns north")]
+            Example = "TL.crs.CoordinateSystem.Axis.Direction(3857, 1) returns north",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"            )]
         public static object Axis_Direction(
-            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
-            [ExcelArgument("Zero based index of Axis list (0) ", Name = "Index")] object index)
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Zero based index of Axis list (0) ", Name = "Index")] object index,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
+            )
         {
             if (ExcelDnaUtil.IsInFunctionWizard())
                 return ExcelError.ExcelErrorRef;
 
             int nIndex  = (int)Optional.Check(index , 0.0);
+            bool bNorm  = Optional.Check(normalized, true);
             string name ="";
 
             // do the work
@@ -363,7 +387,7 @@ namespace TopoLib
             {
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             name = crs.Axis[nIndex].Direction;
@@ -390,15 +414,20 @@ namespace TopoLib
 
             Returns = "name of Nth axis in a coordinate reference system",
             Summary = "Returns the name of Nth axis in a coordinate system",
-            Example = "TL.crs.CoordinateSystem.Axis.Name(3875, 1) returns Northing")]
+            Example = "TL.crs.CoordinateSystem.Axis.Name(3875, 1) returns Northing",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object Axis_Name(
-            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
-            [ExcelArgument("Zero based index of Identifier list (0) ", Name = "Index")] object index)
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Zero based index of Identifier list (0) ", Name = "Index")] object index,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
+            )
         {
             if (ExcelDnaUtil.IsInFunctionWizard())
                 return ExcelError.ExcelErrorRef;
 
             int nIndex  = (int)Optional.Check(index , 0.0);
+            bool bNorm  = Optional.Check(normalized, true);
             string name ="";
 
             // do the work
@@ -406,7 +435,7 @@ namespace TopoLib
             {
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             name = crs.Axis[nIndex].Name;
@@ -433,15 +462,20 @@ namespace TopoLib
 
             Returns = "authority name of Nth axis in a coordinate reference system",
             Summary = "Returns the authority name of Nth axis in a coordinate reference system",
-            Example = "TL.crs.CoordinateSystem.Axis.UnitName(23095, 1) returns metre")]
+            Example = "TL.crs.CoordinateSystem.Axis.UnitName(23095, 1) returns metre",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object Axis_UnitAuthName(
-            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
-            [ExcelArgument("Zero based index of Axis list (0) ", Name = "Index")] object index)
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Zero based index of Axis list (0) ", Name = "Index")] object index,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
+            )
         {
             if (ExcelDnaUtil.IsInFunctionWizard())
                 return ExcelError.ExcelErrorRef;
 
             int nIndex  = (int)Optional.Check(index , 0.0);
+            bool bNorm  = Optional.Check(normalized, true);
             string name ="";
 
             // do the work
@@ -449,7 +483,7 @@ namespace TopoLib
             {
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             name = crs.Axis[nIndex].UnitAuthName;
@@ -476,15 +510,20 @@ namespace TopoLib
 
             Returns = "authority name of Nth axis in a coordinate reference system",
             Summary = "Returns the authority name of Nth axis in a coordinate reference system",
-            Example = "TL.crs.CoordinateSystem.Axis.UnitCode(3857, 1) returns 9001")]
+            Example = "TL.crs.CoordinateSystem.Axis.UnitCode(3857, 1) returns 9001",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object Axis_UnitCode(
-            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
-            [ExcelArgument("Zero based index of Axis list (0) ", Name = "Index")] object index)
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Zero based index of Axis list (0) ", Name = "Index")] object index,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
+            )
         {
             if (ExcelDnaUtil.IsInFunctionWizard())
                 return ExcelError.ExcelErrorRef;
 
             int nIndex  = (int)Optional.Check(index , 0.0);
+            bool bNorm  = Optional.Check(normalized, true);
             string name ="";
 
             // do the work
@@ -492,7 +531,7 @@ namespace TopoLib
             {
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             name = crs.Axis[nIndex].UnitCode;
@@ -519,15 +558,20 @@ namespace TopoLib
 
             Returns = "Unit Conversion Factorof Nth axis in a coordinate reference system",
             Summary = "Returns the Unit Conversion Factor of Nth axis in a coordinate reference system",
-            Example = "TL.crs.CoordinateSystem.Axis.UnitConversionFactor(3857) returns 1.00")]
+            Example = "TL.crs.CoordinateSystem.Axis.UnitConversionFactor(3857) returns 1.00",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object Axis_UnitConversionFactor(
-            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
-            [ExcelArgument("Zero based index of Axis list (0) ", Name = "Index")] object index)
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Zero based index of Axis list (0) ", Name = "Index")] object index,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
+            )
         {
             if (ExcelDnaUtil.IsInFunctionWizard())
                 return ExcelError.ExcelErrorRef;
 
             int nIndex  = (int)Optional.Check(index , 0.0);
+            bool bNorm  = Optional.Check(normalized, true);
             double factor = 0;
 
             // do the work
@@ -535,7 +579,7 @@ namespace TopoLib
             {
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             factor = crs.Axis[nIndex].UnitConversionFactor;
@@ -559,15 +603,20 @@ namespace TopoLib
 
             Returns = "unit name of Nth axis in a coordinate reference system",
             Summary = "Returns the unit name of Nth axis in a coordinate reference system",
-            Example = "TL.crs.PrimeMeridian.UnitName(357) returns degree")]
+            Example = "TL.crs.PrimeMeridian.UnitName(357) returns degree",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object Axis_UnitName(
-            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
-            [ExcelArgument("Zero based index of Axis list (0) ", Name = "Index")] object index)
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Zero based index of Axis list (0) ", Name = "Index")] object index,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
+            )
         {
             if (ExcelDnaUtil.IsInFunctionWizard())
                 return ExcelError.ExcelErrorRef;
 
             int nIndex  = (int)Optional.Check(index , 0.0);
+            bool bNorm  = Optional.Check(normalized, true);
             string name ="";
 
             // do the work
@@ -575,7 +624,7 @@ namespace TopoLib
             {
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             name = crs.Axis[nIndex].UnitName;
@@ -595,26 +644,30 @@ namespace TopoLib
         } // Axis_UnitName
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.CelestialBodyName",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets the name of the appropriate celestial body for this Coordinate Reference System",
-             HelpTopic = "TopoLib-AddIn.chm!1311",
+            Name = "TL.crs.CelestialBodyName",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets the name of the appropriate celestial body for this Coordinate Reference System",
+            HelpTopic = "TopoLib-AddIn.chm!1311",
 
-             Returns = "The name of the appropriate celestial body",
-             Summary = "Function that returns name of the appropriate celestial body for this CRS or &ltNotFound&gt if not found",
-             Example = "TL.crs.CelestialBodyName(3857) returns Earth"
-         )]
+            Returns = "The name of the appropriate celestial body",
+            Summary = "Function that returns name of the appropriate celestial body for this CRS or &ltNotFound&gt if not found",
+            Example = "TL.crs.CelestialBodyName(3857) returns Earth",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object CelestialBodyName(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 string name ="";
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             name = crs.CelestialBodyName;
@@ -641,15 +694,20 @@ namespace TopoLib
 
             Returns = "short name of Nth axis in a coordinate system",
             Summary = "Returns the short name of Nth axis in a coordinate system",
-            Example = "TL.crs.CoordinateSystem.Axis.Name(3857, 1) returns Y")]
+            Example = "TL.crs.CoordinateSystem.Axis.Name(3857, 1) returns Y",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object CoordinateSystem_Axis_Abbreviation(
-            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
-            [ExcelArgument("Zero based index of Axis list (0) ", Name = "Index")] object index)
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Zero based index of Axis list (0) ", Name = "Index")] object index,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
+            )
         {
             if (ExcelDnaUtil.IsInFunctionWizard())
                 return ExcelError.ExcelErrorRef;
 
             int nIndex  = (int)Optional.Check(index , 0.0);
+            bool bNorm  = Optional.Check(normalized, true);
             string name ="";
 
             // do the work
@@ -657,7 +715,7 @@ namespace TopoLib
             {
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             name = crs.CoordinateSystem.Axis[nIndex].Abbreviation;
@@ -677,26 +735,30 @@ namespace TopoLib
         } // CoordinateSystem_Axis_Abbreviation
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.CoordinateSystem.Axis.Count",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets type of Coordinate System",
-             HelpTopic = "TopoLib-AddIn.chm!1313",
+            Name = "TL.crs.CoordinateSystem.Axis.Count",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets type of Coordinate System",
+            HelpTopic = "TopoLib-AddIn.chm!1313",
 
-             Returns = "Coordinate name of coordinate system",
-             Summary = "Function that returns nr of axes in of Coordinate System or -1 if not found",
-             Example = "TL.crs.CoordinateSystem.Axis.Count(3857) returns 2"
-         )]
+            Returns = "Coordinate name of coordinate system",
+            Summary = "Function that returns nr of axes in of Coordinate System or -1 if not found",
+            Example = "TL.crs.CoordinateSystem.Axis.Count(3857) returns 2",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object CoordinateSystem_Axis_Count(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 int nAxes = -1;
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (CoordinateReferenceSystem crs = CreateCrs(oCrs, pjContext))
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null & crs.CoordinateSystem != null)
                             nAxes = crs.CoordinateSystem.Axis.Count;
@@ -720,15 +782,20 @@ namespace TopoLib
 
             Returns = "Direction of Nth axis in a coordinate system",
             Summary = "Returns the direction of Nth axis in a coordinate system",
-            Example = "TL.crs.CoordinateSystem.Axis.Direction(3857, 1) returns north")]
+            Example = "TL.crs.CoordinateSystem.Axis.Direction(3857, 1) returns north",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object CoordinateSystem_Axis_Direction(
-            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
-            [ExcelArgument("Zero based index of Axis list (0) ", Name = "Index")] object index)
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Zero based index of Axis list (0) ", Name = "Index")] object index,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
+            )
         {
             if (ExcelDnaUtil.IsInFunctionWizard())
                 return ExcelError.ExcelErrorRef;
 
             int nIndex  = (int)Optional.Check(index , 0.0);
+            bool bNorm  = Optional.Check(normalized, true);
             string name ="";
 
             // do the work
@@ -736,7 +803,7 @@ namespace TopoLib
             {
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             name = crs.CoordinateSystem.Axis[nIndex].Direction;
@@ -763,15 +830,20 @@ namespace TopoLib
 
             Returns = "name of Nth axis in a coordinate system",
             Summary = "Returns the name of Nth axis in a coordinate system",
-            Example = "TL.crs.CoordinateSystem.Axis.Name(3857, 1) returns Northing")]
+            Example = "TL.crs.CoordinateSystem.Axis.Name(3857, 1) returns Northing",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object CoordinateSystem_Axis_Name(
-            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
-            [ExcelArgument("Zero based index of Identifier list (0) ", Name = "Index")] object index)
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Zero based index of Identifier list (0) ", Name = "Index")] object index,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
+            )
         {
             if (ExcelDnaUtil.IsInFunctionWizard())
                 return ExcelError.ExcelErrorRef;
 
             int nIndex  = (int)Optional.Check(index , 0.0);
+            bool bNorm  = Optional.Check(normalized, true);
             string name ="";
 
             // do the work
@@ -779,7 +851,7 @@ namespace TopoLib
             {
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             name = crs.CoordinateSystem.Axis[nIndex].Name;
@@ -806,15 +878,20 @@ namespace TopoLib
 
             Returns = "authority name of Nth axis in a coordinate system",
             Summary = "Returns the authority name of Nth axis in a coordinate system",
-            Example = "TL.crs.CoordinateSystem.Axis.UnitAuthName(3857, 1) returns EPSG")]
+            Example = "TL.crs.CoordinateSystem.Axis.UnitAuthName(3857, 1) returns EPSG",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object CoordinateSystem_Axis_UnitAuthName(
-            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
-            [ExcelArgument("Zero based index of Axis list (0) ", Name = "Index")] object index)
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Zero based index of Axis list (0) ", Name = "Index")] object index,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
+            )
         {
             if (ExcelDnaUtil.IsInFunctionWizard())
                 return ExcelError.ExcelErrorRef;
 
             int nIndex  = (int)Optional.Check(index , 0.0);
+            bool bNorm  = Optional.Check(normalized, true);
             string name ="";
 
             // do the work
@@ -822,7 +899,7 @@ namespace TopoLib
             {
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             name = crs.CoordinateSystem.Axis[nIndex].UnitAuthName;
@@ -849,15 +926,20 @@ namespace TopoLib
 
             Returns = "authority name of Nth axis in a coordinate system",
             Summary = "Returns the authority name of Nth axis in a coordinate system",
-            Example = "TL.crs.CoordinateSystem.Axis.UnitCode(3857, 1) returns 9001")]
+            Example = "TL.crs.CoordinateSystem.Axis.UnitCode(3857, 1) returns 9001",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object CoordinateSystem_Axis_UnitCode(
-            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
-            [ExcelArgument("Zero based index of Axis list (0) ", Name = "Index")] object index)
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Zero based index of Axis list (0) ", Name = "Index")] object index,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
+            )
         {
             if (ExcelDnaUtil.IsInFunctionWizard())
                 return ExcelError.ExcelErrorRef;
 
             int nIndex  = (int)Optional.Check(index , 0.0);
+            bool bNorm  = Optional.Check(normalized, true);
             string name ="";
 
             // do the work
@@ -865,7 +947,7 @@ namespace TopoLib
             {
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             name = crs.CoordinateSystem.Axis[nIndex].UnitCode;
@@ -892,15 +974,20 @@ namespace TopoLib
 
             Returns = "Unit Conversion Factorof Nth axis in a coordinate system",
             Summary = "Returns the Unit Conversion Factor of Nth axis in a coordinate system",
-            Example = "TL.crs.CoordinateSystem.Axis.UnitConversionFactot(3857, 1) returns 1.000")]
+            Example = "TL.crs.CoordinateSystem.Axis.UnitConversionFactot(3857, 1) returns 1.000",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object CoordinateSystem_Axis_UnitConversionFactor(
-            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
-            [ExcelArgument("Zero based index of Axis list (0) ", Name = "Index")] object index)
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Zero based index of Axis list (0) ", Name = "Index")] object index,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
+            )
         {
             if (ExcelDnaUtil.IsInFunctionWizard())
                 return ExcelError.ExcelErrorRef;
 
             int nIndex  = (int)Optional.Check(index , 0.0);
+            bool bNorm  = Optional.Check(normalized, true);
             double factor = 0;
 
             // do the work
@@ -908,7 +995,7 @@ namespace TopoLib
             {
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             factor = crs.CoordinateSystem.Axis[nIndex].UnitConversionFactor;
@@ -932,15 +1019,20 @@ namespace TopoLib
 
             Returns = "unit name of Nth axis in a coordinate system",
             Summary = "Returns the unit name of Nth axis in a coordinate system",
-            Example = "TL.crs.CoordinateSystem.Axis.UnitName(3857, 1) returns metre")]
+            Example = "TL.crs.CoordinateSystem.Axis.UnitName(3857, 1) returns metre",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object CoordinateSystem_Axis_UnitName(
-            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
-            [ExcelArgument("Zero based index of Axis list (0) ", Name = "Index")] object index)
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Zero based index of Axis list (0) ", Name = "Index")] object index,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
+            )
         {
             if (ExcelDnaUtil.IsInFunctionWizard())
                 return ExcelError.ExcelErrorRef;
 
             int nIndex  = (int)Optional.Check(index , 0.0);
+            bool bNorm  = Optional.Check(normalized, true);
             string name ="";
 
             // do the work
@@ -948,7 +1040,7 @@ namespace TopoLib
             {
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             name = crs.CoordinateSystem.Axis[nIndex].UnitName;
@@ -968,26 +1060,30 @@ namespace TopoLib
         } // CoordinateSystem_Axis_UnitName
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.CoordinateSystem.CoordinateSystemType",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets type of Coordinate System",
-             HelpTopic = "TopoLib-AddIn.chm!1320",
+            Name = "TL.crs.CoordinateSystem.CoordinateSystemType",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets type of Coordinate System",
+            HelpTopic = "TopoLib-AddIn.chm!1320",
 
-             Returns = "Coordinate System Type",
-             Summary = "Function that returns Coordinate System Type of Coordinate System or &ltNotFound&gt if not found",
-             Example = "TL.crs.CoordinateSystem.CoordinateSystemType(3857) returns Cartesian"
-         )]
+            Returns = "Coordinate System Type",
+            Summary = "Function that returns Coordinate System Type of Coordinate System or &ltNotFound&gt if not found",
+            Example = "TL.crs.CoordinateSystem.CoordinateSystemType(3857) returns Cartesian",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object CoordinateSystem_CoordinateSystemType(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 string type ="";
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             type = crs.CoordinateSystem.CoordinateSystemType.ToString();
@@ -1007,26 +1103,30 @@ namespace TopoLib
         } // CoordinateSystem_CoordinateSystemType
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.CoordinateSystem.Context",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets type of Coordinate System",
-             HelpTopic = "TopoLib-AddIn.chm!1378",
+            Name = "TL.crs.CoordinateSystem.Context",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets type of Coordinate System",
+            HelpTopic = "TopoLib-AddIn.chm!1378",
 
-             Returns = "Context of coordinate system",
-             Summary = "Function that returns contextof Coordinate System or &ltNotFound&gt if not found",
-             Example = "xxx"
-         )]
+            Returns = "Context of coordinate system",
+            Summary = "Function that returns contextof Coordinate System or &ltNotFound&gt if not found",
+            Example = "xxx",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object CoordinateSystem_Context(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 string context="";
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             context= crs.CoordinateSystem.Context.ToString();
@@ -1046,26 +1146,30 @@ namespace TopoLib
         } // CoordinateSystem_Context
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.CoordinateSystem.Name",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets type of Coordinate System",
-             HelpTopic = "TopoLib-AddIn.chm!1321",
+            Name = "TL.crs.CoordinateSystem.Name",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets type of Coordinate System",
+            HelpTopic = "TopoLib-AddIn.chm!1321",
 
-             Returns = "Coordinate name of coordinate system",
-             Summary = "Function that returns name of Coordinate System or &ltNotFound&gt if not found",
-             Example = "TL.crs.CoordinateSystem.Name(3857) returns <NotFound>"
-         )]
+            Returns = "Coordinate name of coordinate system",
+            Summary = "Function that returns name of Coordinate System or &ltNotFound&gt if not found",
+            Example = "TL.crs.CoordinateSystem.Name(3857) returns <NotFound>",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object CoordinateSystem_Name(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 string name ="";
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             name = crs.CoordinateSystem.Name;
@@ -1085,26 +1189,29 @@ namespace TopoLib
         } // CoordinateSystem_Name
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.CoordinateSystem.Type",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets type of Coordinate System",
-             HelpTopic = "TopoLib-AddIn.chm!1322",
+            Name = "TL.crs.CoordinateSystem.Type",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets type of Coordinate System",
+            HelpTopic = "TopoLib-AddIn.chm!1322",
 
-             Returns = "Coordinate system type",
-             Summary = "Function that returns type of Coordinate System or &ltNotFound&gt if not found",
-             Example = "TL.crs.CoordinateSystem.Type(3857) returns CoordinateSystem"
-         )]
+            Returns = "Coordinate system type",
+            Summary = "Function that returns type of Coordinate System or &ltNotFound&gt if not found",
+            Example = "TL.crs.CoordinateSystem.Type(3857) returns CoordinateSystem",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object CoordinateSystem_Type(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
             try
             {
                 string type ="";
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             type = crs.CoordinateSystem.Type.ToString();
@@ -1124,26 +1231,30 @@ namespace TopoLib
         } // CoordinateSystem_Type
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.Datum.Name",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets name of datum of CRS",
-             HelpTopic = "TopoLib-AddIn.chm!1323",
+            Name = "TL.crs.Datum.Name",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets name of datum of CRS",
+            HelpTopic = "TopoLib-AddIn.chm!1323",
 
-             Returns = "CRS name",
-             Summary = "Function that returns name of datum of CRS or &ltNotFound&gt if not found",
-             Example = "TL.crs.Datum.Name(28992) returns Amersfoort"
-         )]
+            Returns = "CRS name",
+            Summary = "Function that returns name of datum of CRS or &ltNotFound&gt if not found",
+            Example = "TL.crs.Datum.Name(28992) returns Amersfoort",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object Datum_Name(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 string name ="";
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             name = crs.Datum.Name;
@@ -1163,26 +1274,30 @@ namespace TopoLib
         } // Datum_Name
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.Datum.Type",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets type of datum in CRS",
-             HelpTopic = "TopoLib-AddIn.chm!1324",
+            Name = "TL.crs.Datum.Type",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets type of datum in CRS",
+            HelpTopic = "TopoLib-AddIn.chm!1324",
 
-             Returns = "Datum type",
-             Summary = "Function that returns type of datum of CRS or &ltNotFound&gt if not found",
-             Example = "TL.crs.Datum.Type(3857) returns DatumEnsamble"
-         )]
+            Returns = "Datum type",
+            Summary = "Function that returns type of datum of CRS or &ltNotFound&gt if not found",
+            Example = "TL.crs.Datum.Type(3857) returns DatumEnsamble",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object Datum_Type(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 string type ="";
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             type = crs.Datum.Type.ToString();
@@ -1202,26 +1317,30 @@ namespace TopoLib
         } // Datum_Type
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.Ellipsoid.Name",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets name of Ellipsoid in Coordinate Reference System",
-             HelpTopic = "TopoLib-AddIn.chm!1325",
+            Name = "TL.crs.Ellipsoid.Name",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets name of Ellipsoid in Coordinate Reference System",
+            HelpTopic = "TopoLib-AddIn.chm!1325",
 
-             Returns = "Ellipsoid name",
-             Summary = "Function that returns name of Ellipsoid in CRS or &ltNotFound&gt if not found",
-             Example = "TL.crs.Ellipsoid.Name(28992) returns Bessel 1841"
-         )]
+            Returns = "Ellipsoid name",
+            Summary = "Function that returns name of Ellipsoid in CRS or &ltNotFound&gt if not found",
+            Example = "TL.crs.Ellipsoid.Name(28992) returns Bessel 1841",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object Ellipsoid_Name(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 string name ="";
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             name = crs.Ellipsoid.Name;
@@ -1241,26 +1360,30 @@ namespace TopoLib
         } // Ellipsoid_Name
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.Ellipsoid.Type",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets type of ellipsoid in Coordinate Reference System",
-             HelpTopic = "TopoLib-AddIn.chm!1326",
+            Name = "TL.crs.Ellipsoid.Type",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets type of ellipsoid in Coordinate Reference System",
+            HelpTopic = "TopoLib-AddIn.chm!1326",
 
-             Returns = "Ellipsoid type",
-             Summary = "Function that returns type of ellipsoid in CRS or &ltNotFound&gt if not found",
-             Example = "TL.crs.Ellipsoid.Type(28992) returns Ellipsoid"
-         )]
+            Returns = "Ellipsoid type",
+            Summary = "Function that returns type of ellipsoid in CRS or &ltNotFound&gt if not found",
+            Example = "TL.crs.Ellipsoid.Type(28992) returns Ellipsoid",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object Ellipsoid_Type(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 string type ="";
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             type = crs.Ellipsoid.Type.ToString();
@@ -1280,26 +1403,30 @@ namespace TopoLib
         } // Ellipsoid_Type
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.Ellipsoid.SemiMajorMetre",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets size of ellipsoid's semi-major axis in metres",
-             HelpTopic = "TopoLib-AddIn.chm!1327",
+            Name = "TL.crs.Ellipsoid.SemiMajorMetre",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets size of ellipsoid's semi-major axis in metres",
+            HelpTopic = "TopoLib-AddIn.chm!1327",
 
-             Returns = "Size of ellipsoid's semi-major axis in metres",
-             Summary = "Function that returns size of ellipsoid's semi-major axis in metres or -1 if not found",
-             Example = "TL.crs.Ellipsoid.SemiMajorMetre(3857) returns 6378137.000"
-         )]
+            Returns = "Size of ellipsoid's semi-major axis in metres",
+            Summary = "Function that returns size of ellipsoid's semi-major axis in metres or -1 if not found",
+            Example = "TL.crs.Ellipsoid.SemiMajorMetre(3857) returns 6378137.000",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object Ellipsoid_SemiMajorMetre(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 double res = -1;
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             res = crs.Ellipsoid.SemiMajorMetre;
@@ -1316,26 +1443,30 @@ namespace TopoLib
         } // Ellipsoid_SemiMajorMetre
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.Ellipsoid.SemiMinorMetre",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets size of ellipsoid's semi-minor axis in metres",
-             HelpTopic = "TopoLib-AddIn.chm!1328",
+            Name = "TL.crs.Ellipsoid.SemiMinorMetre",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets size of ellipsoid's semi-minor axis in metres",
+            HelpTopic = "TopoLib-AddIn.chm!1328",
 
-             Returns = "Size of ellipsoid's semi-minor axis in metres",
-             Summary = "Function that returns size of ellipsoid's semi-minor axis in metres or -1 if not found",
-             Example = "TL.crs.Ellipsoid.SemiMinorMetre(3857) returns 6356752.314"
-         )]
+            Returns = "Size of ellipsoid's semi-minor axis in metres",
+            Summary = "Function that returns size of ellipsoid's semi-minor axis in metres or -1 if not found",
+            Example = "TL.crs.Ellipsoid.SemiMinorMetre(3857) returns 6356752.314",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object Ellipsoid_SemiMinorMetre(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 double res = -1;
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             res = crs.Ellipsoid.SemiMinorMetre;
@@ -1352,26 +1483,30 @@ namespace TopoLib
         } // Ellipsoid_SemiMinorMetre
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.Ellipsoid.InverseFlattening",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets inverse flattening of ellipsoid",
-             HelpTopic = "TopoLib-AddIn.chm!1329",
+            Name = "TL.crs.Ellipsoid.InverseFlattening",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets inverse flattening of ellipsoid",
+            HelpTopic = "TopoLib-AddIn.chm!1329",
 
-             Returns = "Inverse flattening of ellipsoid",
-             Summary = "Function that returns inverse flattening of ellipsoid, or -1 if not found",
-             Example = "TL.crs.Ellipsoid.InverseFlattening(23095) returns 297.000"
-         )]
+            Returns = "Inverse flattening of ellipsoid",
+            Summary = "Function that returns inverse flattening of ellipsoid, or -1 if not found",
+            Example = "TL.crs.Ellipsoid.InverseFlattening(23095) returns 297.000",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object Ellipsoid_InverseFlattening(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 double res = -1;
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             res = crs.Ellipsoid.InverseFlattening;
@@ -1388,24 +1523,28 @@ namespace TopoLib
         } // Ellipsoid_InverseFlattening
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.Ellipsoid.IsSemiMinorComputed",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Confirms whether when size of semi-minor axis has been calculated",
-             HelpTopic = "TopoLib-AddIn.chm!1330",
+            Name = "TL.crs.Ellipsoid.IsSemiMinorComputed",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Confirms whether when size of semi-minor axis has been calculated",
+            HelpTopic = "TopoLib-AddIn.chm!1330",
 
-             Returns = "TRUE when size of semi-minor axis has been calculated; FALSE when not",
-             Summary = "Function that confirms whether when size of semi-minor axis has been calculated",
-             Example = "TL.crs.Ellipsoid.IsSemiMinorComputed(23095) returns TRUE"
-         )]
+            Returns = "TRUE when size of semi-minor axis has been calculated; FALSE when not",
+            Summary = "Function that confirms whether when size of semi-minor axis has been calculated",
+            Example = "TL.crs.Ellipsoid.IsSemiMinorComputed(23095) returns TRUE",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object Ellipsoid_IsSemiMinorComputed(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             return crs.Ellipsoid.IsSemiMinorComputed;
@@ -1429,13 +1568,17 @@ namespace TopoLib
 
             Returns = "surface area defined by multiple (at least 3) points in a polygon [m2]",
             Summary = "Function that returns surface area defined by multiple (at least 3) points in a polygon defined in a Coordinate Reference System, or #NA error if CRS not found",
-            Example = "TL.crs.GeoArea(23031, {{554073.0, 5885683.0}, {572955.0, 5886200.0}, {572415.0, 5905245.0}, {553511.0, 5904706.0}}) returns 360153022.6"
-         )]
+            Example = "TL.crs.GeoArea(23031, {{554073.0, 5885683.0}, {572955.0, 5886200.0}, {572415.0, 5905245.0}, {553511.0, 5904706.0}}) returns 360153022.6",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object GeoArea(
-            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
-            [ExcelArgument("Vertical list of points in a polygon)", Name = "startPointOrPointList")] object[,] Points
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Vertical list of points in a polygon)", Name = "startPointOrPointList")] object[,] Points,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             int nPointRows = Points.GetLength(0);
             int nPointCols = Points.GetLength(1);
 
@@ -1471,7 +1614,7 @@ namespace TopoLib
             {
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                         {
@@ -1498,14 +1641,18 @@ namespace TopoLib
 
             Returns = "Distance between two (or more) points in [m]",
             Summary = "Function that returns distance between two points (or between multiple points in a poly-line), defined in a Coordinate Reference System, ignoring elevation differences or #NA error if CRS not found",
-            Example = "xxx"
-         )]
+            Example = "xxx",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object GeoDistance(
-            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
             [ExcelArgument("Start point (or vertical list of points)", Name = "startPointOrPointList")] object[,] Point1,
-            [ExcelArgument("End point (ignored when using list of points)", Name = "endPointOrNul")] object[,] Point2
+            [ExcelArgument("End point (ignored when using list of points)", Name = "endPointOrNul")] object[,] Point2,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             int nPoint1Rows = Point1.GetLength(0);
             int nPoint1Cols = Point1.GetLength(1);
 
@@ -1571,7 +1718,7 @@ namespace TopoLib
             {
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                         {
@@ -1598,14 +1745,18 @@ namespace TopoLib
 
             Returns = "Distance between two (or more) points in [m]",
             Summary = "Function that returns distance between two points (or between multiple points in a poly-line), defined in a Coordinate Reference System, honoring elevation differences or #NA error if CRS not found",
-            Example = "xxx"
-         )]
+            Example = "xxx",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object GeoDistanceZ(
-            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
             [ExcelArgument("Start point (or vertical list of points)", Name = "startPointOrPointList")] object[,] Point1,
-            [ExcelArgument("End point (ignored when using list of points)", Name = "endPointOrNul")] object[,] Point2
+            [ExcelArgument("End point (ignored when using list of points)", Name = "endPointOrNul")] object[,] Point2,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             int nPoint1Rows = Point1.GetLength(0);
             int nPoint1Cols = Point1.GetLength(1);
 
@@ -1671,7 +1822,7 @@ namespace TopoLib
             {
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                         {
@@ -1691,19 +1842,24 @@ namespace TopoLib
         } // GeoDistanceZ
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.Identifiers.Authority",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets Authority of Identifier N",
-             HelpTopic = "TopoLib-AddIn.chm!1334",
+            Name = "TL.crs.Identifiers.Authority",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets Authority of Identifier N",
+            HelpTopic = "TopoLib-AddIn.chm!1334",
 
-             Returns = "Authority of Nth Identifier",
-             Summary = "Function that returns Authority of <Nth> identifiers or <index out of range> when not found",
-             Example = "TL.crs.Identifiers.Authority(2583,0) returns EPSG"
-         )]
+            Returns = "Authority of Nth Identifier",
+            Summary = "Function that returns Authority of <Nth> identifiers or <index out of range> when not found",
+            Example = "TL.crs.Identifiers.Authority(2583,0) returns EPSG",
+            Remarks = "for 'Identifiers' we better NOT normalize the Axes, as this risks NULLIFYING the Identifiers"
+            )]
         public static object Identifiers_Authority(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
-             [ExcelArgument("Zero based index of Identifier list (0) ", Name = "Index")] object index)
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Zero based index of Identifier list (0) ", Name = "Index")] object index,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (false)", Name = "Normalized")] object normalized
+             )
         {
+            bool bNorm  = Optional.Check(normalized, false);
+
             try
             {
                 int nIndex  = (int)Optional.Check(index , 0.0);
@@ -1712,7 +1868,9 @@ namespace TopoLib
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    // for Identifiers we CANNOT normalize the Axes, as this will NULL the Identifiers
+                    // using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null && crs.Identifiers != null)
                         {
@@ -1736,26 +1894,33 @@ namespace TopoLib
         } // Identifiers_Authority
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.Identifiers.Code",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets Code of Identifier N",
-             HelpTopic = "TopoLib-AddIn.chm!1335",
+            Name = "TL.crs.Identifiers.Code",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets Code of Identifier N",
+            HelpTopic = "TopoLib-AddIn.chm!1335",
 
-             Returns = "Code of Nth Identifiers",
-             Summary = "Function that returns the Code of the <Nth> identifier or <index out of range> when not found",
-             Example = "Not implemented; requires long WKT or JSON string as input text"
-         )]
+            Returns = "Code of Nth Identifiers",
+            Summary = "Function that returns the Code of the <Nth> identifier or <index out of range> when not found",
+            Example = "Not implemented; requires long WKT or JSON string as input text",
+            Remarks = "for 'Identifiers' we better NOT normalize the Axes, as this risks NULLIFYING the Identifiers"
+            )]
         public static object Identifiers_Code(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
-             [ExcelArgument("Zero based index of Identifier list (0) ", Name = "Index")] object index)
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Zero based index of Identifier list (0) ", Name = "Index")] object index,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (false)", Name = "Normalized")] object normalized
+             )
         {
+            bool bNorm  = Optional.Check(normalized, false);
+
             try
             {
                 int nIndex  = (int)Optional.Check(index , 0.0);
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    //for Identifiers we CANNOT normalize the Axes, as this will NULL the Identifiers
+                    // using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null && crs.Identifiers != null)
                         {
@@ -1780,26 +1945,32 @@ namespace TopoLib
         } // Identifiers_Code
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.Identifiers.Count",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets number of Identifiers",
-             HelpTopic = "TopoLib-AddIn.chm!1336",
+            Name = "TL.crs.Identifiers.Count",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets number of Identifiers",
+            HelpTopic = "TopoLib-AddIn.chm!1336",
 
-             Returns = "Number of CRS Identifiers",
-             Summary = "Function that returns nr of CRS identifiers or 0 if none found",
-             Example = "TL.crs.Identifiers.Count(2583) returns 1"
-         )]
+            Returns = "Number of CRS Identifiers",
+            Summary = "Function that returns nr of CRS identifiers or 0 if none found",
+            Example = "TL.crs.Identifiers.Count(2583) returns 1",
+            Remarks = "for 'Identifiers' we better NOT normalize the Axes, as this risks NULLIFYING the Identifiers"
+            )]
         public static object Identifiers_Count(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (false)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, false);
+
             try
             {
                 int Count = -0;
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    //for Identifiers we CANNOT normalize the Axes, as this will NULL the Identifiers
+                    // using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null && crs.Identifiers != null)
                             Count = crs.Identifiers.Count;
@@ -1816,24 +1987,28 @@ namespace TopoLib
         } // Identifiers_Count
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.IsDeprecated",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Confirms whether when size of semi-minor axis has been calculated",
-             HelpTopic = "TopoLib-AddIn.chm!1337",
+            Name = "TL.crs.IsDeprecated",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Confirms whether when size of semi-minor axis has been calculated",
+            HelpTopic = "TopoLib-AddIn.chm!1337",
 
-             Returns = "TRUE when CRS is deprecated; FALSE when not",
-             Summary = "Function that confirms whether the CRS is deprecated",
-             Example = "TL.crs.IsDeprecated(2037) returns TRUE"
-         )]
+            Returns = "TRUE when CRS is deprecated; FALSE when not",
+            Summary = "Function that confirms whether the CRS is deprecated",
+            Example = "TL.crs.IsDeprecated(2037) returns TRUE",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object IsDeprecated(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             return crs.IsDeprecated;
@@ -1858,20 +2033,24 @@ namespace TopoLib
             Returns = "TRUE when the two different CRSs are equivalent; FALSE when not",
             Summary = "Function that checks whether two different CRSs are equivalent",
             Example = "xxx",
-            Remarks = "The objects are equivalent for the purpose of coordinate operations. They can differ by the name of their objects, identifiers, other metadata. " +
-            "Parameters may be expressed in different units, provided that the value is (with some tolerance) the same once expressed in a common unit."
-         )]
+            Remarks = "<p>The objects are equivalent for the purpose of coordinate operations. They can differ by the name of their objects, identifiers, other metadata. " +
+            "Parameters may be expressed in different units, provided that the value is (with some tolerance) the same once expressed in a common unit.</p>" +
+            "<p>Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib</p>"
+            )]
         public static object IsEquivalentTo(
-             [ExcelArgument("CRS-1, consisting of one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs1")] object[,] oCrs1,
-             [ExcelArgument("CRS-2, consisting of one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs2")] object[,] oCrs2
+            [ExcelArgument("CRS-1, consisting of one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs1")] object[,] oCrs1,
+            [ExcelArgument("CRS-2, consisting of one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs2")] object[,] oCrs2,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs1 = CreateCrs(oCrs1, pjContext))
-                    using (var crs2 = CreateCrs(oCrs2, pjContext))
+                    using (var crs1 = bNorm ? CreateCrs(oCrs1, pjContext).WithAxisNormalized() : CreateCrs(oCrs1, pjContext))
+                    using (var crs2 = bNorm ? CreateCrs(oCrs2, pjContext).WithAxisNormalized() : CreateCrs(oCrs2, pjContext))
                     {
                         if (crs1 != null && crs2 != null )
                             return crs1.IsEquivalentTo(crs2, pjContext);
@@ -1896,20 +2075,24 @@ namespace TopoLib
             Returns = "TRUE when the two different CRSs are equivalent with the axes in any order; FALSE when not",
             Summary = "Function that checks whether two different CRSs are equivalent with the axes in any order",
             Example = "xxx",
-            Remarks = "The objects are equivalent for the purpose of coordinate operations. They can differ by the name of their objects, identifiers, other metadata. " +
-            "Parameters may be expressed in different units, provided that the value is (with some tolerance) the same once expressed in a common unit."
-         )]
+            Remarks = "<p>The objects are equivalent for the purpose of coordinate operations. They can differ by the name of their objects, identifiers, other metadata. " +
+            "Parameters may be expressed in different units, provided that the value is (with some tolerance) the same once expressed in a common unit.</p>" +
+            "<p>Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib</p>"
+            )]
         public static object IsEquivalentToRelaxed(
-             [ExcelArgument("CRS-1, consisting of one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs1")] object[,] oCrs1,
-             [ExcelArgument("CRS-2, consisting of one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs2")] object[,] oCrs2
+            [ExcelArgument("CRS-1, consisting of one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs1")] object[,] oCrs1,
+            [ExcelArgument("CRS-2, consisting of one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs2")] object[,] oCrs2,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs1 = CreateCrs(oCrs1, pjContext))
-                    using (var crs2 = CreateCrs(oCrs2, pjContext))
+                    using (var crs1 = bNorm ? CreateCrs(oCrs1, pjContext).WithAxisNormalized() : CreateCrs(oCrs1, pjContext))
+                    using (var crs2 = bNorm ? CreateCrs(oCrs2, pjContext).WithAxisNormalized() : CreateCrs(oCrs2, pjContext))
                     {
                         if (crs1 != null && crs2 != null )
                             return crs1.IsEquivalentToRelaxed(crs2, pjContext);
@@ -1926,26 +2109,30 @@ namespace TopoLib
         } // IsEquivalentToRelaxed
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.Name",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets name of Coordinate Reference System",
-             HelpTopic = "TopoLib-AddIn.chm!1340",
+            Name = "TL.crs.Name",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets name of Coordinate Reference System",
+            HelpTopic = "TopoLib-AddIn.chm!1340",
 
-             Returns = "CRS name",
-             Summary = "Function that returns name of CRS or &ltNotFound&gt if not found",
-             Example = "TL.crs.Name(28992) returns Amersfoort / RD New"
-         )]
+            Returns = "CRS name",
+            Summary = "Function that returns name of CRS or &ltNotFound&gt if not found",
+            Example = "TL.crs.Name(28992) returns Amersfoort / RD New",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object Name(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 string name ="";
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             name = crs.Name;
@@ -1965,26 +2152,30 @@ namespace TopoLib
         } // Name
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.GeodeticCRS.Name",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets name of Geodetic Coordinate Reference System",
-             HelpTopic = "TopoLib-AddIn.chm!1341",
+            Name = "TL.crs.GeodeticCRS.Name",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets name of Geodetic Coordinate Reference System",
+            HelpTopic = "TopoLib-AddIn.chm!1341",
 
-             Returns = "CRS name",
-             Summary = "Function that returns name of Geodetic CRS or &ltNotFound&gt if not found",
-             Example = "TL.crs.GeodeticCRS.Name(23095) returns ED50"
-         )]
+            Returns = "CRS name",
+            Summary = "Function that returns name of Geodetic CRS or &ltNotFound&gt if not found",
+            Example = "TL.crs.GeodeticCRS.Name(23095) returns ED50",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object GeodeticCRS_Name(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 string name ="";
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             name = crs.GeodeticCRS.Name;
@@ -2004,26 +2195,30 @@ namespace TopoLib
         } // GeodeticCRS_Name
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.GeodeticCRS.Type",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets type of Geodetic Coordinate Reference System",
-             HelpTopic = "TopoLib-AddIn.chm!1342",
+            Name = "TL.crs.GeodeticCRS.Type",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets type of Geodetic Coordinate Reference System",
+            HelpTopic = "TopoLib-AddIn.chm!1342",
 
-             Returns = "CRS name",
-             Summary = "Function that returns type of Geodetic CRS or &ltNotFound&gt if not found",
-             Example = "TL.crs.GeodeticCRS.Type(3857) returns Geographic2DCrs"
-         )]
+            Returns = "CRS name",
+            Summary = "Function that returns type of Geodetic CRS or &ltNotFound&gt if not found",
+            Example = "TL.crs.GeodeticCRS.Type(3857) returns Geographic2DCrs",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object GeodeticCRS_Type(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 string type ="";
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             type = crs.GeodeticCRS.Type.ToString();
@@ -2043,26 +2238,30 @@ namespace TopoLib
         } // GeodeticCRS_Type
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.PrimeMeridian.Name",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets name of prime meridean of coordinate reference system",
-             HelpTopic = "TopoLib-AddIn.chm!1343",
+            Name = "TL.crs.PrimeMeridian.Name",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets name of prime meridean of coordinate reference system",
+            HelpTopic = "TopoLib-AddIn.chm!1343",
 
-             Returns = "Name of prime meridean of CRS",
-             Summary = "Function that returns name of prime meridean of CRS or &ltNotFound&gt if not found",
-             Example = "TL.crs.PrimeMeridian.Name(28992) returns Greenwich"
-         )]
+            Returns = "Name of prime meridean of CRS",
+            Summary = "Function that returns name of prime meridean of CRS or &ltNotFound&gt if not found",
+            Example = "TL.crs.PrimeMeridian.Name(28992) returns Greenwich",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object PrimeMeridian_Name(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 string name ="";
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             name = crs.PrimeMeridian.Name;
@@ -2082,26 +2281,30 @@ namespace TopoLib
         } // PrimeMeridian_Name
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.PrimeMeridian.Longitude",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets longitude of prime miridian in degrees",
-             HelpTopic = "TopoLib-AddIn.chm!1344",
+            Name = "TL.crs.PrimeMeridian.Longitude",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets longitude of prime miridian in degrees",
+            HelpTopic = "TopoLib-AddIn.chm!1344",
 
-             Returns = "Longitude of prime miridian in degrees",
-             Summary = "Function that returns longitude of prime miridian in degrees or -1 if not found",
-             Example = "TL.crs.PrimeMeridian.Longitude(28992) returns 0.000"
-         )]
+            Returns = "Longitude of prime miridian in degrees",
+            Summary = "Function that returns longitude of prime miridian in degrees or -1 if not found",
+            Example = "TL.crs.PrimeMeridian.Longitude(28992) returns 0.000",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object PrimeMeridian_Longitude(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 double res = -1;
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             res = crs.PrimeMeridian.Longitude;
@@ -2118,26 +2321,30 @@ namespace TopoLib
         } // PrimeMeridian_Longitude
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.PrimeMeridian.UnitConversionFactor",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets unit conversion factor of prime miridian in degrees",
-             HelpTopic = "TopoLib-AddIn.chm!1345",
+            Name = "TL.crs.PrimeMeridian.UnitConversionFactor",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets unit conversion factor of prime miridian in degrees",
+            HelpTopic = "TopoLib-AddIn.chm!1345",
 
-             Returns = "Unit conversion factor of prime meridian ",
-             Summary = "Function that returns unit conversion factor of prime meridian or -1 if not found",
-             Example = "TL.crs.PrimeMeridian.UnitConversionFactor(28992) returns 0.0175"
-         )]
+            Returns = "Unit conversion factor of prime meridian ",
+            Summary = "Function that returns unit conversion factor of prime meridian or -1 if not found",
+            Example = "TL.crs.PrimeMeridian.UnitConversionFactor(28992) returns 0.0175",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object PrimeMeridian_UnitConversionFactor(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 double res = -1;
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             res = crs.PrimeMeridian.UnitConversionFactor;
@@ -2154,26 +2361,30 @@ namespace TopoLib
         } // PrimeMeridian_UnitConversionFactor
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.PrimeMeridian.UnitName",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets name of prime meridean of coordinate reference system",
-             HelpTopic = "TopoLib-AddIn.chm!1346",
+            Name = "TL.crs.PrimeMeridian.UnitName",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets name of prime meridean of coordinate reference system",
+            HelpTopic = "TopoLib-AddIn.chm!1346",
 
-             Returns = "Name of prime meridean of CRS",
-             Summary = "Function that returns name of prime meridean of CRS or &ltNotFound&gt if not found",
-             Example = "TL.crs.PrimeMeridian.UnitName(28992) returns degree"
-         )]
+            Returns = "Name of prime meridean of CRS",
+            Summary = "Function that returns name of prime meridean of CRS or &ltNotFound&gt if not found",
+            Example = "TL.crs.PrimeMeridian.UnitName(28992) returns degree",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object PrimeMeridian_UnitName(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 string name ="";
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             name = crs.PrimeMeridian.UnitName;
@@ -2193,26 +2404,30 @@ namespace TopoLib
         } // PrimeMeridian_UnitName
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.Remarks",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets scope of Coordinate Reference System",
-             HelpTopic = "TopoLib-AddIn.chm!1377",
+            Name = "TL.crs.Remarks",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets scope of Coordinate Reference System",
+            HelpTopic = "TopoLib-AddIn.chm!1377",
 
-             Returns = "CRS Remarks",
-             Summary = "Function that returns remarks on a CRS or &ltNotFound&gt if not found",
-             Example = "xxx"
-         )]
+            Returns = "CRS Remarks",
+            Summary = "Function that returns remarks on a CRS or &ltNotFound&gt if not found",
+            Example = "xxx",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object Remarks(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 string remarks ="";
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             remarks = crs.Remarks;
@@ -2232,26 +2447,30 @@ namespace TopoLib
         } // Remarks
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.Scope",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets scope of Coordinate Reference System",
-             HelpTopic = "TopoLib-AddIn.chm!1347",
+            Name = "TL.crs.Scope",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets scope of Coordinate Reference System",
+            HelpTopic = "TopoLib-AddIn.chm!1347",
 
-             Returns = "CRS Scope",
-             Summary = "Function that returns scope of CRS or &ltNotFound&gt if not found",
-             Example = "TL.crs.Scope(2062) returns Engineering survey, topographic mapping."
-         )]
+            Returns = "CRS Scope",
+            Summary = "Function that returns scope of CRS or &ltNotFound&gt if not found",
+            Example = "TL.crs.Scope(2062) returns Engineering survey, topographic mapping.",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object Scope(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 string scope ="";
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                             scope = crs.Scope;
@@ -2271,26 +2490,30 @@ namespace TopoLib
         } // Scope
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.Type",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets type of coordinate reference system",
-             HelpTopic = "TopoLib-AddIn.chm!1348",
+            Name = "TL.crs.Type",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets type of coordinate reference system",
+            HelpTopic = "TopoLib-AddIn.chm!1348",
 
-             Returns = "Ttype of coordinate reference system",
-             Summary = "Function that returns type of coordinate reference system",
-             Example = "TL.crs.Type(25833) returns ProjectedCrs"
-         )]
+            Returns = "Ttype of coordinate reference system",
+            Summary = "Function that returns type of coordinate reference system",
+            Example = "TL.crs.Type(25833) returns ProjectedCrs",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object Type(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 object[,] res = new object [1, 1];
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null)
                         {
@@ -2310,28 +2533,32 @@ namespace TopoLib
         } // UsageAreaCenterX
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.UsageArea.Center",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets center point of CRS usage area",
-             HelpTopic = "TopoLib-AddIn.chm!1349",
+            Name = "TL.crs.UsageArea.Center",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets center point of CRS usage area",
+            HelpTopic = "TopoLib-AddIn.chm!1349",
 
-             Returns = "Center point of CRS usage area",
-             Summary = "Function that returns center point of CRS Usage Area in two adjacent cells",
-             Example = "TL.crs.UsageArea.Center(2020) returns {321454.8, 4855381.7}"
-         )]
+            Returns = "Center point of CRS usage area",
+            Summary = "Function that returns center point of CRS Usage Area in two adjacent cells",
+            Example = "TL.crs.UsageArea.Center(2020) returns {321454.8, 4855381.7}",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object UsageArea_Center(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 object[,] res = new object [1, 2];
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
-                        if (crs != null)
+                        if (crs != null && crs.UsageArea != null)
                         {
                             res[0, 0] = crs.UsageArea.CenterX;
                             res[0, 1] = crs.UsageArea.CenterY;
@@ -2350,24 +2577,28 @@ namespace TopoLib
         } // UsageArea_Center
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.UsageArea.Center.HasValues",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Confirms whether the center point in the usage area has values",
-             HelpTopic = "TopoLib-AddIn.chm!1350",
+            Name = "TL.crs.UsageArea.Center.HasValues",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Confirms whether the center point in the usage area has values",
+            HelpTopic = "TopoLib-AddIn.chm!1350",
 
-             Returns = "TRUE when the center point in the usage area has values; FALSE when not",
-             Summary = "Function that confirms whether the center point in the usage area has values",
-             Example = "TL.crs.UsageArea.Center.HasValues(2020) returns TRUE"
-         )]
+            Returns = "TRUE when the center point in the usage area has values; FALSE when not",
+            Summary = "Function that confirms whether the center point in the usage area has values",
+            Example = "TL.crs.UsageArea.Center.HasValues(2020) returns TRUE",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object UsageArea_Center_HasValues(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null && crs.UsageArea != null && crs.UsageArea.Center !=null)
                             return crs.UsageArea.Center.HasValues;
@@ -2384,24 +2615,28 @@ namespace TopoLib
         } // UsageArea_Center_HasValues
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.UsageArea.Center.X",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets x-value of center point of CRS usage area",
-             HelpTopic = "TopoLib-AddIn.chm!1351",
+            Name = "TL.crs.UsageArea.Center.X",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets x-value of center point of CRS usage area",
+            HelpTopic = "TopoLib-AddIn.chm!1351",
 
-             Returns = "X-value of center point of CRS usage area",
-             Summary = "Function that returns x-value of center point of CRS Usage Area",
-             Example = "TL.crs.UsageArea.Center.X(2020) returns 321454.8"
-         )]
+            Returns = "X-value of center point of CRS usage area",
+            Summary = "Function that returns x-value of center point of CRS Usage Area",
+            Example = "TL.crs.UsageArea.Center.X(2020) returns 321454.8",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object UsageArea_Center_X(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null && crs.UsageArea != null)
                             return crs.UsageArea.CenterX;
@@ -2418,24 +2653,28 @@ namespace TopoLib
         } // UsageArea_Center_X
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.UsageArea.Center.Y",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets y-value of center point of CRS usage area",
-             HelpTopic = "TopoLib-AddIn.chm!1352",
+            Name = "TL.crs.UsageArea.Center.Y",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets y-value of center point of CRS usage area",
+            HelpTopic = "TopoLib-AddIn.chm!1352",
 
-             Returns = "Y-value of center point of CRS usage area",
-             Summary = "Function that returns y-value of center point of CRS Usage Area",
-             Example = "TL.crs.UsageArea.Center.Y(2020) returns 4855381.7"
-         )]
+            Returns = "Y-value of center point of CRS usage area",
+            Summary = "Function that returns y-value of center point of CRS Usage Area",
+            Example = "TL.crs.UsageArea.Center.Y(2020) returns 4855381.7",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object UsageArea_Center_Y(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null && crs.UsageArea != null)
                             return crs.UsageArea.CenterY;
@@ -2452,24 +2691,28 @@ namespace TopoLib
         } // UsageArea_Center_Y
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.UsageArea.MaxX",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets maximum X-value of CRS usage area",
-             HelpTopic = "TopoLib-AddIn.chm!1353",
+            Name = "TL.crs.UsageArea.MaxX",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets maximum X-value of CRS usage area",
+            HelpTopic = "TopoLib-AddIn.chm!1353",
 
-             Returns = "Maximum X-value of CRS usage area",
-             Summary = "Function that returns maximum X-value of CRS Usage Area",
-             Example = "xxx"
-         )]
+            Returns = "Maximum X-value of CRS usage area",
+            Summary = "Function that returns maximum X-value of CRS Usage Area",
+            Example = "xxx",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object UsageArea_MaxX(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null && crs.UsageArea != null)
                             return crs.UsageArea.MaxX;
@@ -2485,24 +2728,28 @@ namespace TopoLib
         } // UsageArea_MaxX
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.UsageArea.MaxY",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets maximum Y-value of CRS usage area",
-             HelpTopic = "TopoLib-AddIn.chm!1354",
+            Name = "TL.crs.UsageArea.MaxY",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets maximum Y-value of CRS usage area",
+            HelpTopic = "TopoLib-AddIn.chm!1354",
 
-             Returns = "Maximum Y-value of CRS usage area",
-             Summary = "Function that returns maximum Y-value of CRS Usage Area",
-             Example = "xxx"
-         )]
+            Returns = "Maximum Y-value of CRS usage area",
+            Summary = "Function that returns maximum Y-value of CRS Usage Area",
+            Example = "xxx",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object UsageArea_MaxY(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null && crs.UsageArea != null)
                             return crs.UsageArea.MaxY;
@@ -2518,24 +2765,28 @@ namespace TopoLib
         } // UsageArea_MaxY
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.UsageArea.MinX",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets minimum X-value of CRS usage area",
-             HelpTopic = "TopoLib-AddIn.chm!1355",
+            Name = "TL.crs.UsageArea.MinX",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets minimum X-value of CRS usage area",
+            HelpTopic = "TopoLib-AddIn.chm!1355",
 
-             Returns = "Minimum X-value of CRS usage area",
-             Summary = "Function that returns minimum X-value of CRS Usage Area",
-             Example = "xxx"
-         )]
+            Returns = "Minimum X-value of CRS usage area",
+            Summary = "Function that returns minimum X-value of CRS Usage Area",
+            Example = "xxx",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object UsageArea_MinX(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null && crs.UsageArea != null)
                             return crs.UsageArea.MinX;
@@ -2551,24 +2802,28 @@ namespace TopoLib
         } // UsageArea_MinX
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.UsageArea.MinY",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets minimum Y-value of CRS usage area",
-             HelpTopic = "TopoLib-AddIn.chm!1356",
+            Name = "TL.crs.UsageArea.MinY",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets minimum Y-value of CRS usage area",
+            HelpTopic = "TopoLib-AddIn.chm!1356",
 
-             Returns = "Minimum Y-value of CRS usage area",
-             Summary = "Function that returns minimum Y-value of CRS Usage Area",
-             Example = "xxx"
-         )]
+            Returns = "Minimum Y-value of CRS usage area",
+            Summary = "Function that returns minimum Y-value of CRS Usage Area",
+            Example = "xxx",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object UsageArea_MinY(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
                         if (crs != null && crs.UsageArea != null)
                             return crs.UsageArea.MinY;
@@ -2584,28 +2839,32 @@ namespace TopoLib
         } // UsageArea_MinY
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.UsageArea.Name",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets name of CRS usage area",
-             HelpTopic = "TopoLib-AddIn.chm!1357",
+            Name = "TL.crs.UsageArea.Name",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets name of CRS usage area",
+            HelpTopic = "TopoLib-AddIn.chm!1357",
 
-             Returns = "Name of CRS usage area",
-             Summary = "Function that returns name of usage area or &ltNotFound&gt if not found",
-             Example = "TL.crs.UsageArea.Name(28992) returns Netherlands - onshore, including Waddenzee, Dutch Wadden Islands and 12-mile offshore coastal zone."
-         )]
+            Returns = "Name of CRS usage area",
+            Summary = "Function that returns name of usage area or &ltNotFound&gt if not found",
+            Example = "TL.crs.UsageArea.Name(28992) returns Netherlands - onshore, including Waddenzee, Dutch Wadden Islands and 12-mile offshore coastal zone.",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object UsageArea_Name(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 string name ="";
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
-                        if (crs != null)
+                        if (crs != null && crs.UsageArea != null)
                             name = crs.UsageArea.Name;
 
                         if (String.IsNullOrWhiteSpace(name))
@@ -2623,28 +2882,32 @@ namespace TopoLib
         } // UsageArea_Name
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.UsageArea.WestLongitude",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets the west longitude of CRS usage area",
-             HelpTopic = "TopoLib-AddIn.chm!1358",
+            Name = "TL.crs.UsageArea.WestLongitude",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets the west longitude of CRS usage area",
+            HelpTopic = "TopoLib-AddIn.chm!1358",
 
-             Returns = "West longitude of CRS usage area",
-             Summary = "Function that returns west longitude of usage area or &ltNotFound&gt if not found",
-             Example = "TL.crs.UsageArea.WestLongitude(28992) returns 3.20"
-         )]
+            Returns = "West longitude of CRS usage area",
+            Summary = "Function that returns west longitude of usage area or &ltNotFound&gt if not found",
+            Example = "TL.crs.UsageArea.WestLongitude(28992) returns 3.20",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object UsageArea_WestLongitude(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 double west = 0.0;
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
-                        if (crs != null)
+                        if (crs != null && crs.UsageArea != null)
                             west = crs.UsageArea.WestLongitude;
 
                         return west;
@@ -2659,28 +2922,32 @@ namespace TopoLib
         } // UsageArea_WestLongitude
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.UsageArea.EastLongitude",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets east longitude of CRS usage area",
-             HelpTopic = "TopoLib-AddIn.chm!1359",
+            Name = "TL.crs.UsageArea.EastLongitude",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets east longitude of CRS usage area",
+            HelpTopic = "TopoLib-AddIn.chm!1359",
 
-             Returns = "East longitude of CRS usage area",
-             Summary = "Function that returns east longitude of usage area or &ltNotFound&gt if not found",
-             Example = "TL.crs.UsageArea.EastLongitude(28992) returns 7.22"
-         )]
+            Returns = "East longitude of CRS usage area",
+            Summary = "Function that returns east longitude of usage area or &ltNotFound&gt if not found",
+            Example = "TL.crs.UsageArea.EastLongitude(28992) returns 7.22",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object UsageArea_EastLongitude(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 double east = 0.0;
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
-                        if (crs != null)
+                        if (crs != null && crs.UsageArea != null)
                             east = crs.UsageArea.EastLongitude;
 
                         return east;
@@ -2695,28 +2962,32 @@ namespace TopoLib
         } // UsageArea_EastLongitude
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.UsageArea.SouthLatitude",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets south latitude of CRS usage area",
-             HelpTopic = "TopoLib-AddIn.chm!1360",
+            Name = "TL.crs.UsageArea.SouthLatitude",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets south latitude of CRS usage area",
+            HelpTopic = "TopoLib-AddIn.chm!1360",
 
-             Returns = "South latitude of CRS usage area",
-             Summary = "Function that returns south latitude of usage area or &ltNotFound&gt if not found",
-             Example = "TL.crs.UsageArea.SouthLatitude(28992) returns 50.75"
-         )]
+            Returns = "South latitude of CRS usage area",
+            Summary = "Function that returns south latitude of usage area or &ltNotFound&gt if not found",
+            Example = "TL.crs.UsageArea.SouthLatitude(28992) returns 50.75",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object UsageArea_SouthLatitude(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 double south = 0.0;
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
-                        if (crs != null)
+                        if (crs != null && crs.UsageArea != null)
                             south = crs.UsageArea.SouthLatitude;
 
                         return south;
@@ -2731,28 +3002,32 @@ namespace TopoLib
         } // UsageArea_SouthLatitude
 
         [ExcelFunctionDoc(
-             Name = "TL.crs.UsageArea.NorthLatitude",
-             Category = "CRS - Coordinate Reference System",
-             Description = "Gets north latitude of CRS usage area",
-             HelpTopic = "TopoLib-AddIn.chm!1361",
+            Name = "TL.crs.UsageArea.NorthLatitude",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets north latitude of CRS usage area",
+            HelpTopic = "TopoLib-AddIn.chm!1361",
 
-             Returns = "South latitude of CRS usage area",
-             Summary = "Function that returns north latitude of usage area or &ltNotFound&gt if not found",
-             Example = "TL.crs.UsageArea.NorthLatitude(28992) returns 53.70"
-         )]
+            Returns = "South latitude of CRS usage area",
+            Summary = "Function that returns north latitude of usage area or &ltNotFound&gt if not found",
+            Example = "TL.crs.UsageArea.NorthLatitude(28992) returns 53.70",
+            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
+            )]
         public static object UsageArea_NorthLatitude(
-             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
             )
         {
+            bool bNorm  = Optional.Check(normalized, true);
+
             try
             {
                 double north = 0.0;
 
                 using (ProjContext pjContext = CreateContext())
                 {
-                    using (var crs = CreateCrs(oCrs, pjContext).WithAxisNormalized())
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
                     {
-                        if (crs != null)
+                        if (crs != null && crs.UsageArea != null)
                             north = crs.UsageArea.NorthLatitude;
 
                         return north;

@@ -265,8 +265,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object Accuracy(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -399,8 +399,8 @@ namespace TopoLib
                 "because it omits metadata about the source of the data and may omit metadata about the applicability of the information.</p>" ,
             Example = "TL.cct.ApplyForward(4326, EPSG:32632, {12.0, 55.0}, 4) returns 691875.632")]
         public static object ApplyForward(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("input points", Name = "Coordinate(s)")] double[,] Coords,
             [ExcelArgument("Output mode: < 7 and flag: > 7. (0); 0 returns nr of input columns, 1 = (x, y, z, t), 2 = (x, y, z), 3 = (x, y), 4 = (x), 5 = (y), 6 = (z), 7 = (t). Check flag values 2^n in the help file", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
@@ -655,8 +655,8 @@ namespace TopoLib
                 "because it omits metadata about the source of the data and may omit metadata about the applicability of the information.</p>" ,
             Example = "TL.cct.ApplyInverse(4326, EPSG:32632, {691875.63, 6098907.83}, 4) returns 12.000")]
         public static object ApplyInverse(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("input points", Name = "Coordinate(s)")] double[,] Coords,
             [ExcelArgument("Output mode: < 7 and flag: > 7. (0); 0 returns nr of input columns, 1 = (x, y, z, t), 2 = (x, y, z), 3 = (x, y), 4 = (x), 5 = (y), 6 = (z), 7 = (t). Check flag values 2^n in the help file", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
@@ -865,8 +865,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object AsJsonString(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -954,8 +954,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object AsProjString(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -1043,8 +1043,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object AsWktString(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -1133,8 +1133,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object CelestialBodyName(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -1214,8 +1214,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag",
             Example = "TL.cct.CreateForward(7843, 7665, 0) returns +proj=pipeline +step +proj=unitconvert +xy_in=deg +z_in=m +xy_out=rad +z_out=m +step +proj=cart +ellps=GRS80 +step +proj=helmert +x=0 +y=0 +z=0 +rx=0 +ry=0 +rz=0 +s=0 +dx=0 +dy=0 +dz=0 +drx=-0.00150379 +dry=-0.00118346 +drz=-0.00120716 +ds=0 +t_epoch=2020 +convention=coordinate_frame +step +inv +proj=cart +ellps=WGS84 +step +proj=unitconvert +xy_in=rad +z_in=m +xy_out=deg +z_out=m")]
         public static object CreateForward(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Output mode: (0); 0 = PROJ string, 1 = WKT string, 2 = JSON string. Mode is combined with 2^n flag: 8, 16, ..., 2048. See help file for more information", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -1324,8 +1324,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag",
             Example = "TL.cct.Transforms.CreateInverse(2393, 3067, 0) returns +proj=pipeline +step +inv +proj=utm +zone=35 +ellps=GRS80 +step +proj=push +v_3 +step +proj=cart +ellps=GRS80 +step +inv +proj=helmert +x=-96.062 +y=-82.428 +z=-121.753 +rx=-4.801 +ry=-0.345 +rz=1.376 +s=1.496 +convention=coordinate_frame +step +inv +proj=cart +ellps=intl +step +proj=pop +v_3 +step +proj=tmerc +lat_0=0 +lon_0=27 +k=1 +x_0=3500000 +y_0=0 +ellps=intl")]
         public static object CreateInverse(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Output mode: (0); 0 = PROJ string, 1 = WKT string, 2 = JSON string. Mode is combined with 2^n flag: 8, 16, ..., 2048. See help file for more information", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -1435,8 +1435,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object Grids_Count(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -1518,8 +1518,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object Grids_FullName(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Zero based index of Grid list (0) ", Name = "Index")] object index,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
@@ -1608,8 +1608,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object Grids_IsAvailable(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Zero based index of Grid list (0) ", Name = "Index")] object index,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
@@ -1698,8 +1698,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object Grids_Name(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Zero based index of Grid list (0) ", Name = "Index")] object index,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
@@ -1788,8 +1788,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
          )]
         public static object HasBallParkTransformation(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -1871,8 +1871,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
          )]
         public static object HasInverse(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -1953,8 +1953,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object Identifiers_Authority(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Zero based index of Steps list (0) ", Name = "Index")] object index,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
@@ -1980,7 +1980,7 @@ namespace TopoLib
 
             // Check specific input data
             int nIndex  = (int)Optional.Check(index , 0.0);
-            int nCount = -1;
+            int nCount;
 
             // Deal with optional parameters
             bool bAllowDeprecatedCRS = false;
@@ -2045,8 +2045,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object Identifiers_Code(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Zero based index of Steps list (0) ", Name = "Index")] object index,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
@@ -2072,7 +2072,7 @@ namespace TopoLib
 
             // Check specific input data
             int nIndex  = (int)Optional.Check(index , 0.0);
-            int nCount = -1;
+            int nCount;
 
             // Deal with optional parameters
             bool bAllowDeprecatedCRS = false;
@@ -2136,8 +2136,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object Identifiers_Count(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -2217,8 +2217,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
          )]
         public static object IsAvailable(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -2299,8 +2299,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object MethodName(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -2380,8 +2380,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object Name(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -2461,8 +2461,8 @@ namespace TopoLib
             "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object Remarks(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -2546,8 +2546,8 @@ namespace TopoLib
             Example = "TL.cct.RoundTrip(2004, 3857, {380275.8,	1851010.7}, 2, 128) returns 0.0047"
             )]
         public static object RoundTrip(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("test point with adjacent [x, y] coordinates", Name = "point(x, y)")] object[,] TestCoord,
             [ExcelArgument("N - nr of roundtrips to make", Name = "nr roundtrips")] object oRoundTrips,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
@@ -2645,8 +2645,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object Scope(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -2727,8 +2727,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object SourceCRS(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Output mode: (0); 0 = PROJ string, 1 = WKT string, 2 = JSON string. Mode is combined with 2^n flag: 8, 16, ..., 2048. See help file for more information", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -2825,8 +2825,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object Steps_Count(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -2909,8 +2909,8 @@ namespace TopoLib
             "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag",
             Example = "TL.cct.Steps.Transform(2002, 4326, 0, 0) returns +proj=pipeline +step +inv +proj=tmerc +lat_0=0 +lon_0=-62 +k=0.9995 +x_0=400000 +y_0=0 +a=6378249.145 +rf=293.465 +step +proj=unitconvert +xy_in=rad +xy_out=deg +step +proj=axisswap +order=2,1")]
         public static object Steps_CreateForward(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Zero based index of Steps list (0) ", Name = "Index")] object index,
             [ExcelArgument("Output mode: (0); 0 = PROJ string, 1 = WKT string, 2 = JSON string. Mode is combined with 2^n flag: 8, 16, ..., 2048. See help file for more information", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
@@ -3010,8 +3010,8 @@ namespace TopoLib
             "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag",
             Example = "TL.cct.Steps.CreateInverse(25832, 25833, 0, 0) returns +proj=pipeline +step +proj=axisswap +order=2,1 +step +proj=unitconvert +xy_in=deg +xy_out=rad +step +proj=utm +zone=32 +ellps=GRS80")]
         public static object Steps_CreateInverse(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Zero based index of Steps list (0) ", Name = "Index")] object index,
             [ExcelArgument("Output mode: (0); 0 = PROJ string, 1 = WKT string, 2 = JSON string. Mode is combined with 2^n flag: 8, 16, ..., 2048. See help file for more information", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
@@ -3113,8 +3113,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object Steps_MethodName(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Zero based index of Steps list (0) ", Name = "Index")] object index,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
@@ -3200,8 +3200,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object Steps_Name(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Zero based index of Steps list (0) ", Name = "Index")] object index,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
@@ -3287,8 +3287,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object TargetCRS(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Output mode: (0); 0 = PROJ string, 1 = WKT string, 2 = JSON string. Mode is combined with 2^n flag: 8, 16, ..., 2048. See help file for more information", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -3341,19 +3341,19 @@ namespace TopoLib
                 }
 
                 // start core of function
-                CoordinateReferenceSystem SourceCRS = transform.SourceCRS;
-                if (SourceCRS is null)
+                CoordinateReferenceSystem TargetCRS = transform.TargetCRS;
+                if (TargetCRS is null)
                     return "Unknown";
 
                 switch(nOutput)
                 {
                     default:
                     case 0:
-                        return SourceCRS.AsProjString();
+                        return TargetCRS.AsProjString();
                     case 1:
-                        return SourceCRS.AsWellKnownText();
+                        return TargetCRS.AsWellKnownText();
                     case 2:
-                        return SourceCRS.AsProjJson();
+                        return TargetCRS.AsProjJson();
                 }
                 // end core of function
 
@@ -3385,8 +3385,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object Transforms_Count(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -3467,8 +3467,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag",
             Example = "TL.cct.Transforms.CreateForward(2393, 3067) returns +proj=pipeline +step +inv +proj=tmerc +lat_0=0 +lon_0=27 +k=1 +x_0=3500000 +y_0=0 +ellps=intl +step +proj=push +v_3 +step +proj=cart +ellps=intl +step +proj=helmert +x=-96.062 +y=-82.428 +z=-121.753 +rx=-4.801 +ry=-0.345 +rz=1.376 +s=1.496 +convention=coordinate_frame +step +inv +proj=cart +ellps=GRS80 +step +proj=pop +v_3 +step +proj=utm +zone=35 +ellps=GRS80")]
         public static object Transforms_CreateForward(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Zero based index of available transforms (0) ", Name = "Index")] object index,
             [ExcelArgument("Output mode: (0); 0 = PROJ string, 1 = WKT string, 2 = JSON string. Mode is combined with 2^n flag: 8, 16, ..., 2048. See help file for more information", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
@@ -3565,8 +3565,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag",
             Example = "TL.cct.Transforms.CreateInverse(2393, 3067) returns +proj=pipeline +step +inv +proj=utm +zone=35 +ellps=GRS80 +step +proj=push +v_3 +step +proj=cart +ellps=GRS80 +step +inv +proj=helmert +x=-96.062 +y=-82.428 +z=-121.753 +rx=-4.801 +ry=-0.345 +rz=1.376 +s=1.496 +convention=coordinate_frame +step +inv +proj=cart +ellps=intl +step +proj=pop +v_3 +step +proj=tmerc +lat_0=0 +lon_0=27 +k=1 +x_0=3500000 +y_0=0 +ellps=intl")]
         public static object Transforms_CreateInverse(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Zero based index of available transforms (0) ", Name = "Index")] object index,
             [ExcelArgument("Output mode: (0); 0 = PROJ string, 1 = WKT string, 2 = JSON string. Mode is combined with 2^n flag: 8, 16, ..., 2048. See help file for more information", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
@@ -3668,8 +3668,8 @@ namespace TopoLib
             "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object Transforms_ListAll(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Output mode: (0); 0 = PROJ string, 1 = WKT string, 2 = JSON string. Mode is combined with 2^n flag: 8, 16, ..., 2048. See help file for more information", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -3939,8 +3939,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object Type(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -4023,8 +4023,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object UsageArea_Center(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -4114,8 +4114,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object UsageArea_Center_X(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -4200,8 +4200,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object UsageArea_MaxX(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -4286,8 +4286,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object UsageArea_MaxY(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -4372,8 +4372,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object UsageArea_MinX(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -4458,8 +4458,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object UsageArea_MinY(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -4544,8 +4544,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object UsageArea_Center_Y(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -4630,8 +4630,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object UsageArea_Name(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -4716,8 +4716,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object UsageArea_WestLongitude(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -4802,8 +4802,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object UsageArea_EastLongitude(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -4888,8 +4888,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object UsageArea_SouthLatitude(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
@@ -4974,8 +4974,8 @@ namespace TopoLib
             Remarks = "Please consult the remarks at <a href = \"TL.cct.ApplyForward.htm\"> <b>TL.cct.ApplyForward</b> </a>for the details on the <b>Mode</b> flag"
             )]
         public static object UsageArea_NorthLatitude(
-            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
-            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code (4326), WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
+            [ExcelArgument("sourceCrs (or transform) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "sourceCrsOrTransform")] object[,] SourceCrs,
+            [ExcelArgument("targetCrs (or nul/empty) using one [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "targetCrsOrNul")] object[,] TargetCrs,
             [ExcelArgument("Binary flag: 8, 16, 32, ..., 2048. Check the help file for the details", Name = "mode")] object oMode,
             [ExcelArgument("Desired accuray for the transformation, or '-1' when not used (-1)", Name = "Accuracy")] object oAccuracy,
             [ExcelArgument("WestLongitude of the desired area for the transformation, or '-1000' when not used (-1000)", Name = "WestLongitude")] object oWestLongitude,
