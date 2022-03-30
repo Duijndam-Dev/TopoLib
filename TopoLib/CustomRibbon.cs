@@ -112,7 +112,7 @@ namespace TopoLib
             CctOptions.ReadConfiguration();
         }
 
-        public void DialogOptionsButton_OnAction(IRibbonControl control)
+        public void DialogOptionsButton_OnAction(/*IRibbonControl control*/)
         {
             try
             {
@@ -124,7 +124,7 @@ namespace TopoLib
             }
         }
 
-        public void DialogCacheButton_OnAction(IRibbonControl control)
+        public void DialogCacheButton_OnAction(/*IRibbonControl control*/)
         {
             try
             {
@@ -136,7 +136,7 @@ namespace TopoLib
             }
         }
 
-        public void DialogLogLevelButton_OnAction(IRibbonControl control)
+        public void DialogLogLevelButton_OnAction(/*IRibbonControl control*/)
         {
             try
             {
@@ -148,7 +148,7 @@ namespace TopoLib
             }
         }
 
-        public void DialogResourceSettings_OnAction(IRibbonControl control)
+        public void DialogResourceSettings_OnAction(/*IRibbonControl control*/)
         {
             try
             {
@@ -160,7 +160,7 @@ namespace TopoLib
             }
         }
 
-        public void ExportGpxButton_OnAction(IRibbonControl control)
+        public void ExportGpxButton_OnAction(/*IRibbonControl control*/)
         {
             try
             {
@@ -172,7 +172,7 @@ namespace TopoLib
             }
         }
 
-        public void ExportKmlButton_OnAction(IRibbonControl control)
+        public void ExportKmlButton_OnAction(/*IRibbonControl control*/)
         {
             try
             {
@@ -184,7 +184,7 @@ namespace TopoLib
             }
         }
 
-        public void ExportWizButton_OnAction(IRibbonControl control)
+        public void ExportWizButton_OnAction(/*IRibbonControl control*/)
         {
             try
             {
@@ -196,7 +196,7 @@ namespace TopoLib
             }
         }
 
-        public void RecalcButton_OnAction(IRibbonControl control)
+        public void RecalcButton_OnAction(/*IRibbonControl control*/)
         {
             try
             {
@@ -208,7 +208,7 @@ namespace TopoLib
             }
         }
 
-        public string LogOrderMenu_GetImage(IRibbonControl control)
+        public string LogOrderMenu_GetImage(/*IRibbonControl control*/)
         {
             try
             {
@@ -231,7 +231,7 @@ namespace TopoLib
             }
         }
 
-        public void LogViewDisplayButton_OnAction(IRibbonControl control)
+        public void LogViewDisplayButton_OnAction(/*IRibbonControl control*/)
         {
             try
             {
@@ -243,7 +243,7 @@ namespace TopoLib
             }
         }
 
-        public void LogClearDisplayButton_OnAction(IRibbonControl control)
+        public void LogClearDisplayButton_OnAction(/*IRibbonControl control*/)
         {
             try
             {
@@ -255,7 +255,7 @@ namespace TopoLib
             }
         }
 
-        public void LogErrorButton_OnAction(IRibbonControl control)
+        public void LogErrorButton_OnAction(/*IRibbonControl control*/)
         {
             try
             {
@@ -267,7 +267,7 @@ namespace TopoLib
             }
         }
 
-        public void LogDebugButton_OnAction(IRibbonControl control)
+        public void LogDebugButton_OnAction(/*IRibbonControl control*/)
         {
             try
             {
@@ -279,7 +279,7 @@ namespace TopoLib
             }
         }
 
-        public void LogVerboseButton_OnAction(IRibbonControl control)
+        public void LogVerboseButton_OnAction(/*IRibbonControl control*/)
         {
             try
             {
@@ -291,7 +291,7 @@ namespace TopoLib
             }
         }
 
-        public bool LogNewestLastButton_GetPressed(IRibbonControl control)
+        public bool LogNewestLastButton_GetPressed(/*IRibbonControl control*/)
         {
             try
             {
@@ -305,7 +305,7 @@ namespace TopoLib
             return false;
         }
 
-        public void LogNewestLastButton_OnAction(IRibbonControl control, bool pressed)
+        public void LogNewestLastButton_OnAction(/*IRibbonControl control, bool pressed*/)
         {
             try
             {
@@ -320,7 +320,7 @@ namespace TopoLib
             }
         }
 
-        public bool LogNewestFirstButton_GetPressed(IRibbonControl control)
+        public bool LogNewestFirstButton_GetPressed(/*IRibbonControl control*/)
         {
             try
             {
@@ -334,7 +334,7 @@ namespace TopoLib
             return false;
         }
 
-        public void LogNewestFirstButton_OnAction(IRibbonControl control, bool pressed)
+        public void LogNewestFirstButton_OnAction(/*IRibbonControl control, bool pressed*/)
         {
             try
             {
@@ -349,17 +349,17 @@ namespace TopoLib
             }
         }
 
-        public void OnHelpButtonPressed(IRibbonControl control)
+        public void OnHelpButtonPressed(/*IRibbonControl control*/)
         {
             _excel.Application.Run("Command_Show_HelpFile");
         }
 
-        public void OnVersionButtonPressed(IRibbonControl control)
+        public void OnVersionButtonPressed(/*IRibbonControl control*/)
         {
             _excel.Application.Run("Dialog_TopoLib_Version");
         }
 
-        public void OnAboutButtonPressed(IRibbonControl control)
+        public void OnAboutButtonPressed(/*IRibbonControl control*/)
         {
             _excel.Application.Run("Dialog_About_TopoLib");
         }

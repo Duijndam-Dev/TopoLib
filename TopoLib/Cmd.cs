@@ -655,15 +655,17 @@ Show:       bool bOK = dialog.ShowDialog(Validate);
                 // Now we are ready to write the string to a file.
                 // public static void WriteAllText (string path, string? contents);
 
-                SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+                SaveFileDialog saveFileDialog1 = new SaveFileDialog
+                {
+                    AddExtension = true,
+                    ValidateNames = true,
+                    RestoreDirectory = true,
 
-                saveFileDialog1.AddExtension = true;
-                saveFileDialog1.ValidateNames = true;
-                saveFileDialog1.RestoreDirectory = true;
+                    DefaultExt = "gpx",
+                    Filter = "GPX files (*.gpx)|*.gpx|All files (*.*)|*.*",
+                    Title = "Save a GPX File"
+                };
 
-                saveFileDialog1.DefaultExt = "gpx";  
-                saveFileDialog1.Filter = "GPX files (*.gpx)|*.gpx|All files (*.*)|*.*";
-                saveFileDialog1.Title = "Save a GPX File";
                 saveFileDialog1.ShowDialog();
 
                 if(saveFileDialog1.FileName != "")
@@ -750,15 +752,17 @@ Show:       bool bOK = dialog.ShowDialog(Validate);
                 // Now we are ready to write the string to a file.
                 // public static void WriteAllText (string path, string? contents);
 
-                SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+                SaveFileDialog saveFileDialog1 = new SaveFileDialog
+                {
+                    AddExtension = true,
+                    ValidateNames = true,
+                    RestoreDirectory = true,
 
-                saveFileDialog1.AddExtension = true;
-                saveFileDialog1.ValidateNames = true;
-                saveFileDialog1.RestoreDirectory = true;
+                    DefaultExt = "kml",
+                    Filter = "KML files (*.kml)|*.kml|All files (*.*)|*.*",
+                    Title = "Save a KML File"
+                };
 
-                saveFileDialog1.DefaultExt = "kml";  
-                saveFileDialog1.Filter = "KML files (*.kml)|*.kml|All files (*.*)|*.*";
-                saveFileDialog1.Title = "Save a KML File";
                 saveFileDialog1.ShowDialog();
 
                 if(saveFileDialog1.FileName != "")
@@ -1050,20 +1054,22 @@ Page2:      if (ExportDataType == 0)
                     }
                 }
 
-                SaveFileDialog saveFileDialog1 = new SaveFileDialog();
-
-                saveFileDialog1.AddExtension = true;
-                saveFileDialog1.ValidateNames = true;
-                saveFileDialog1.RestoreDirectory = true;
-                saveFileDialog1.FileName = FileName;
-                saveFileDialog1.InitialDirectory = FolderName;
-                saveFileDialog1.FilterIndex = FilterIndex;
-                saveFileDialog1.DefaultExt = "wkt.txt";
-                saveFileDialog1.Filter =
+                SaveFileDialog saveFileDialog1 = new SaveFileDialog
+                {
+                    AddExtension = true,
+                    ValidateNames = true,
+                    RestoreDirectory = true,
+                    FileName = FileName,
+                    InitialDirectory = FolderName,
+                    FilterIndex = FilterIndex,
+                    DefaultExt = "wkt.txt",
+                    Filter =
                     "PROJ Files (*.proj)|*.proj|" +
                     "WKT files  (*.wkt)|*.wkt|" +
-                    "JSON files (*.json)|*.json";
-                saveFileDialog1.Title = "Select File Name and (\"Save As\") File Type";
+                    "JSON files (*.json)|*.json",
+                    Title = "Select File Name and (\"Save As\") File Type"
+                };
+
                 saveFileDialog1.ShowDialog();
 
                 if(saveFileDialog1.FileName != "")
