@@ -87,7 +87,6 @@ namespace TopoLib
                 using (ProjContext pc = new ProjContext() { EnableNetworkConnections = false })
                 {
                     int NrCrsAvailable = pc.GetCoordinateReferenceSystems().Count;
-                    int HashCode = pc.GetHashCode();
 
                     object[,] res = new object[NrCrsAvailable + nOffset, 7];
                     int i = 0;

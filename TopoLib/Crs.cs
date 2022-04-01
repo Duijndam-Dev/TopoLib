@@ -1561,17 +1561,18 @@ namespace TopoLib
         } // EllipsoidIsSemiMinorComputed
 
         [ExcelFunctionDoc(
-            Name = "TL.crs.GeoArea",
+            Name = "TL.crs.GeodesicArea",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets surface area defined by multiple (at least 3) points in a polygon defined in a Coordinate Reference System",
             HelpTopic = "TopoLib-AddIn.chm!1331",
 
             Returns = "surface area defined by multiple (at least 3) points in a polygon [m2]",
-            Summary = "Function that returns surface area defined by multiple (at least 3) points in a polygon defined in a Coordinate Reference System, or #NA error if CRS not found",
-            Example = "TL.crs.GeoArea(23031, {{554073.0, 5885683.0}, {572955.0, 5886200.0}, {572415.0, 5905245.0}, {553511.0, 5904706.0}}) returns 360153022.6",
+            Summary = "Function that returns surface area defined by multiple (at least 3) points in a polygon defined in a Coordinate Reference System, or #NA error if CRS not found" +
+                      "<p>See: <a href = \"https://proj.org/geodesic.html\" >Geodesic calculations</a> for the Proj Library</p>",
+            Example = "TL.crs.GeodesicArea(23031, {{554073.0, 5885683.0}, {572955.0, 5886200.0}, {572415.0, 5905245.0}, {553511.0, 5904706.0}}) returns 360153022.6",
             Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
             )]
-        public static object GeoArea(
+        public static object GeodesicArea(
             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
             [ExcelArgument("Vertical list of points in a polygon)", Name = "startPointOrPointList")] object[,] Points,
             [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
@@ -1618,7 +1619,7 @@ namespace TopoLib
                     {
                         if (crs != null)
                         {
-                            double distance = Math.Abs(crs.DistanceTransform.GeoArea(points));
+                            double distance = Math.Abs(crs.GeoArea(points));
                             return Optional.CheckNan(distance);
                         }
                         else
@@ -1631,20 +1632,21 @@ namespace TopoLib
                 return AddIn.ProcessException(ex);
             }
 
-        } // GeoArea
+        } // GeodesicArea
 
         [ExcelFunctionDoc(
-            Name = "TL.crs.GeoDistance",
+            Name = "TL.crs.GeodesicDistance",
             Category = "CRS - Coordinate Reference System",
-            Description = "Gets distance between two points (or between multiple points in a poly-line), defined in a Coordinate Reference System, ignoring elevation differences",
+            Description = "Gets geodesic distance between two points (or between multiple points in a poly-line), defined in a Coordinate Reference System, ignoring elevation differences",
             HelpTopic = "TopoLib-AddIn.chm!1332",
 
-            Returns = "Distance between two (or more) points in [m]",
-            Summary = "Function that returns distance between two points (or between multiple points in a poly-line), defined in a Coordinate Reference System, ignoring elevation differences or #NA error if CRS not found",
+            Returns = "Geodesic distance between two (or more) points in [m]",
+            Summary = "Function that returns geodesic distance between two points (or between multiple points in a poly-line), defined in a Coordinate Reference System, ignoring elevation differences or #NA error if CRS not found" +
+                      "<p>See: <a href = \"https://proj.org/geodesic.html\" >Geodesic calculations</a> for the Proj Library</p>",
             Example = "xxx",
             Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
             )]
-        public static object GeoDistance(
+        public static object GeodesicDistance(
             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
             [ExcelArgument("Start point (or vertical list of points)", Name = "startPointOrPointList")] object[,] Point1,
             [ExcelArgument("End point (ignored when using list of points)", Name = "endPointOrNul")] object[,] Point2,
@@ -1722,7 +1724,7 @@ namespace TopoLib
                     {
                         if (crs != null)
                         {
-                            double distance = crs.DistanceTransform.GeoDistance(points);
+                            double distance = crs.GeoDistance(points);
                             return Optional.CheckNan(distance);
                         }
                         else
@@ -1735,20 +1737,21 @@ namespace TopoLib
                 return AddIn.ProcessException(ex);
             }
 
-        } // GeoDistance
+        } // GeodesicDistance
 
         [ExcelFunctionDoc(
-            Name = "TL.crs.GeoDistanceZ",
+            Name = "TL.crs.GeodesicDistanceZ",
             Category = "CRS - Coordinate Reference System",
-            Description = "Gets distance between two points (or between multiple points in a poly-line), defined in a Coordinate Reference System, honoring elevation differences",
+            Description = "Gets geodesic distance between two points (or between multiple points in a poly-line), defined in a Coordinate Reference System, honoring elevation differences",
             HelpTopic = "TopoLib-AddIn.chm!1333",
 
-            Returns = "Distance between two (or more) points in [m]",
-            Summary = "Function that returns distance between two points (or between multiple points in a poly-line), defined in a Coordinate Reference System, honoring elevation differences or #NA error if CRS not found",
+            Returns = "Geodesic distance between two (or more) points in [m]",
+            Summary = "Function that returns geodesic distance between two points (or between multiple points in a poly-line), defined in a Coordinate Reference System, honoring elevation differences or #NA error if CRS not found" +
+                      "<p>See: <a href = \"https://proj.org/geodesic.html\" >Geodesic calculations</a> for the Proj Library</p>",
             Example = "xxx",
             Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
             )]
-        public static object GeoDistanceZ(
+        public static object GeodesicDistanceZ(
             [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
             [ExcelArgument("Start point (or vertical list of points)", Name = "startPointOrPointList")] object[,] Point1,
             [ExcelArgument("End point (ignored when using list of points)", Name = "endPointOrNul")] object[,] Point2,
@@ -1826,7 +1829,7 @@ namespace TopoLib
                     {
                         if (crs != null)
                         {
-                            double distance = crs.DistanceTransform.GeoDistanceZ(points);
+                            double distance = crs.GeoDistanceZ(points);
                             return Optional.CheckNan(distance);
                         }
                         else
