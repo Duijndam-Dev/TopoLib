@@ -153,7 +153,7 @@ if $(ConfigurationName)==Release  cd /D C:\Users\Bart\AppData\Local\Temp
 if $(ConfigurationName)==Release  for /f %25%25i in ('dir /a:d /b RazorEngine_*') do rmdir /s /q %25%25i
 if $(ConfigurationName)==Release  cd /D D:
 
-REM copy project files to publish folder, by running publish.bat
+REM copy project files to publish folder and sign them, by running publish.bat
 if $(ConfigurationName)==Release  "$(SolutionDir)batch\publish.bat" $(SolutionDir)  $(ConfigurationName)
 </PostBuildEvent>
   </PropertyGroup>

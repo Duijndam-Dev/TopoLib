@@ -84,7 +84,8 @@ namespace TopoLib
 
             Returns = "DMS-string",
             Summary = "Function that writes an angle (defined in degrees) as a Degree-Minute-Seconds or Decimal-Degrees string",
-            Example = "xxx",
+            Example = "=TL.deg.AsString(-19.627501, 1, \"dd.dddddd°\") returns 19.627501°W" +
+                   "<p>=TL.deg.AsString(-19.662282, 1, \"dd°mm'ss.sss\"\"\") returns W19°39'44.217\"</p>",
             Remarks ="<p>This method returns the angle in a specific string format. If no value for the format is specified, a default format of {<b>h&deg;mm'ss.ss\"</b>} is used. " +
             "Any string output by this method can be converted back into an decimal-degrees angle using the <a href = \"TL.deg.FromDmsString.htm\"> <b>TL.deg.FromDmsString()</b> </a>method. </p>" +
             "<p>The {<b>h&deg;</b>} code represents hours along with a degree symbol (Alt+0176 on the keypad), {<b>mm'</b>} represents minutes and {<b>ss.ss\"</b>} represents seconds using two decimals.</p>" +
@@ -237,7 +238,7 @@ namespace TopoLib
 
             Returns = "Angle (in decimal degrees)",
             Summary = "Function that returns an angle (in decimal degrees) from a string description ",
-            Example = "xxx"
+            Example = "=TL.deg.FromString(19.627501°W) returns -19.627501"
          )]
         public static object FromString(
             [ExcelArgument("string using DegreesMinutesSeconds, DegreesDecimalMinutes or DecimalDegrees format", Name = "angleString")] string dmsAngle
@@ -349,7 +350,7 @@ namespace TopoLib
 
             Returns = "Angle (in decimal degrees)",
             Summary = "Function that combines seperate Hours (0), Minutes (0), and Seconds (0.00) values into an angle (in decimal degrees)",
-            Example = "xxx"
+            Example = "=TL.deg.FromDmsValues(-19, 37, 39.005) returns -19.627501"
          )]
         public static double FromDmsValues(
             [ExcelArgument("Hours (0) an integer value", Name = "Hours")] object oHours,
@@ -372,7 +373,7 @@ namespace TopoLib
 
             Returns = "Angle (in decimal degrees)",
             Summary = "Function that combines seperate Hours (0) and decimal minutes (0.00) values into an angle (in decimal degrees)",
-            Example = "xxx"
+            Example = "=TL.deg.FromDmValues(-19, 37.6501) returns -19.62750129"
          )]
         public static double FromDmValues(
             [ExcelArgument("Hours (0) an integer value", Name = "Hours")] object oHours,
@@ -393,7 +394,7 @@ namespace TopoLib
 
             Returns = "Truncated angle (in decimal degrees)",
             Summary = "Function that truncates an angle (in decimaldegrees) to hours, omitting the fractional value",
-            Example = "xxx"
+            Example = "=TL.deg.GetHours(-19.627501) returns -19"
          )]
         public static double GetHours(
             [ExcelArgument("Angle (in decimal degrees)", Name = "angle")] double angle
@@ -404,14 +405,31 @@ namespace TopoLib
         } // GetHours
 
         [ExcelFunctionDoc(
+            Name = "TL.deg.GetDecimalMinutes",
+            Category = "DEG - Angle related",
+            Description = "Returns the decimal minutes fraction of an angle (in decimal degrees)",
+            HelpTopic = "TopoLib-AddIn.chm!1705",
+
+            Returns = "floating point part of minutes of an angle (in decimal degrees)",
+            Summary = "Function that returns the floating point minutes part of an angle (in decimal degrees)",
+            Example = "=TL.deg.GetDecimalMinutes(-19.627501) returns 37.6501"
+         )]
+        public static double GetDecimalMinutes(
+            [ExcelArgument("Angle (in decimal degrees)", Name = "angle")] double angle
+            )
+        {
+            return DecimalMinutes(angle);
+        } // GetMinutes
+
+        [ExcelFunctionDoc(
             Name = "TL.deg.GetMinutes",
             Category = "DEG - Angle related",
             Description = "Returns the minutes fraction of an angle (in decimal degrees)",
-            HelpTopic = "TopoLib-AddIn.chm!1705",
+            HelpTopic = "TopoLib-AddIn.chm!1706",
 
-            Returns = "Minutes part of angle (in decimal degrees)",
-            Summary = "Function that returns the minutes fraction of an angle (in decimal degrees)",
-            Example = "xxx"
+            Returns = "Integer part of minutes of an angle (in decimal degrees)",
+            Summary = "Function that returns the integer minutes part of an angle (in decimal degrees)",
+            Example = "=TL.deg.GetMinutes(-19.627501) returns 37"
          )]
         public static double GetMinutes(
             [ExcelArgument("Angle (in decimal degrees)", Name = "angle")] double angle
@@ -420,15 +438,17 @@ namespace TopoLib
             return Minutes(angle);
         } // GetMinutes
 
+
+
         [ExcelFunctionDoc(
             Name = "TL.deg.GetSeconds",
             Category = "DEG - Angle related",
             Description = "Returns the seconds fraction of an angle (in decimal degrees)",
-            HelpTopic = "TopoLib-AddIn.chm!1706",
+            HelpTopic = "TopoLib-AddIn.chm!1707",
 
             Returns = "Seconds part of angle (in decimal degrees)",
             Summary = "Function that returns the seconds fraction of an angle (in decimal degrees)",
-            Example = "xxx"
+            Example = "=TL.deg.GetSeconds(-19.627501) returns 39.005"
          )]
         public static double GetSeconds(
             [ExcelArgument("Angle (in decimal degrees)", Name = "angle")] double angle
@@ -442,11 +462,11 @@ namespace TopoLib
             Name = "TL.deg.Normalize0to360",
             Category = "DEG - Angle related",
             Description = "Constrains an angle to the 0 to 360 degree range",
-            HelpTopic = "TopoLib-AddIn.chm!1707",
+            HelpTopic = "TopoLib-AddIn.chm!1708",
 
             Returns = "Normalized angle (in decimal degrees)",
             Summary = "Function that constrains an angle to the 0 to 360 degree range",
-            Example = "xxx"
+            Example = "=TL.deg.Normalize0to360(701) returns 341"
          )]
         public static double Normalize0to360(
             [ExcelArgument("Angle (in decimal degrees)", Name = "angle")] double angle
@@ -465,11 +485,11 @@ namespace TopoLib
             Name = "TL.deg.Normalize180to180",
             Category = "DEG - Angle related",
             Description = "Constrains an angle to the -180 to +180 degree range",
-            HelpTopic = "TopoLib-AddIn.chm!1708",
+            HelpTopic = "TopoLib-AddIn.chm!1709",
 
             Returns = "Normalized angle (in decimal degrees)",
             Summary = "Function that constrains an angle to the -180 to +180 degree range",
-            Example = "xxx"
+            Example = "=TL.deg.Normalize180to180(701) returns -19"
          )]
         public static double Normalize180to180(
             [ExcelArgument("Angle (in decimal degrees)", Name = "angle")] double angle
@@ -487,11 +507,11 @@ namespace TopoLib
             Name = "TL.deg.IsWithin0to360",
             Category = "DEG - Angle related",
             Description = "Checks if an angle is >= 0 and < 360 degrees",
-            HelpTopic = "TopoLib-AddIn.chm!1709",
+            HelpTopic = "TopoLib-AddIn.chm!1710",
 
             Returns = "TRUE if angle is within this range; FALSE otherwise",
             Summary = "Function that checks if an angle is >= 0 and < 360 degrees",
-            Example = "xxx"
+            Example = "=TL.deg.IsWithin0to360(701) returns FALSE"
          )]
         public static bool IsWithin0to360(
             [ExcelArgument("Angle (in decimal degrees)", Name = "angle")] double angle
@@ -504,11 +524,11 @@ namespace TopoLib
             Name = "TL.deg.IsWithin180to180",
             Category = "DEG - Angle related",
             Description = "Checks if an angle is >= -180 and < 180 degrees",
-            HelpTopic = "TopoLib-AddIn.chm!1710",
+            HelpTopic = "TopoLib-AddIn.chm!1711",
 
             Returns = "TRUE if angle is within this range; FALSE otherwise",
             Summary = "Function that checks if an angle is >= -180 and < 180 degrees, as is required for normalized longitude values",
-            Example = "xxx"
+            Example = "=TL.deg.IsWithin180to180(-19) returns TRUE"
          )]
         public static bool IsWithin180to180(
             [ExcelArgument("Angle (in decimal degrees)", Name = "angle")] double angle
@@ -521,11 +541,11 @@ namespace TopoLib
             Name = "TL.deg.IsWithin90to90",
             Category = "DEG - Angle related",
             Description = "Checks if an angle is >= -90 and < 90 degrees",
-            HelpTopic = "TopoLib-AddIn.chm!1711",
+            HelpTopic = "TopoLib-AddIn.chm!1712",
 
             Returns = "TRUE if angle is within this range; FALSE otherwise",
             Summary = "Function that checks if an angle is >= -90 and < 90 degrees, as is required for normalized latitude values",
-            Example = "xxx"
+            Example = "=TL.deg.IsWithin90to90(-19) returns TRUE"
          )]
         public static bool IsWithin90to90(
             [ExcelArgument("Angle (in decimal degrees)", Name = "angle")] double angle
@@ -538,11 +558,11 @@ namespace TopoLib
             Name = "TL.deg.ToRadians",
             Category = "DEG - Angle related",
             Description = "Converts an angle in decimal degrees to radians",
-            HelpTopic = "TopoLib-AddIn.chm!1712",
+            HelpTopic = "TopoLib-AddIn.chm!1713",
 
             Returns = "Angle in radians",
             Summary = "Function that converts an angle in decimal degrees to radians",
-            Example = "xxx"
+            Example = "=TL.deg.ToRadians(-19) returns -0.331612558"
          )]
         public static double ToRadians(
             [ExcelArgument("Angle (in decimal degrees)", Name = "angle")] double angle
@@ -555,11 +575,11 @@ namespace TopoLib
             Name = "TL.deg.FromRadians",
             Category = "DEG - Angle related",
             Description = "Converts an angle from radians to decimal degrees",
-            HelpTopic = "TopoLib-AddIn.chm!1713",
+            HelpTopic = "TopoLib-AddIn.chm!1714",
 
             Returns = "Angle in decimal degrees",
             Summary = "Function that converts an angle from radians to decimal degrees",
-            Example = "xxx"
+            Example = "=TL.deg.ToRadians(-0.331612558) returns -19"
          )]
         public static double FromRadians(
             [ExcelArgument("Angle (in radians)", Name = "angle")] double angle

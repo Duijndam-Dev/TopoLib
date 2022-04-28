@@ -1103,49 +1103,6 @@ namespace TopoLib
         } // CoordinateSystem_CoordinateSystemType
 
         [ExcelFunctionDoc(
-            Name = "TL.crs.CoordinateSystem.Context",
-            Category = "CRS - Coordinate Reference System",
-            Description = "Gets type of Coordinate System",
-            HelpTopic = "TopoLib-AddIn.chm!1378",
-
-            Returns = "Context of coordinate system",
-            Summary = "Function that returns contextof Coordinate System or &ltNotFound&gt if not found",
-            Example = "xxx",
-            Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
-            )]
-        public static object CoordinateSystem_Context(
-            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
-            [ExcelArgument("Use normalized axis ordering: {long, lat} & {x, y} (true)", Name = "Normalized")] object normalized
-            )
-        {
-            bool bNorm  = Optional.Check(normalized, true);
-
-            try
-            {
-                string context="";
-
-                using (ProjContext pjContext = CreateContext())
-                {
-                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
-                    {
-                        if (crs != null)
-                            context= crs.CoordinateSystem.Context.ToString();
-
-                        if (String.IsNullOrWhiteSpace(context))
-                            context = "<NotFound>";
-
-                        return context;
-                    }
-                }        
-            }
-            catch (Exception ex)
-            {
-                return AddIn.ProcessException(ex);
-            }
-
-        } // CoordinateSystem_Context
-
-        [ExcelFunctionDoc(
             Name = "TL.crs.CoordinateSystem.Name",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets type of Coordinate System",
@@ -1561,10 +1518,310 @@ namespace TopoLib
         } // EllipsoidIsSemiMinorComputed
 
         [ExcelFunctionDoc(
+            Name = "TL.crs.EuclideanArea",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets Euclidean area defined by 3 or more points in a Projected or Engineering CRS, ignoring elevation differences",
+            HelpTopic = "TopoLib-AddIn.chm!1331",
+
+            Returns = "Euclidean area covered by three (or more) points in [m2]",
+            Summary = "Function that returns Euclidean area, covered by three or more points, defined in a Projected or Engineering CRS, ignoring elevation differences, or #NA error if CRS not found" +
+                      "<p>This routine explicitly requires that CRS being used, is a projected or engineering CRS.</p>",
+            Remarks = "The setting Normalized 'true' always converts the calculated area to [m2]"
+            )]
+        public static object EuclideanArea(
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Vertical list of points", Name = "PointList")] object[,] Points,
+            [ExcelArgument("Normalize area to [m2] (true)", Name = "Normalized")] object normalized
+            )
+        {
+            bool bNorm  = Optional.Check(normalized, true);
+
+            int nPointRows = Points.GetLength(0);
+            int nPointCols = Points.GetLength(1);
+
+            if (nPointRows < 3 )
+                return ExcelError.ExcelErrorValue;
+
+            if (nPointCols < 2 || nPointCols > 4 )
+                return ExcelError.ExcelErrorValue;
+
+            // Now determine number of points in (poly)line
+            int nPoints = nPointRows + 1;
+
+            double[,] points = new double[nPoints, 2];
+
+            // First, get all the points from Points
+            for (int i = 0; i < nPointRows; i++)
+            {
+                points[i, 0] = (double)Points[i, 0];
+                points[i, 1] = (double)Points[i, 1];
+            }
+
+            // Make sure we close the polygon
+            points[nPointRows, 0] = points[0, 0];
+            points[nPointRows, 1] = points[0, 1];
+
+            try
+            {
+                using (ProjContext pjContext = CreateContext())
+                {
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
+                    {
+                        if (crs != null)
+                        {
+                            var projType = crs.Type;
+
+                            if (projType == ProjType.ProjectedCrs || projType == ProjType.EngineeringCrs)
+                            {
+                                double sum1 = 0;
+                                double sum2 = 0;
+
+                                // so far now
+
+                                for (int i = 0; i < nPoints - 1; i++)
+                                {
+                                    sum1 += points[i, 0] * points[i + 1, 1];
+                                    sum2 += points[i, 1] * points[i + 1, 0];
+                                }
+
+                                double area = Math.Abs(0.5 * (sum1 - sum2));
+
+                                // See : https://github.com/tracyharton/Proj4/blob/master/pj_units.c
+                                double conversion0 = crs.Axis[0].UnitConversionFactor;
+                                double conversion1 = crs.Axis[1].UnitConversionFactor;
+
+                                if (bNorm)
+                                {
+                                    area *= (conversion0 * conversion1);
+                                }
+
+                                return area;
+                            }
+                            else
+                                throw new Exception("Euclidean Area requires a Projected or Engineering CRS");
+                        }
+                        else
+                            return ExcelError.ExcelErrorValue;
+                    }
+                }        
+            }
+            catch (Exception ex)
+            {
+                return AddIn.ProcessException(ex);
+            }
+
+        } // EuclideanArea
+
+        [ExcelFunctionDoc(
+            Name = "TL.crs.EuclideanDistance",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets Euclidean distance between two points (or between multiple points in a poly-line), defined in a Projected or Engineering CRS, ignoring elevation differences",
+            HelpTopic = "TopoLib-AddIn.chm!1332",
+
+            Returns = "Euclidean distance between two (or more) points in [m]",
+            Summary = "Function that returns Euclidean distance between two points (or between multiple points in a poly-line), defined in a Projected or Engineering CRS, ignoring elevation differences, or #NA error if CRS not found" +
+                      "<p>This routine explicitly requires that CRS being used, is a projected or engineering CRS.</p>",
+            Remarks = "The setting Normalized 'true' always converts the calculated distance to [m]"
+            )]
+        public static object EuclideanDistance(
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Start point (or vertical list) of x,y points)", Name = "startPointOrPointList")] object[,] Point1,
+            [ExcelArgument("End point (ignored when using list of points)", Name = "endPointOrNul")] object[,] Point2,
+            [ExcelArgument("Normalize distance to [m] (true)", Name = "Normalized")] object normalized
+            )
+        {
+            bool bNorm  = Optional.Check(normalized, true);
+
+            int nPoint1Rows = Point1.GetLength(0);
+            int nPoint1Cols = Point1.GetLength(1);
+
+            int nPoint2Rows = Point2.GetLength(0);
+            int nPoint2Cols = Point2.GetLength(1);
+
+            if (nPoint1Rows < 1 )
+                return ExcelError.ExcelErrorValue;
+
+            if (nPoint1Cols < 2 || nPoint1Cols > 4 )
+                return ExcelError.ExcelErrorValue;
+
+            // Check use of nPoint2; we need it when nPoint1Rows == 1
+            if (nPoint1Rows == 1 &&  nPoint2Rows != 1 )
+                return ExcelError.ExcelErrorValue;
+
+            // Do the check on nPoint2Cols only when we need Point2
+            if (nPoint1Rows == 1 && (nPoint2Cols < 2 || nPoint2Cols > 4 ))
+                return ExcelError.ExcelErrorValue;
+
+            // Now determine number of points in (poly)line
+            int nPoints = nPoint1Rows > 1 ? nPoint1Rows : 2;
+
+            double[,] points = new double[nPoints, 2];
+
+            // First, get all the points from Point1
+            for (int i = 0; i < nPoint1Rows; i++)
+            {
+                points[i, 0] = (double)Point1[i, 0];
+                points[i, 1] = (double)Point1[i, 1];
+            }
+
+            // Now get the last point from Point2 if needed
+            if (nPoints > nPoint1Rows)
+            {
+                points[nPoints - 1, 0] = (double)Point2[0, 0];
+                points[nPoints - 1, 1] = (double)Point2[0, 1];
+            }
+
+            try
+            {
+                using (ProjContext pjContext = CreateContext())
+                {
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
+                    {
+                        if (crs != null)
+                        {
+                            var projType = crs.Type;
+
+                            if (projType == ProjType.ProjectedCrs || projType == ProjType.EngineeringCrs)
+                            {
+                                double length = 0;
+
+                                for (int i = 0; i < nPoints - 1; i++)
+                                {
+                                    length += Math.Sqrt(Math.Pow(points[i + 1, 0] - points[i, 0], 2) + Math.Pow(points[i + 1, 1] - points[i, 1], 2));
+                                }
+                                double conversion0 = crs.Axis[0].UnitConversionFactor;
+
+                                if (bNorm)
+                                {
+                                    length *= conversion0;
+                                }
+
+                                return length;
+                            }
+                            else
+                                throw new Exception("Euclidean Distance requires a Projected or Engineering CRS");
+                        }
+                        else
+                            return ExcelError.ExcelErrorValue;
+                    }
+                }        
+            }
+            catch (Exception ex)
+            {
+                return AddIn.ProcessException(ex);
+            }
+
+        } // EuclideanDistance
+
+        [ExcelFunctionDoc(
+            Name = "TL.crs.EuclideanDistanceZ",
+            Category = "CRS - Coordinate Reference System",
+            Description = "Gets Euclidean distance between two points (or between multiple points in a poly-line), defined in a Projected or Engineering CRS, ignoring elevation differences",
+            HelpTopic = "TopoLib-AddIn.chm!1333",
+
+            Returns = "Euclidean distance between two (or more) points in [m]",
+            Summary = "Function that returns Euclidean distance between two points (or between multiple points in a poly-line), defined in a Projected or Engineering CRS, honoring elevation differences, or #NA error if CRS not found" +
+                      "<p>This routine explicitly requires that CRS being used, is a projected or engineering CRS.</p>",
+            Remarks = "The setting Normalized 'true' always converts the calculated distance to [m]"
+            )]
+        public static object EuclideanDistanceZ(
+            [ExcelArgument("One [or two adjacent] cell[s] with [Authority and] EPSG code, WKT string, JSON string or PROJ string", Name = "Crs")] object[,] oCrs,
+            [ExcelArgument("Start point (or vertical list) of x,y,z points)", Name = "startPointOrPointList")] object[,] Point1,
+            [ExcelArgument("End point (ignored when using list of points)", Name = "endPointOrNul")] object[,] Point2,
+            [ExcelArgument("Normalize distance to [m] (true)", Name = "Normalized")] object normalized
+            )
+        {
+            bool bNorm  = Optional.Check(normalized, true);
+
+            int nPoint1Rows = Point1.GetLength(0);
+            int nPoint1Cols = Point1.GetLength(1);
+
+            int nPoint2Rows = Point2.GetLength(0);
+            int nPoint2Cols = Point2.GetLength(1);
+
+            if (nPoint1Rows < 1 )
+                return ExcelError.ExcelErrorValue;
+
+            if (nPoint1Cols < 2 || nPoint1Cols > 4 )
+                return ExcelError.ExcelErrorValue;
+
+            // Check use of nPoint2; we need it when nPoint1Rows == 1
+            if (nPoint1Rows == 1 &&  nPoint2Rows != 1 )
+                return ExcelError.ExcelErrorValue;
+
+            // Do the check on nPoint2Cols only when we need Point2
+            if (nPoint1Rows == 1 && (nPoint2Cols < 2 || nPoint2Cols > 4 ))
+                return ExcelError.ExcelErrorValue;
+
+            // Now determine number of points in (poly)line
+            int nPoints = nPoint1Rows > 1 ? nPoint1Rows : 2;
+
+            double[,] points = new double[nPoints, 3];
+
+            // First, get all the points from Point1
+            for (int i = 0; i < nPoint1Rows; i++)
+            {
+                points[i, 0] = (double)Point1[i, 0];
+                points[i, 1] = (double)Point1[i, 1];
+                points[i, 2] = nPoint1Cols > 2 ? (double)Point1[i, 2]: 0;
+            }
+
+            // Now get the last point from Point2 if needed
+            if (nPoints > nPoint1Rows)
+            {
+                points[nPoints - 1, 0] = (double)Point2[0, 0];
+                points[nPoints - 1, 1] = (double)Point2[0, 1];
+                points[nPoints - 1, 2] = nPoint2Cols > 2 ? (double)Point1[0, 2]: 0;
+            }
+
+            try
+            {
+                using (ProjContext pjContext = CreateContext())
+                {
+                    using (var crs = bNorm ? CreateCrs(oCrs, pjContext).WithAxisNormalized() : CreateCrs(oCrs, pjContext))
+                    {
+                        if (crs != null)
+                        {
+                            var projType = crs.Type;
+
+                            if (projType == ProjType.ProjectedCrs || projType == ProjType.EngineeringCrs)
+                            {
+                                double length = 0;
+                                for (int i = 0; i < nPoints - 1; i++)
+                                {
+                                    length += Math.Sqrt(  Math.Pow(points[i + 1, 0] - points[i, 0], 2) 
+                                                        + Math.Pow(points[i + 1, 1] - points[i, 1], 2)
+                                                        + Math.Pow(points[i + 1, 2] - points[i, 2], 2));
+                                }
+                                double conversion0 = crs.Axis[0].UnitConversionFactor;
+
+                                if (bNorm)
+                                {
+                                    length *= conversion0;
+                                }
+
+                                return length;
+                            }
+                            else
+                                throw new Exception("Euclidean Distance requires a Projected or Engineering CRS");
+                        }
+                        else
+                            return ExcelError.ExcelErrorValue;
+                    }
+                }        
+            }
+            catch (Exception ex)
+            {
+                return AddIn.ProcessException(ex);
+            }
+
+        } // EuclideanDistanceZ
+
+        [ExcelFunctionDoc(
             Name = "TL.crs.GeodesicArea",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets surface area defined by multiple (at least 3) points in a polygon defined in a Coordinate Reference System",
-            HelpTopic = "TopoLib-AddIn.chm!1331",
+            HelpTopic = "TopoLib-AddIn.chm!1334",
 
             Returns = "surface area defined by multiple (at least 3) points in a polygon [m2]",
             Summary = "Function that returns surface area defined by multiple (at least 3) points in a polygon defined in a Coordinate Reference System, or #NA error if CRS not found" +
@@ -1638,12 +1895,11 @@ namespace TopoLib
             Name = "TL.crs.GeodesicDistance",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets geodesic distance between two points (or between multiple points in a poly-line), defined in a Coordinate Reference System, ignoring elevation differences",
-            HelpTopic = "TopoLib-AddIn.chm!1332",
+            HelpTopic = "TopoLib-AddIn.chm!1335",
 
             Returns = "Geodesic distance between two (or more) points in [m]",
             Summary = "Function that returns geodesic distance between two points (or between multiple points in a poly-line), defined in a Coordinate Reference System, ignoring elevation differences or #NA error if CRS not found" +
                       "<p>See: <a href = \"https://proj.org/geodesic.html\" >Geodesic calculations</a> for the Proj Library</p>",
-            Example = "xxx",
             Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
             )]
         public static object GeodesicDistance(
@@ -1743,12 +1999,11 @@ namespace TopoLib
             Name = "TL.crs.GeodesicDistanceZ",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets geodesic distance between two points (or between multiple points in a poly-line), defined in a Coordinate Reference System, honoring elevation differences",
-            HelpTopic = "TopoLib-AddIn.chm!1333",
+            HelpTopic = "TopoLib-AddIn.chm!1336",
 
             Returns = "Geodesic distance between two (or more) points in [m]",
             Summary = "Function that returns geodesic distance between two points (or between multiple points in a poly-line), defined in a Coordinate Reference System, honoring elevation differences or #NA error if CRS not found" +
                       "<p>See: <a href = \"https://proj.org/geodesic.html\" >Geodesic calculations</a> for the Proj Library</p>",
-            Example = "xxx",
             Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
             )]
         public static object GeodesicDistanceZ(
@@ -1848,7 +2103,7 @@ namespace TopoLib
             Name = "TL.crs.Identifiers.Authority",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets Authority of Identifier N",
-            HelpTopic = "TopoLib-AddIn.chm!1334",
+            HelpTopic = "TopoLib-AddIn.chm!1337",
 
             Returns = "Authority of Nth Identifier",
             Summary = "Function that returns Authority of <Nth> identifiers or <index out of range> when not found",
@@ -1900,7 +2155,7 @@ namespace TopoLib
             Name = "TL.crs.Identifiers.Code",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets Code of Identifier N",
-            HelpTopic = "TopoLib-AddIn.chm!1335",
+            HelpTopic = "TopoLib-AddIn.chm!1338",
 
             Returns = "Code of Nth Identifiers",
             Summary = "Function that returns the Code of the <Nth> identifier or <index out of range> when not found",
@@ -1951,7 +2206,7 @@ namespace TopoLib
             Name = "TL.crs.Identifiers.Count",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets number of Identifiers",
-            HelpTopic = "TopoLib-AddIn.chm!1336",
+            HelpTopic = "TopoLib-AddIn.chm!1339",
 
             Returns = "Number of CRS Identifiers",
             Summary = "Function that returns nr of CRS identifiers or 0 if none found",
@@ -1993,7 +2248,7 @@ namespace TopoLib
             Name = "TL.crs.IsDeprecated",
             Category = "CRS - Coordinate Reference System",
             Description = "Confirms whether when size of semi-minor axis has been calculated",
-            HelpTopic = "TopoLib-AddIn.chm!1337",
+            HelpTopic = "TopoLib-AddIn.chm!1340",
 
             Returns = "TRUE when CRS is deprecated; FALSE when not",
             Summary = "Function that confirms whether the CRS is deprecated",
@@ -2031,11 +2286,10 @@ namespace TopoLib
             Name = "TL.crs.IsEquivalentTo",
             Category = "CRS - Coordinate Reference System",
             Description = "Confirms whether two different CRSs are equivalent",
-            HelpTopic = "TopoLib-AddIn.chm!1338",
+            HelpTopic = "TopoLib-AddIn.chm!1341",
 
             Returns = "TRUE when the two different CRSs are equivalent; FALSE when not",
             Summary = "Function that checks whether two different CRSs are equivalent",
-            Example = "xxx",
             Remarks = "<p>The objects are equivalent for the purpose of coordinate operations. They can differ by the name of their objects, identifiers, other metadata. " +
             "Parameters may be expressed in different units, provided that the value is (with some tolerance) the same once expressed in a common unit.</p>" +
             "<p>Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib</p>"
@@ -2073,11 +2327,10 @@ namespace TopoLib
             Name = "TL.crs.IsEquivalentToRelaxed",
             Category = "CRS - Coordinate Reference System",
             Description = "Confirms whether two different CRSs are equivalent with the axes in any order",
-            HelpTopic = "TopoLib-AddIn.chm!1339",
+            HelpTopic = "TopoLib-AddIn.chm!1342",
 
             Returns = "TRUE when the two different CRSs are equivalent with the axes in any order; FALSE when not",
             Summary = "Function that checks whether two different CRSs are equivalent with the axes in any order",
-            Example = "xxx",
             Remarks = "<p>The objects are equivalent for the purpose of coordinate operations. They can differ by the name of their objects, identifiers, other metadata. " +
             "Parameters may be expressed in different units, provided that the value is (with some tolerance) the same once expressed in a common unit.</p>" +
             "<p>Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib</p>"
@@ -2115,7 +2368,7 @@ namespace TopoLib
             Name = "TL.crs.Name",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets name of Coordinate Reference System",
-            HelpTopic = "TopoLib-AddIn.chm!1340",
+            HelpTopic = "TopoLib-AddIn.chm!1343",
 
             Returns = "CRS name",
             Summary = "Function that returns name of CRS or &ltNotFound&gt if not found",
@@ -2158,7 +2411,7 @@ namespace TopoLib
             Name = "TL.crs.GeodeticCRS.Name",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets name of Geodetic Coordinate Reference System",
-            HelpTopic = "TopoLib-AddIn.chm!1341",
+            HelpTopic = "TopoLib-AddIn.chm!1344",
 
             Returns = "CRS name",
             Summary = "Function that returns name of Geodetic CRS or &ltNotFound&gt if not found",
@@ -2201,7 +2454,7 @@ namespace TopoLib
             Name = "TL.crs.GeodeticCRS.Type",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets type of Geodetic Coordinate Reference System",
-            HelpTopic = "TopoLib-AddIn.chm!1342",
+            HelpTopic = "TopoLib-AddIn.chm!1345",
 
             Returns = "CRS name",
             Summary = "Function that returns type of Geodetic CRS or &ltNotFound&gt if not found",
@@ -2244,7 +2497,7 @@ namespace TopoLib
             Name = "TL.crs.PrimeMeridian.Name",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets name of prime meridean of coordinate reference system",
-            HelpTopic = "TopoLib-AddIn.chm!1343",
+            HelpTopic = "TopoLib-AddIn.chm!1346",
 
             Returns = "Name of prime meridean of CRS",
             Summary = "Function that returns name of prime meridean of CRS or &ltNotFound&gt if not found",
@@ -2287,7 +2540,7 @@ namespace TopoLib
             Name = "TL.crs.PrimeMeridian.Longitude",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets longitude of prime miridian in degrees",
-            HelpTopic = "TopoLib-AddIn.chm!1344",
+            HelpTopic = "TopoLib-AddIn.chm!1347",
 
             Returns = "Longitude of prime miridian in degrees",
             Summary = "Function that returns longitude of prime miridian in degrees or -1 if not found",
@@ -2327,7 +2580,7 @@ namespace TopoLib
             Name = "TL.crs.PrimeMeridian.UnitConversionFactor",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets unit conversion factor of prime miridian in degrees",
-            HelpTopic = "TopoLib-AddIn.chm!1345",
+            HelpTopic = "TopoLib-AddIn.chm!1348",
 
             Returns = "Unit conversion factor of prime meridian ",
             Summary = "Function that returns unit conversion factor of prime meridian or -1 if not found",
@@ -2367,7 +2620,7 @@ namespace TopoLib
             Name = "TL.crs.PrimeMeridian.UnitName",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets name of prime meridean of coordinate reference system",
-            HelpTopic = "TopoLib-AddIn.chm!1346",
+            HelpTopic = "TopoLib-AddIn.chm!1349",
 
             Returns = "Name of prime meridean of CRS",
             Summary = "Function that returns name of prime meridean of CRS or &ltNotFound&gt if not found",
@@ -2410,11 +2663,11 @@ namespace TopoLib
             Name = "TL.crs.Remarks",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets scope of Coordinate Reference System",
-            HelpTopic = "TopoLib-AddIn.chm!1377",
+            HelpTopic = "TopoLib-AddIn.chm!1350",
 
             Returns = "CRS Remarks",
             Summary = "Function that returns remarks on a CRS or &ltNotFound&gt if not found",
-            Example = "xxx",
+            Example = "=TL.crs.Remarks(2036, TRUE) returns Axis order reversed compared to EPSG:2036",
             Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
             )]
         public static object Remarks(
@@ -2453,7 +2706,7 @@ namespace TopoLib
             Name = "TL.crs.Scope",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets scope of Coordinate Reference System",
-            HelpTopic = "TopoLib-AddIn.chm!1347",
+            HelpTopic = "TopoLib-AddIn.chm!1351",
 
             Returns = "CRS Scope",
             Summary = "Function that returns scope of CRS or &ltNotFound&gt if not found",
@@ -2496,7 +2749,7 @@ namespace TopoLib
             Name = "TL.crs.Type",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets type of coordinate reference system",
-            HelpTopic = "TopoLib-AddIn.chm!1348",
+            HelpTopic = "TopoLib-AddIn.chm!1352",
 
             Returns = "Ttype of coordinate reference system",
             Summary = "Function that returns type of coordinate reference system",
@@ -2539,7 +2792,7 @@ namespace TopoLib
             Name = "TL.crs.UsageArea.Center",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets center point of CRS usage area",
-            HelpTopic = "TopoLib-AddIn.chm!1349",
+            HelpTopic = "TopoLib-AddIn.chm!1353",
 
             Returns = "Center point of CRS usage area",
             Summary = "Function that returns center point of CRS Usage Area in two adjacent cells",
@@ -2583,7 +2836,7 @@ namespace TopoLib
             Name = "TL.crs.UsageArea.Center.HasValues",
             Category = "CRS - Coordinate Reference System",
             Description = "Confirms whether the center point in the usage area has values",
-            HelpTopic = "TopoLib-AddIn.chm!1350",
+            HelpTopic = "TopoLib-AddIn.chm!1354",
 
             Returns = "TRUE when the center point in the usage area has values; FALSE when not",
             Summary = "Function that confirms whether the center point in the usage area has values",
@@ -2621,7 +2874,7 @@ namespace TopoLib
             Name = "TL.crs.UsageArea.Center.X",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets x-value of center point of CRS usage area",
-            HelpTopic = "TopoLib-AddIn.chm!1351",
+            HelpTopic = "TopoLib-AddIn.chm!1355",
 
             Returns = "X-value of center point of CRS usage area",
             Summary = "Function that returns x-value of center point of CRS Usage Area",
@@ -2659,7 +2912,7 @@ namespace TopoLib
             Name = "TL.crs.UsageArea.Center.Y",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets y-value of center point of CRS usage area",
-            HelpTopic = "TopoLib-AddIn.chm!1352",
+            HelpTopic = "TopoLib-AddIn.chm!1356",
 
             Returns = "Y-value of center point of CRS usage area",
             Summary = "Function that returns y-value of center point of CRS Usage Area",
@@ -2697,11 +2950,11 @@ namespace TopoLib
             Name = "TL.crs.UsageArea.MaxX",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets maximum X-value of CRS usage area",
-            HelpTopic = "TopoLib-AddIn.chm!1353",
+            HelpTopic = "TopoLib-AddIn.chm!1357",
 
             Returns = "Maximum X-value of CRS usage area",
             Summary = "Function that returns maximum X-value of CRS Usage Area",
-            Example = "xxx",
+            Example = "=TL.crs.UsageArea.MaxX(7843) returns 173.34",
             Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
             )]
         public static object UsageArea_MaxX(
@@ -2734,11 +2987,11 @@ namespace TopoLib
             Name = "TL.crs.UsageArea.MaxY",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets maximum Y-value of CRS usage area",
-            HelpTopic = "TopoLib-AddIn.chm!1354",
+            HelpTopic = "TopoLib-AddIn.chm!1358",
 
             Returns = "Maximum Y-value of CRS usage area",
             Summary = "Function that returns maximum Y-value of CRS Usage Area",
-            Example = "xxx",
+            Example = "=TL.crs.UsageArea.MaxY(7843) returns -8.47",
             Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
             )]
         public static object UsageArea_MaxY(
@@ -2771,11 +3024,11 @@ namespace TopoLib
             Name = "TL.crs.UsageArea.MinX",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets minimum X-value of CRS usage area",
-            HelpTopic = "TopoLib-AddIn.chm!1355",
+            HelpTopic = "TopoLib-AddIn.chm!1359",
 
             Returns = "Minimum X-value of CRS usage area",
             Summary = "Function that returns minimum X-value of CRS Usage Area",
-            Example = "xxx",
+            Example = "=TL.crs.UsageArea.MinX(7843) returns 93.41",
             Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
             )]
         public static object UsageArea_MinX(
@@ -2808,11 +3061,11 @@ namespace TopoLib
             Name = "TL.crs.UsageArea.MinY",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets minimum Y-value of CRS usage area",
-            HelpTopic = "TopoLib-AddIn.chm!1356",
+            HelpTopic = "TopoLib-AddIn.chm!1360",
 
             Returns = "Minimum Y-value of CRS usage area",
             Summary = "Function that returns minimum Y-value of CRS Usage Area",
-            Example = "xxx",
+            Example = "=TL.crs.UsageArea.MinY(7843) returns -60.55",
             Remarks = "Setting Normalized 'true' reflects coordinate ordering as generally used in TopoLib"
             )]
         public static object UsageArea_MinY(
@@ -2845,7 +3098,7 @@ namespace TopoLib
             Name = "TL.crs.UsageArea.Name",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets name of CRS usage area",
-            HelpTopic = "TopoLib-AddIn.chm!1357",
+            HelpTopic = "TopoLib-AddIn.chm!1361",
 
             Returns = "Name of CRS usage area",
             Summary = "Function that returns name of usage area or &ltNotFound&gt if not found",
@@ -2888,7 +3141,7 @@ namespace TopoLib
             Name = "TL.crs.UsageArea.WestLongitude",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets the west longitude of CRS usage area",
-            HelpTopic = "TopoLib-AddIn.chm!1358",
+            HelpTopic = "TopoLib-AddIn.chm!1362",
 
             Returns = "West longitude of CRS usage area",
             Summary = "Function that returns west longitude of usage area or &ltNotFound&gt if not found",
@@ -2928,7 +3181,7 @@ namespace TopoLib
             Name = "TL.crs.UsageArea.EastLongitude",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets east longitude of CRS usage area",
-            HelpTopic = "TopoLib-AddIn.chm!1359",
+            HelpTopic = "TopoLib-AddIn.chm!1363",
 
             Returns = "East longitude of CRS usage area",
             Summary = "Function that returns east longitude of usage area or &ltNotFound&gt if not found",
@@ -2968,7 +3221,7 @@ namespace TopoLib
             Name = "TL.crs.UsageArea.SouthLatitude",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets south latitude of CRS usage area",
-            HelpTopic = "TopoLib-AddIn.chm!1360",
+            HelpTopic = "TopoLib-AddIn.chm!1364",
 
             Returns = "South latitude of CRS usage area",
             Summary = "Function that returns south latitude of usage area or &ltNotFound&gt if not found",
@@ -3008,7 +3261,7 @@ namespace TopoLib
             Name = "TL.crs.UsageArea.NorthLatitude",
             Category = "CRS - Coordinate Reference System",
             Description = "Gets north latitude of CRS usage area",
-            HelpTopic = "TopoLib-AddIn.chm!1361",
+            HelpTopic = "TopoLib-AddIn.chm!1365",
 
             Returns = "South latitude of CRS usage area",
             Summary = "Function that returns north latitude of usage area or &ltNotFound&gt if not found",

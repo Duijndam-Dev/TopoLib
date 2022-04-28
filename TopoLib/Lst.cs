@@ -23,8 +23,7 @@ namespace TopoLib
             HelpTopic = "TopoLib-AddIn.chm!1900",
 
             Returns = "Authority-list",
-            Summary = "Function that provides a (vertical) spillover list with all authorities from the PROJ database, spanning several rows",
-            Example = "xxx"
+            Summary = "Function that provides a (vertical) spillover list with all authorities from the PROJ database, spanning several rows"
          )]
         public static object AuthorityList(
             [ExcelArgument("Use header row (true)", Name = "Header")] object header
@@ -72,8 +71,7 @@ namespace TopoLib
             HelpTopic = "TopoLib-AddIn.chm!1901",
 
             Returns = "Coordinate-Reference-System List",
-            Summary = "Function that provides a (vertical) spillover list with all coordinate reference systems from the PROJ database, spanning several rows",
-            Example = "xxx"
+            Summary = "Function that provides a (vertical) spillover list with all coordinate reference systems from the PROJ database, spanning several rows"
          )]
         public static object CoordinateReferenceSystemList(
             [ExcelArgument("Use header row (true)", Name = "Header")] object header
@@ -141,11 +139,10 @@ namespace TopoLib
             Name = "TL.lst.OperationList",
             Category = "LST - List related",
             Description = "Provides a (vertical) spillover list with all operations from the PROJ database",
-            HelpTopic = "TopoLib-AddIn.chm!1903",
+            HelpTopic = "TopoLib-AddIn.chm!1902",
 
             Returns = "Operations-list",
-            Summary = "Function that provides a (vertical) spillover list with all operations from the PROJ database, spanning several rows",
-            Example = "xxx"
+            Summary = "Function that provides a (vertical) spillover list with all operations from the PROJ database, spanning several rows"
          )]
         public static object OperationList(
             [ExcelArgument("Use header row (true)", Name = "Header")] object header
@@ -193,11 +190,10 @@ namespace TopoLib
             Name = "TL.lst.CelestialBodyList",
             Category = "LST - List related",
             Description = "Provides a (vertical) spillover list with all celestial bodies from the PROJ database",
-            HelpTopic = "TopoLib-AddIn.chm!1902",
+            HelpTopic = "TopoLib-AddIn.chm!1903",
 
             Returns = "Operations-list",
-            Summary = "Function that provides a (vertical) spillover list with all celestial bodies from the PROJ database, spanning several rows",
-            Example = "xxx"
+            Summary = "Function that provides a (vertical) spillover list with all celestial bodies from the PROJ database, spanning several rows"
          )]
         public static object CelestialBodyList(
             [ExcelArgument("Use header row (true)", Name = "Header")] object header

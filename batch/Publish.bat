@@ -10,7 +10,7 @@ if not exist "%1publish\x64" (
 		@echo Created: "%1publish\x64"
         copy "%1packages\SharpProj.9.0.157\contentFiles\any\any\proj.db" "%1publish\x64"
         copy "%1packages\SharpProj.9.0.157\contentFiles\any\any\proj.ini" "%1publish\x64"
-        copy "%1packages\SharpProj.Core.9.0.157\runtimes\win-x64\lib\net45\SharpProj.dll" "%1publish\x64"
+        copy "%1packages\SharpProj.Core.9.0.157\runtimes\win-x64\lib\net462\SharpProj.dll" "%1publish\x64"
 		@echo Copied database and 64-bit dll
     )
 )
@@ -22,7 +22,7 @@ if not exist "%1publish\x86" (
 		@echo Created: "%1publish\x86"
         copy "%1packages\SharpProj.9.0.157\contentFiles\any\any\proj.db" "%1publish\x86"
         copy "%1packages\SharpProj.9.0.157\contentFiles\any\any\proj.ini" "%1publish\x86"
-        copy "%1packages\SharpProj.Core.9.0.157\runtimes\win-x86\lib\net45\SharpProj.dll" "%1publish\x86"
+        copy "%1packages\SharpProj.Core.9.0.157\runtimes\win-x86\lib\net462\SharpProj.dll" "%1publish\x86"
 		@echo Copied database and 32-bit dll
     )
 )
@@ -32,6 +32,7 @@ IF "%~2" == "Release" GOTO Release
 exit
 
 :Release
+
 rem copy 64-bit stuff first
 COPY "%1TopoLib\bin\Release\TopoLib-AddIn64-packed.xll"   "%1publish\x64\TopoLib-AddIn64.xll"
 COPY "%1TopoLib\bin\Release\TopoLib-AddIn.chm"               "%1publish\x64\TopoLib-AddIn.chm"
@@ -44,6 +45,9 @@ COPY "%1TopoLib\bin\Release\TopoLib-AddIn.chm"               "%1publish\x86\Topo
 
 COPY "%1TopoLib\bin\Release\TopoLib-AddIn.chm"               "%1TopoLib\bin\Debug\TopoLib-AddIn.chm"
 @echo Copied chm file back to debug folder (need it here too)
+
+rem sign the 32/64 bit XLL and DLL files in the publish folder
+call D:\Source\VS19\CodeSigning\SignTopoLib.bat %1 %2
 
 rem copy the publish folder to the home-drive to work with different PC's.
 @echo Use ROBOCOPY to copy publish folder from "%1publish" to "H:\Source\VS19\TopoLib\publish"

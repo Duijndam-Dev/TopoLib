@@ -74,7 +74,7 @@ ECHO Creating TopoLib folder in your "Documents" folder
 IF NOT EXIST "%UserProfile%\Documents\TopoLib" MKDIR "%UserProfile%\Documents\TopoLib"
 
 ECHO Copying example spreadsheets to (%UserProfile%\Documents\TopoLib)
-Copy ..\*.xlsb   "%UserProfile%\Documents\TopoLib"
+Copy ..\publish\*.xlsb   "%UserProfile%\Documents\TopoLib"
 
 ECHO.
 ECHO Ready installing TopoLib...

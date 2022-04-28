@@ -377,7 +377,6 @@ namespace TopoLib
             Returns = "One or more GPS track(s) as an XML-string in GPX-format. See remarks in help-file for more information",
             
             Summary = "Function that creates one or more GPS tracks(s) in a GPX-string.",
-            Example = "xxx",
             Remarks ="<p>This method uses a (vertical) list of (Long, Lat [,Ele [,Tim/PtName]]) points, and transforms this into an XML-string in GPX-format</p>" +
             "<p>When the list is interrupted by one or more blank lines, or by a line with textual information, this will start a new track-segment</p>" +
             "The point list expects the following (minimal) two to (maximal) four input columns:" +
@@ -615,7 +614,6 @@ namespace TopoLib
             Returns = "One or more GPS track(s) as an XML-string in KML-format. See remarks in help-file for more information",
             
             Summary = "Function that creates one or more GPS tracks(s) in a KML-formatted XML-string.",
-            Example = "xxx",
             Remarks ="<p>This method uses a (vertical) list of (Long, Lat) points, and transforms this into an XML-string in KML-format</p>" +
             "<p>When the list is interrupted by one or more blank lines, or by a line with textual information, this will start a new track-segment</p>" +
             "The point list expects the following two (or three) input columns:" +
