@@ -57,19 +57,13 @@ An installation script has been developed to store the *.xll and associated file
 
 #### 6	Current status
 
-At present, TopoLib is still Work-in-Progress. Not all classes/functions from SharpProj have yet been implemented, and the Ribbon Interface to set persistent library variables has not been fully completed.
+As of **12 May 2022**, the first release of TopoLib has been [published](https://www.duijndam.dev/download/geolib-2021-11-10/) on my website. Nearly all functions from SharpProj have yet been implemented, and the Excel Ribbon Interface provides access to various settings, commands, dialogs and a wizard.
 
-But overall, the Add-In is already very functional; after all, as an end-user you want to convert coordinates from `(lat, long)` to `(x, y)` and the like. For this to happen, you need effectively **just one call**: 
+Despite the vast number of routines, the core functionality of the Add-In is very straight forward; after all, as an end-user you just want to convert a list of coordinates from CRS-source to CRS-target. For this to happen, you need effectively **just one call**: 
 
 `=TL.cct.ApplyForward($F$89,$F$90,$B112:$C112)` 
 
 This will transform the coordinates you provided in `$B112:$C112`to new coordinates using the source Coordinate Reference System (CRS) defined in `$F$89` and the target CRS defined in `$F$90`. That is all there is to it !
-
-The following is planned:
-
-- Complete CCT (Coordinate Conversion and Transformation) functionality
-- Complete CRS (Coordinate Reference System) functionality
-- Complete Ribbon interface to handle persistent library settings
 
 #### 7	Finally
 
@@ -83,9 +77,9 @@ You should then see a dialog like the following
 
 There is an explanation of the purpose of each variable, in this example **SourceCrs** is highlighted. Clicking `Help on this function` will bring up the precompiled help file with extra information on how to use this function.
 
-#### 8	Stuff to do
+#### 8	Still To Do
 
-TO DO: Aim to get **all** identifier information from all contributing transform-steps in one go. Therefore, implement :
+Get **all** identifier information from all contributing transform-steps in one go. Therefore, implement :
 
 ```c#
 string TL.cct.Identifiers = string.Join(", ", transform.Identifiers);
@@ -103,4 +97,4 @@ if (ids == null && transform is CoordinateTransformList ctl)
 }
 ```
 
-Do a similar thing for `Scope` and `Remarks`.
+Do a similar thing for `Scope` and `Remarks`. . .
