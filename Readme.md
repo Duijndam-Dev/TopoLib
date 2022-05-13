@@ -57,7 +57,7 @@ An installation script has been developed to store the *.xll and associated file
 
 #### 6	Current status
 
-As of **12 May 2022**, the first release of TopoLib has been [published](https://www.duijndam.dev/download/geolib-2021-11-10/) on my website. Nearly all functions from SharpProj have yet been implemented, and the Excel Ribbon Interface provides access to various settings, commands, dialogs and a wizard.
+As of **12 May 2022**, the first ***binary*** release of TopoLib has been [published](https://www.duijndam.dev/download/geolib-2021-11-10/) on my website. Nearly all functions from SharpProj have been implemented, and the Excel Ribbon Interface provides access to various settings, commands, dialogs and a wizard.
 
 Despite the vast number of routines, the core functionality of the Add-In is very straight forward; after all, as an end-user you just want to convert a list of coordinates from CRS-source to CRS-target. For this to happen, you need effectively **just one call**: 
 
@@ -79,7 +79,7 @@ There is an explanation of the purpose of each variable, in this example **Sourc
 
 #### 8	Still To Do
 
-Get **all** identifier information from all contributing transform-steps in one go. Therefore, implement :
+Get all identifier information from all contributing transform-steps in one go. Therefore, implement :
 
 ```c#
 string TL.cct.Identifiers = string.Join(", ", transform.Identifiers);
