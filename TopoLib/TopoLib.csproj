@@ -46,13 +46,13 @@
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="Serilog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
-      <HintPath>..\packages\Serilog.2.10.0\lib\net46\Serilog.dll</HintPath>
+      <HintPath>..\packages\Serilog.2.11.0\lib\net46\Serilog.dll</HintPath>
     </Reference>
     <Reference Include="Serilog.Sinks.ExcelDnaLogDisplay, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f225e9659857edbe, processorArchitecture=MSIL">
       <HintPath>..\packages\Serilog.Sinks.ExcelDnaLogDisplay.1.5.0\lib\net472\Serilog.Sinks.ExcelDnaLogDisplay.dll</HintPath>
     </Reference>
-    <Reference Include="SharpProj, Version=9.0.157.0, Culture=neutral, PublicKeyToken=3a930e679d9a0873, processorArchitecture=x86">
-      <HintPath>..\packages\SharpProj.Core.9.0.157\lib\net462\SharpProj.dll</HintPath>
+    <Reference Include="SharpProj, Version=9.1.183.0, Culture=neutral, PublicKeyToken=3a930e679d9a0873, processorArchitecture=x86">
+      <HintPath>..\packages\SharpProj.Core.9.1.183\lib\net462\SharpProj.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -135,17 +135,17 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\ExcelDna.AddIn.1.5.1\build\ExcelDna.AddIn.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ExcelDna.AddIn.1.5.1\build\ExcelDna.AddIn.targets'))" />
-    <Error Condition="!Exists('..\packages\SharpProj.9.0.157\build\SharpProj.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SharpProj.9.0.157\build\SharpProj.targets'))" />
+    <Error Condition="!Exists('..\packages\SharpProj.9.1.183\build\SharpProj.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SharpProj.9.1.183\build\SharpProj.targets'))" />
   </Target>
   <PropertyGroup>
     <PostBuildEvent>REM copy 64-bit SharpProj.dll to output folder (for ExcelDnaDoc to work)
-if $(ConfigurationName)==Release  copy /Y "D:\Source\VS19\TopoLib\packages\SharpProj.Core.9.0.157\runtimes\win-x64\lib\net462\SharpProj.dll" "$(TargetDir)"
+if $(ConfigurationName)==Release  copy /Y "D:\Source\VS19\TopoLib\packages\SharpProj.Core.9.1.183\runtimes\win-x64\lib\net462\SharpProj.dll" "$(TargetDir)"
 
 REM run ExcelDnaDoc
 if $(ConfigurationName)==Release  "D:\Source\VS19\TopoLib\packages\ExcelDnaDoc.1.5.1\tools\ExcelDnaDoc.exe" "$(TargetDir)TopoLib-AddIn.dna" /X
 
 REM copy 32-bit SharpProj.dll back to output folder (running 32-bit Excel)
-if $(ConfigurationName)==Release  copy /Y "D:\Source\VS19\TopoLib\packages\SharpProj.Core.9.0.157\runtimes\win-x86\lib\net462\SharpProj.dll" "$(TargetDir)"
+if $(ConfigurationName)==Release  copy /Y "D:\Source\VS19\TopoLib\packages\SharpProj.Core.9.1.183\runtimes\win-x86\lib\net462\SharpProj.dll" "$(TargetDir)"
 
 REM cleanup RazorEngine files in temp folder. 
 REM See https://superuser.com/questions/764348/using-wildcards-with-the-rmdir-or-rd-command
@@ -158,5 +158,5 @@ if $(ConfigurationName)==Release  "$(SolutionDir)batch\publish.bat" $(SolutionDi
 </PostBuildEvent>
   </PropertyGroup>
   <Import Project="..\packages\ExcelDna.AddIn.1.5.1\build\ExcelDna.AddIn.targets" Condition="Exists('..\packages\ExcelDna.AddIn.1.5.1\build\ExcelDna.AddIn.targets')" />
-  <Import Project="..\packages\SharpProj.9.0.157\build\SharpProj.targets" Condition="Exists('..\packages\SharpProj.9.0.157\build\SharpProj.targets')" />
+  <Import Project="..\packages\SharpProj.9.1.183\build\SharpProj.targets" Condition="Exists('..\packages\SharpProj.9.1.183\build\SharpProj.targets')" />
 </Project>
