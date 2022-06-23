@@ -43,6 +43,11 @@ COPY "%1TopoLib\bin\Release\TopoLib-AddIn-packed.xll"      "%1publish\x86\TopoLi
 COPY "%1TopoLib\bin\Release\TopoLib-AddIn.chm"               "%1publish\x86\TopoLib-AddIn.chm"
 @echo Copied 32-bit xll and chm file
 
+rem now copy the example spreadsheets to pubish folder
+COPY /Y "%1..\TopoLibSpreadsheets\*.xlsb"                         "%1publish\"
+@echo Copied example spreadsheets to publish folder
+
+rem copy chm file back to debug folder (need it here too)
 COPY "%1TopoLib\bin\Release\TopoLib-AddIn.chm"               "%1TopoLib\bin\Debug\TopoLib-AddIn.chm"
 @echo Copied chm file back to debug folder (need it here too)
 
