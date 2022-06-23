@@ -129,6 +129,9 @@
     <None Include="HelpContent\web.config" />
     <Content Include="HelpContent\_readme_.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Samples\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
