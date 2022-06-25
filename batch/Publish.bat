@@ -54,6 +54,13 @@ COPY "%1TopoLib\bin\Release\TopoLib-AddIn.chm"               "%1TopoLib\bin\Debu
 rem sign the 32/64 bit XLL and DLL files in the publish folder
 call D:\Source\VS19\CodeSigning\SignTopoLib.bat %1 %2
 
+rem use 7zip to create an archive containing 'publish' and 'batch' folders on H:/drive
+REM just to make sure; first change current directory to project folder
+CD /D %1
+echo %cd%
+"C:\Program Files\7-Zip\7z.exe" -y a "H:\Source\VS19\TopoLib.zip" batch\ publish\ readme.txt
+@echo.
+
 rem copy the publish folder to the home-drive to work with different PC's.
 @echo Use ROBOCOPY to copy publish folder from "%1publish" to "H:\Source\VS19\TopoLib\publish"
 ROBOCOPY "%1publish" "H:\Source\VS19\TopoLib\publish" /S
