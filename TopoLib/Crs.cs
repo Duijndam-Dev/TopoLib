@@ -79,7 +79,24 @@ namespace TopoLib
                     else
                     {
                         // we have a string of some sorts and a single input parameter:
-                        if ((sCrs.IndexOf("PROJCS") > -1) || (sCrs.IndexOf("GEOGCS") > -1) || (sCrs.IndexOf("SPHEROID") > -1))
+                        // see also : https://github.com/OSGeo/gdal/blob/42843e79211954d1083012fa9ee6c4428e5ce772/gdal/ogr/ogrspatialreference.cpp#L3411-L3428
+                        /*
+                                // WKT1
+                                "GEOGCS", "GEOCCS", "PROJCS", "VERT_CS", "COMPD_CS", "LOCAL_CS",
+                                // WKT2"
+                                "GEODCRS", "GEOGCRS", "GEODETICCRS", "GEOGRAPHICCRS", "PROJCRS",
+                                "PROJECTEDCRS", "VERTCRS", "VERTICALCRS", "COMPOUNDCRS",
+                                "ENGCRS", "ENGINEERINGCRS", "BOUNDCRS"
+                        */
+
+                        if (// WKT1
+                            sCrs.StartsWith("GEOGCS")        || sCrs.StartsWith("GEOCCS")         || sCrs.StartsWith("PROJCS")       ||
+                            sCrs.StartsWith("VERT_CS")       || sCrs.StartsWith("COMPD_CS")       || sCrs.StartsWith("LOCAL_CS")     ||
+                            // WKT2
+                            sCrs.StartsWith("GEODCRS")       || sCrs.StartsWith("GEOGCRS")        || sCrs.StartsWith("GEODETICCRS")  || 
+                            sCrs.StartsWith("GEOGRAPHICCRS") || sCrs.StartsWith("PROJCRS")        || sCrs.StartsWith("PROJECTEDCRS") ||
+                            sCrs.StartsWith("VERTCRS")       || sCrs.StartsWith("VERTICALCRS")    || sCrs.StartsWith("COMPOUNDCRS")  || 
+                            sCrs.StartsWith("ENGCRS")        || sCrs.StartsWith("ENGINEERINGCRS") || sCrs.StartsWith("BOUNDCRS"))
                         {
                             // it must be WKT (well, we hope)
                             return CoordinateReferenceSystem.CreateFromWellKnownText(sCrs, pjContext);
